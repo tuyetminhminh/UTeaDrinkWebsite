@@ -57,11 +57,8 @@
 - ShippingProvider
 - AdminSettings
 
-## Timeline
-**Từ ngày 8 - 10: **Thiên Hoàng
-**Từ ngày 11 - 13: **Tuyết Minh
-**Từ ngày 14 - 16: **Công Quân
-**Từ ngày 14 - 16: **Thanh Nhàn
-**Tuần 7-8:** Vendor + Admin Features
-**Tuần 9:** Testing + Integration
-**Tuần 10:** Final Report + Deployment
+## Timeline tháng 10
+**Từ ngày 8 - 10:** Thiên Hoàng
+**Từ ngày 11 - 13:** Tuyết Minh
+**Từ ngày 14 - 16:** Công Quân
+**Từ ngày 14 - 16:** Thanh Nhàn
