@@ -1,288 +1,220 @@
 # UTeaDrinkWebsite
 # PHÂN CÔNG NHIỆM VỤ - NHÓM 9
 
-## Thành viên 1: Phạm Thiên Hoàng
-**Công việc:**
-- [ ] Setup project Spring Boot
-- [ ] Cấu hình Spring Security + JWT
-- [ ] Authentication & Authorization
-- [ ] Email Service với OTP
-- [ ] WebSocket configuration
-- [ ] Mã hóa mật khẩu
+## Thành viên 1: Phạm Thiên Hoàng : Authentication & Security
+**CÔNG VIỆC CHÍNH:**
+- Authentication system (8-12/10)
+- User profile management (16-17/10)
+- WebSocket notifications (18-19/10)
+- Security testing (23/10)
 
-**Entity phụ trách:**
-- User, Role, Permission
-- OTP, Email Template
+## Thành viên 2: Phạm Thị Tuyết Minh : Product & User Features
+**CÔNG VIỆC CHÍNH:**
+- Product system (9-15/10)
+- Review & rating (16-17/10)
+- Search & filtering (18-19/10)
+- UI refinement (22/10)
 
-## Thành viên 2: Phạm Thị Tuyết MInh 
-**Công việc:**
-- [ ] Trang chủ, danh mục sản phẩm
-- [ ] Tìm kiếm, lọc, phân trang
-- [ ] Chi tiết sản phẩm
-- [ ] Giỏ hàng, Wishlist
-- [ ] Profile user management
-- [ ] Lịch sử xem sản phẩm
-
-**Entity phụ trách:**
-- Product, Category, ProductImage
-- Cart, CartItem, Wishlist
-- UserProfile, Address
-
-## Thành viên 3: Đặng Công Quân
-**Công việc:**
-- [ ] Order management system
-- [ ] Payment integration (VNPay, Momo)
-- [ ] Review & Comment system
-- [ ] Coupon & Discount
-- [ ] Order history & tracking
-
-**Entity phụ trách:**
-- Order, OrderItem, OrderStatus
-- Payment, PaymentMethod
-- Review, Comment
-- Coupon, Discount
+## Thành viên 3: Đặng Công Quân : Order & Payment
+**CÔNG VIỆC CHÍNH:**
+- Cart system (11-15/10)
+- Payment integration (16-17/10)
+- Order management (18-19/10)
+- Payment testing (23/10)
 
 ## Thành viên 4: Cáp Thanh Nhàn
-**Công việc:**
-- [ ] Vendor shop management
-- [ ] Admin dashboard
-- [ ] Category management
-- [ ] Promotion management
-- [ ] Revenue statistics
-- [ ] Shipping provider management
+**CÔNG VIỆC CHÍNH:**
+- Management entities (9-10/10)
+- Vendor system (13-17/10)
+- Admin system (18-19/10)
+- Final testing (23/10)
 
-**Entity phụ trách:**
-- Shop, Vendor
-- Promotion, Revenue
-- ShippingProvider
-- AdminSettings
+🗓️ LỊCH TRÌNH CHI TIẾT HOÀN THÀNH ĐẾN 24/10
 
-## Timeline tháng 10
-**Từ ngày 8 - 10:** Thiên Hoàng
-**Từ ngày 11 - 13:** Tuyết Minh
-**Từ ngày 14 - 16:** Công Quân
-**Từ ngày 14 - 16:** Thanh Nhàn
+📅 LỊCH TRÌNH NÉN - 2.5 TUẦN (9/10 - 24/10)
 
-🗓️ LỊCH TRÌNH CHI TIẾT HOÀN THÀNH ĐẾN 23/10
-📅 LỊCH TRÌNH NÉN - 2.5 TUẦN (7/10 - 23/10)
-TUẦN 1 (7/10 - 13/10): CORE FOUNDATION
-Ngày 7-8/10: PROJECT SETUP (Thiên Hoàng)
+Ngày 9-10/10: PROJECT SETUP & ENTITIES
 
-**BẮT BUỘC HOÀN THÀNH:**
-- [x] Spring Boot project với đầy đủ dependencies
-- [x] Database configuration (MySQL)
-- [x] Basic entity structure (User, Role, Product, Category)
-- [x] Spring Security + JWT setup
-- [x] Git repository organization
-Ngày 9-10/10: AUTHENTICATION SYSTEM (Thiên Hoàng)
+**TẤT CẢ CÙNG LÀM ENTITIES:**
 
-**CỐT LÕI:**
-- [ ] Complete JWT authentication
-- [ ] User registration với OTP email
-- [ ] Login/Logout functionality
-- [ ] Password encryption (BCrypt)
-- [ ] Forgot password với OTP
+THIÊN HOÀNG (Auth):
+- [ ] User, Role, OTP, Address entities
+- [ ] Spring Security config
+- [ ] JWT dependencies
 
-**MERGE vào main ngày 10/10**
-Ngày 11-12/10: PRODUCT SYSTEM (Tuyết Minh)
+TUYẾT MINH (Product):
+- [ ] Product, Category, ProductImage entities
+- [ ] Review, Comment entities
+- [ ] Wishlist, ViewedProduct entities
 
-**CỐT LÕI:**
-- [ ] Product, Category entities hoàn chỉnh
-- [ ] Product repository + service
-- [ ] Homepage controller + basic template
-- [ ] Product listing với pagination
-- [ ] Search & filter functionality
+CÔNG QUÂN (Order):
+- [ ] Cart, CartItem, Order, OrderItem entities
+- [ ] Payment, Coupon entities
+- [ ] OrderStatus enum
 
-**Bootstrap template áp dụng**
-Ngày 13/10: INTEGRATION & TESTING
+THANH NHÀN (Management):
+- [ ] Shop, Vendor, AdminSettings entities
+- [ ] Promotion, ShippingProvider entities
+- [ ] Revenue, Statistics entities
 
-**CẢ NHÓM:**
-- [ ] Merge all code vào main
-- [ ] Fix conflicts + integration issues
-- [ ] Basic testing authentication + product display
-- [ ] Database seeding với sample data
-TUẦN 2 (14/10 - 20/10): USER FEATURES & ORDER SYSTEM
-Ngày 14-15/10: USER PROFILE & CART (Tuyết Minh + Công Quân)
+→ MERGE CHUNG ngày 10/10 tối
 
-**TUYẾT MINH:**
+**Ngày 11-12/10: REPOSITORY & SERVICE LAYER
+
+**MỖI NGƯỜI LÀM PHẦN MÌNH:**
+
+THIÊN HOÀNG:
+- [ ] UserRepository, UserService
+- [ ] AuthService, EmailService
+- [ ] JWT utility class
+
+TUYẾT MINH:
+- [ ] ProductRepository, ProductService
+- [ ] CategoryRepository, CategoryService
+- [ ] ReviewRepository, ReviewService
+
+CÔNG QUÂN:
+- [ ] CartRepository, CartService
+- [ ] OrderRepository, OrderService
+- [ ] PaymentRepository, PaymentService
+
+THANH NHÀN:
+- [ ] ShopRepository, ShopService
+- [ ] VendorRepository, VendorService
+- [ ] AdminRepository, AdminService
+
+→ MERGE ngày 12/10 tối
+
+Ngày 13-15/10: CONTROLLER & BASIC UI
+
+**PHÁT TRIỂN SONG SONG:**
+
+THIÊN HOÀNG:
+- [ ] AuthController (login, register, logout)
+- [ ] OTPController (send, verify)
+- [ ] Basic auth pages với Bootstrap
+
+TUYẾT MINH:
+- [ ] ProductController (list, detail, search)
+- [ ] CategoryController
+- [ ] Homepage, product list pages
+
+CÔNG QUÂN:
+- [ ] CartController (add, remove, update)
+- [ ] Basic cart UI
+- [ ] OrderController skeleton
+
+THANH NHÀN:
+- [ ] VendorController (register, dashboard)
+- [ ] AdminController (dashboard, user management)
+- [ ] Basic admin/vendor templates
+
+→ MERGE & TEST ngày 15/10 cuối tuần
+
+TUẦN 2: FEATURE COMPLETION (16/10 - 21/10)
+
+Ngày 16-17/10: USER FEATURES & PAYMENT
+
+**PHÂN CÔNG CÂN BẰNG:**
+
+THIÊN HOÀNG:
 - [ ] User profile management
 - [ ] Address management (multiple addresses)
-- [ ] Product detail page
-- [ ] Wishlist functionality
+- [ ] Profile edit pages
 
-**CÔNG QUÂN:**
-- [ ] Cart system (database storage)
-- [ ] CartItem entity + relationships
-- [ ] Add/remove/update cart items
-- [ ] Cart UI với Bootstrap
-Ngày 16-17/10: ORDER SYSTEM (Công Quân)
-
-**CỐT LÕI:**
-- [ ] Order + OrderItem entities
-- [ ] Order status workflow (6 trạng thái)
-- [ ] Order management service
-- [ ] Order history với filtering
-- [ ] Basic checkout process
-
-**MERGE ngày 17/10**
-Ngày 18-19/10: PAYMENT & REVIEWS (Công Quân + Tuyết Minh)
-
-**CÔNG QUÂN:**
-- [ ] Payment integration (COD + VNPay)
-- [ ] Payment validation + processing
-
-**TUYẾT MINH:**
-- [ ] Review system (50+ characters validation)
+TUYẾT MINH:
+- [ ] Product review system (50+ chars validation)
 - [ ] Comment system với image upload
 - [ ] Product rating functionality
-- [ ] Viewed products history
-Ngày 20/10: INTEGRATION WEEK 2
 
-**CẢ NHÓM:**
-- [ ] Merge complete user features
-- [ ] End-to-end testing: Register → Browse → Cart → Checkout → Pay
-- [ ] Fix critical bugs
-- [ ] Responsive design check
-TUẦN 2.5 (21/10 - 23/10): VENDOR & ADMIN + FINALIZATION
-Ngày 21/10: VENDOR SYSTEM (Thanh Nhàn)
+CÔNG QUÂN:
+- [ ] Payment integration (VNPay)
+- [ ] Order completion flow
+- [ ] Payment success/failure handling
 
-**CỐT LÕI:**
-- [ ] Shop registration + management
-- [ ] Vendor dashboard
-- [ ] Product management for vendors
+THANH NHÀN:
+- [ ] Vendor product management (CRUD)
 - [ ] Vendor order management
+- [ ] Shop management interface
 
-**ƯU TIÊN: Shop registration + product management**
-Ngày 22/10: ADMIN SYSTEM (Thanh Nhàn)
+→ MERGE ngày 17/10 tối
 
-**CỐT LÕI:**
-- [ ] Admin dashboard
-- [ ] User management
-- [ ] Category management
-- [ ] Product management across shops
+Ngày 18-19/10: ADVANCED FEATURES
+
+**TIẾP TỤC SONG SONG:**
+
+THIÊN HOÀNG:
+- [ ] WebSocket notifications
+- [ ] Real-time order updates
+- [ ] Security refinements
+
+TUYẾT MINH:
+- [ ] Advanced search & filtering
+- [ ] Product pagination (20 items)
+- [ ] Product sorting (new, popular, etc.)
+
+CÔNG QUÂN:
+- [ ] Order history với status tracking
+- [ ] Order status management (6 trạng thái)
+- [ ] Order detail pages
+
+THANH NHÀN:
+- [ ] Admin category management
 - [ ] Shipping provider management
+- [ ] System promotion management
 
-**ƯU TIÊN: User management + category management**
-Ngày 23/10: FINAL INTEGRATION & DEPLOYMENT
+→ MERGE ngày 19/10 tối
+
+Ngày 20-21/10: INTEGRATION & TESTING
+
+**CẢ NHÓM CÙNG TEST:**
+
+THIÊN HOÀNG: Test auth flow end-to-end
+TUYẾT MINH: Test product/review flow
+CÔNG QUÂN: Test order/payment flow
+THANH NHÀN: Test vendor/admin flow
+
+→ FIX BUGS CRITICAL ngày 21/10
+
+TUẦN 2.5: POLISHING (22/10 - 24/10)
+
+Ngày 22/10: UI/UX IMPROVEMENT
+
+**MỖI NGƯỜI HOÀN THIỆN PHẦN MÌNH:**
+
+THIÊN HOÀNG: Responsive auth pages
+TUYẾT MINH: Product UI refinement
+CÔNG QUÂN: Order/payment UI polish
+THANH NHÀN: Admin/vendor dashboard UI
+
+→ Responsive design check
+
+Ngày 23/10: FINAL TESTING & DOCUMENTATION
+
+**TEST TOÀN BỘ HỆ THỐNG:**
+
+THIÊN HOÀNG: 
+- [ ] Security testing
+- [ ] Auth documentation
+
+TUYẾT MINH:
+- [ ] Product feature testing
+- [ ] User feature documentation
+
+CÔNG QUÂN:
+- [ ] Order/payment testing
+- [ ] Payment flow documentation
+
+THANH NHÀN:
+- [ ] Vendor/admin testing
+- [ ] Management documentation
+
+→ FINAL BUG FIXES
+
+Ngày 24/10: DEPLOYMENT READY
 
 **CẢ NHÓM:**
-- [ ] FINAL MERGE tất cả tính năng
-- [ ] Comprehensive testing tất cả role
-- [ ] Fix critical bugs cuối cùng
-- [ ] Database seeding đầy đủ
-- [ ] Preparation for demonstration
-- [ ] Documentation finalization
-🎯 PHÂN CÔNG THEO TÍNH NĂNG BẮT BUỘC
-THIÊN HOÀNG: Authentication & Security
-
-**PHẢI HOÀN THÀNH TRƯỚC 10/10:**
-- [ ] JWT Authentication ✅
-- [ ] OTP Email registration ✅  
-- [ ] Password reset với OTP ✅
-- [ ] Role-based authorization ✅
-- [ ] Security configuration ✅
-TUYẾT MINH: Product & User Features
-
-**PHẢI HOÀN THÀNH TRƯỚC 15/10:**
-- [ ] Product system (CRUD) ✅
-- [ ] Search & filter ✅
-- [ ] Pagination (20 products) ✅
-- [ ] User profile + addresses ✅
-- [ ] Product reviews + comments ✅
-- [ ] Wishlist + viewed history ✅
-CÔNG QUÂN: Order & Payment
-
-**PHẢI HOÀN THÀNH TRƯỚC 19/10:**
-- [ ] Cart system (database) ✅
-- [ ] Order management ✅
-- [ ] Payment integration (COD + VNPay) ✅
-- [ ] Order status workflow ✅
-- [ ] Order history + tracking ✅
-THANH NHÀN: Vendor & Admin
-
-**PHẢI HOÀN THÀNH TRƯỚC 22/10:**
-- [ ] Vendor shop registration ✅
-- [ ] Vendor product/order management ✅
-- [ ] Admin dashboard ✅
-- [ ] User/category management ✅
-- [ ] Shipping provider management ✅
-⚡ CHIẾN LƯỢC TỐI ƯU CHO DEADLINE 23/10
-1. Ưu tiên tính năng CỐT LÕI:
-
-**MUST-HAVE (90% điểm):**
-- Authentication + OTP ✅
-- Product browsing + search ✅  
-- Cart + Order + Payment ✅
-- User profile + reviews ✅
-- Vendor shop management ✅
-- Admin basic management ✅
-
-**NICE-TO-HAVE (10% điểm):**
-- Shipper role ❌ (BỎ QUA nếu không kịp)
-- Complex revenue statistics ❌ (Simplified)
-- Multiple payment gateways ❌ (Chỉ VNPay)
-2. Parallel Development Strategy:
-
-**TUẦN 1:** Thiên Hoàng (Auth) → Tuyết Minh (Product)
-**TUẦN 2:** Tuyết Minh (User) + Công Quân (Cart/Order) PARALLEL
-**TUẦN 2.5:** Thanh Nhàn (Vendor/Admin) + Others testing
-3. Daily Integration:
-
-**MỖI TỐI 9PM:** 
-- Merge code vào development branch
-- Quick testing session
-- Plan for next day
-
-**WEEKEND 12-13/10 & 19-20/10:** 
-- Intensive coding sessions
-- Critical integration points
-🚨 CHECKLIST HOÀN THÀNH THEO NGÀY
-10/10 CHECKPOINT:
-
-- [ ] Users can register với OTP ✅
-- [ ] Users can login/logout ✅  
-- [ ] Basic product display ✅
-- [ ] Database relationships working ✅
-15/10 CHECKPOINT:
-
-- [ ] Full product browsing + search ✅
-- [ ] User profile management ✅
-- [ ] Shopping cart functional ✅
-- [ ] Responsive Bootstrap UI ✅
-20/10 CHECKPOINT:
-
-- [ ] Complete order workflow ✅
-- [ ] Payment integration working ✅
-- [ ] Product reviews + ratings ✅
-- [ ] End-to-end user journey tested ✅
-23/10 FINAL CHECKPOINT:
-
-- [ ] Vendor system operational ✅
-- [ ] Admin management working ✅
-- [ ] All role functionalities tested ✅
-- [ ] Final documentation ✅
-- [ ] Demo preparation ✅
-📊 ĐẢM BẢO CHẤT LƯỢNG VỚI THỜI GIAN NGẮN
-Code Quality Shortcuts:
-java
-// Sử dụng Lombok để giảm boilerplate code
-@Entity @Data @Builder
-public class User {
-    private String email;
-    private String password;
-}
-
-// Sử dụng Spring Data JPA methods thay v custom query
-public interface ProductRepository extends JpaRepository<Product, Long> {
-    List<Product> findTop20ByOrderByCreatedAtDesc();
-    List<Product> findByNameContaining(String keyword);
-}
-Template Strategy:
-html
-<!-- Sử dụng Bootstrap 5 template có sẵn -->
-<!-- Tập trung vào functionality thay vì custom design -->
-Với lịch trình này, nhóm bạn có thể HOÀN THÀNH 95% yêu cầu và ĐẠT 9+ ĐIỂM trước deadline 23/10! 🎯🚀
-
-
-
-
+- [ ] Final merge
+- [ ] Database seeding
+- [ ] Demo preparation
+- [ ] Project submission
