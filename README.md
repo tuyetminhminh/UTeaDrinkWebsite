@@ -29,11 +29,11 @@
 - Admin system (18-19/10)
 - Final testing (23/10)
 
-🗓️ LỊCH TRÌNH CHI TIẾT HOÀN THÀNH ĐẾN 24/10
+# 🗓️ LỊCH TRÌNH CHI TIẾT HOÀN THÀNH ĐẾN 24/10
 
-📅 LỊCH TRÌNH NÉN - 2.5 TUẦN (9/10 - 24/10)
+# 📅 LỊCH TRÌNH NÉN - 2.5 TUẦN (9/10 - 24/10)
 
-Ngày 9-10/10: PROJECT SETUP & ENTITIES
+**Ngày 9-10/10: PROJECT SETUP & ENTITIES**
 
 **TẤT CẢ CÙNG LÀM ENTITIES:**
 
@@ -59,7 +59,7 @@ THANH NHÀN (Management):
 
 → MERGE CHUNG ngày 10/10 tối
 
-**Ngày 11-12/10: REPOSITORY & SERVICE LAYER
+**Ngày 11-12/10: REPOSITORY & SERVICE LAYER**
 
 **MỖI NGƯỜI LÀM PHẦN MÌNH:**
 
@@ -85,7 +85,7 @@ THANH NHÀN:
 
 → MERGE ngày 12/10 tối
 
-Ngày 13-15/10: CONTROLLER & BASIC UI
+**Ngày 13-15/10: CONTROLLER & BASIC UI**
 
 **PHÁT TRIỂN SONG SONG:**
 
@@ -111,11 +111,11 @@ THANH NHÀN:
 
 → MERGE & TEST ngày 15/10 cuối tuần
 
-TUẦN 2: FEATURE COMPLETION (16/10 - 21/10)
+**TUẦN 2: FEATURE COMPLETION (16/10 - 21/10)**
 
-Ngày 16-17/10: USER FEATURES & PAYMENT
+**Ngày 16-17/10: USER FEATURES & PAYMENT**
 
-**PHÂN CÔNG CÂN BẰNG:**
+**PHÂN CÔNG:**
 
 THIÊN HOÀNG:
 - [ ] User profile management
@@ -139,9 +139,9 @@ THANH NHÀN:
 
 → MERGE ngày 17/10 tối
 
-Ngày 18-19/10: ADVANCED FEATURES
+**Ngày 18-19/10: ADVANCED FEATURES**
 
-**TIẾP TỤC SONG SONG:**
+**TIẾP TỤC CÔNG VIỆC:**
 
 THIÊN HOÀNG:
 - [ ] WebSocket notifications
@@ -165,7 +165,7 @@ THANH NHÀN:
 
 → MERGE ngày 19/10 tối
 
-Ngày 20-21/10: INTEGRATION & TESTING
+**Ngày 20-21/10: INTEGRATION & TESTING**
 
 **CẢ NHÓM CÙNG TEST:**
 
@@ -176,9 +176,9 @@ THANH NHÀN: Test vendor/admin flow
 
 → FIX BUGS CRITICAL ngày 21/10
 
-TUẦN 2.5: POLISHING (22/10 - 24/10)
+**TUẦN 2.5: POLISHING (22/10 - 24/10)**
 
-Ngày 22/10: UI/UX IMPROVEMENT
+**Ngày 22/10: UI/UX IMPROVEMENT**
 
 **MỖI NGƯỜI HOÀN THIỆN PHẦN MÌNH:**
 
@@ -189,7 +189,7 @@ THANH NHÀN: Admin/vendor dashboard UI
 
 → Responsive design check
 
-Ngày 23/10: FINAL TESTING & DOCUMENTATION
+**Ngày 23/10: FINAL TESTING & DOCUMENTATION**
 
 **TEST TOÀN BỘ HỆ THỐNG:**
 
@@ -211,10 +211,94 @@ THANH NHÀN:
 
 → FINAL BUG FIXES
 
-Ngày 24/10: DEPLOYMENT READY
+**Ngày 24/10: DEPLOYMENT READY**
 
 **CẢ NHÓM:**
 - [ ] Final merge
 - [ ] Database seeding
 - [ ] Demo preparation
 - [ ] Project submission
+
+## 🎯 TÓM TẮT PHÂN CÔNG NHIỆM VỤ
+
+**THIÊN HOÀNG: Authentication & Security**
+
+**CÔNG VIỆC CHÍNH:**
+- Authentication system (8-12/10)
+- User profile management (16-17/10)
+- WebSocket notifications (18-19/10)
+- Security testing (23/10)
+
+**TUYẾT MINH: Product & User Features**
+
+**CÔNG VIỆC CHÍNH:**
+- Product system (9-15/10)
+- Review & rating (16-17/10)
+- Search & filtering (18-19/10)
+- UI refinement (22/10)
+
+**CÔNG QUÂN: Order & Payment**
+
+**CÔNG VIỆC CHÍNH:**
+- Cart system (11-15/10)
+- Payment integration (16-17/10)
+- Order management (18-19/10)
+- Payment testing (23/10)
+
+**THANH NHÀN: Vendor & Admin**
+
+**CÔNG VIỆC CHÍNH:**
+- Management entities (9-10/10)
+- Vendor system (13-17/10)
+- Admin system (18-19/10)
+- Final testing (23/10)
+
+
+## 🔄 CHIẾN LƯỢC HỖ TRỢ LẪN NHAU
+**Tuần 3 (22-24/10) - Hỗ trợ chéo:**
+- Nếu CÔNG QUÂN chậm payment → THIÊN HOÀNG hỗ trợ
+- Nếu TUYẾT MINH chậm search → THANH NHÀN hỗ trợ  
+- Nếu THANH NHÀN chậm admin → CÔNG QUÂN hỗ trợ
+- Nếu THIÊN HOÀNG chậm WebSocket → TUYẾT MINH hỗ trợ
+
+**Daily Check-in (15 phút mỗi sáng):**
+- Tiến độ hôm qua
+- Khó khăn gặp phải
+- Kế hoạch hôm nay
+- Cần hỗ trợ gì không
+
+## 📱 COMMUNICATION & COORDINATION
+**Git Workflow:**
+_<Mỗi ngày>_
+git pull origin main
+_<Làm việc trên branch riêng>_
+git add . && git commit -m "feat: [mô tả] - [tên] - [ngày]"
+git push origin branch-ca-nhan
+_<Tối merge vào main>_
+
+**File Structure để tránh conflict:**
+
+src/main/java/com/alotra/
+├── auth/           (Thiên Hoàng)
+├── product/        (Tuyết Minh)  
+├── order/          (Công Quân)
+├── management/     (Thanh Nhàn)
+└── config/         (Thiên Hoàng - chỉ 1 người sửa)
+
+# 🚨 ƯU TIÊN TÍNH NĂNG THEO ĐIỂM
+**MUST-HAVE (Làm trước):**
+
+✅ Authentication + OTP
+✅ Product browsing + search
+✅ Cart + Order basic
+✅ Payment ít nhất 1 method
+✅ User profile + reviews
+✅ Vendor shop management
+✅ Admin user/category management
+
+**NICE-TO-HAVE (Làm sau nếu có time):**
+
+⏳ Multiple payment methods
+⏳ Complex revenue statistics  
+⏳ Shipper role
+⏳ Advanced promotion system
