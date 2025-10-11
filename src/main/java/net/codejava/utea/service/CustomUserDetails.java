@@ -5,10 +5,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.security.Principal;
 import java.util.Collection;
 import java.util.List;
 
-public class CustomUserDetails implements UserDetails {
+public class CustomUserDetails implements UserDetails, Principal {
 
     private final Account account;
 
@@ -26,6 +27,11 @@ public class CustomUserDetails implements UserDetails {
 
     public String getRole() {
         return account.getRole();
+    }
+
+    // Phương thức mới để lấy thông tin Account
+    public Account getAccount() {
+        return this.account;
     }
 
     @Override
@@ -54,4 +60,9 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() { return account.isEnabled(); }
+
+    @Override
+    public String getName() {
+        return getUsername();  // Trả về username như tên của Principal
+    }
 }

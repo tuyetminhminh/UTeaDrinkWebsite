@@ -1,114 +1,92 @@
 package net.codejava.utea.config;
 
-import net.codejava.utea.service.CustomUserDetails;
+import net.codejava.utea.security.JwtAuthFilter;
+import net.codejava.utea.security.JwtAuthenticationEntryPoint;
+import net.codejava.utea.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
 
+    private final JwtAuthFilter jwtAuthFilter;
+    private final JwtAuthenticationEntryPoint entryPoint;
     private final UserDetailsService userDetailsService;
 
-    public SecurityConfig(UserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService;
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter,
+                          JwtAuthenticationEntryPoint entryPoint,
+                          CustomUserDetailsService uds) {
+        this.jwtAuthFilter = jwtAuthFilter;
+        this.entryPoint = entryPoint;
+        this.userDetailsService = uds;
     }
 
-    /**
-     * ✅ Tạm thời không mã hóa mật khẩu (dùng NoOp cho dễ test)
-     */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
-        // return new BCryptPasswordEncoder(); // Dùng khi đã hash mật khẩu trong DB
+        return NoOpPasswordEncoder.getInstance(); // Dev only
+        // return new BCryptPasswordEncoder();     // Prod
     }
 
-    /**
-     * ✅ Provider xác thực người dùng từ DB
-     */
+
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return provider;
+        var p = new DaoAuthenticationProvider();
+        p.setUserDetailsService(userDetailsService);
+        p.setPasswordEncoder(passwordEncoder());
+        return p;
     }
 
-    /**
-     * ✅ Cấu hình bảo mật hệ thống
-     */
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+        return authConfig.getAuthenticationManager();
+    }
+
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .csrf(csrf -> csrf.disable()) // Tắt CSRF để dễ test form
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(eh -> eh.authenticationEntryPoint(entryPoint))
                 .authorizeHttpRequests(auth -> auth
-
-                        // ===== 🌐 CÁC TRANG KHÁCH XEM (KHÔNG CẦN LOGIN) =====
-                        .requestMatchers(
-                                "/",                     // root
-                                "/main-home",
-                                "/guest/**",// trang chủ chính
-                                "/home",                 // alias
-                                "/index",                // alias khác nếu có
-                                "/about", "/contact",    // nếu có thêm menu
+                        // ✅ Cho phép API auth truy cập mà không cần JWT
+                        .requestMatchers("/api/auth/**", "/login", "/register", "/forgot", "/reset", "/otp/**").permitAll()
+                        // Public (giữ như bạn đã cấu hình)
+                        .requestMatchers("/", "/main-home", "/home", "/index",
+                                "/about", "/contact",
                                 "/products", "/products/**",
-                                "/fragments/**",         // header/footer fragments
-                                "/css/**", "/js/**", "/images/**", "/uploads/**", "/assets/**"
+                                "/fragments/**", "/css/**", "/js/**", "/images/**", "/uploads/**", "/assets/**",
+                                "/login", "/register", "/forgot", "/reset", "/otp/**",
+                                "/ws/**" // WebSocket handshake
                         ).permitAll()
 
-                        // ===== 🔐 CÁC TRANG CÓ PHÂN QUYỀN =====
+
+                        // Role-based (giữ y nguyên)
                         .requestMatchers("/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/customer/**").hasAuthority("CUSTOMER")
                         .requestMatchers("/seller/**").hasAuthority("SELLER")
                         .requestMatchers("/shipper/**").hasAuthority("SHIPPER")
                         .requestMatchers("/chat/**").hasAnyAuthority("ADMIN", "CUSTOMER")
 
-                        // ===== 📧 AUTH ROUTES =====
-                        .requestMatchers("/login", "/register", "/forgot", "/reset", "/otp/**").permitAll()
-
-                        // ===== 🚫 CÒN LẠI PHẢI ĐĂNG NHẬP =====
                         .anyRequest().authenticated()
                 )
+                ;
 
-                // ===== 🔓 CẤU HÌNH LOGIN FORM =====
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .successHandler((request, response, authentication) -> {
-                            CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
-                            String role = user.getRole();
-
-                            // ✅ Điều hướng sau đăng nhập
-                            switch (role.toUpperCase()) {
-                                case "ADMIN" -> response.sendRedirect("/admin/home");
-                                case "CUSTOMER" -> response.sendRedirect("/customer/home");
-                                case "SELLER" -> response.sendRedirect("/seller/home");
-                                case "SHIPPER" -> response.sendRedirect("/shipper/home");
-                                default -> response.sendRedirect("/main-home");
-                            }
-                        })
-                        .failureUrl("/login?error=true")
-                        .permitAll()
-                )
-
-                // ===== 🚪 LOGOUT =====
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/main-home?logout=true")
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID")
-                        .permitAll()
-                )
-
-                // ===== 🧱 BẢO VỆ FRAME / CLICKJACKING =====
-                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
-
+        http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        // ✅ Gắn provider vào SecurityContext
+        http.authenticationProvider(authenticationProvider());
         return http.build();
     }
 }

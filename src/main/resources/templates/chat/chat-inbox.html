@@ -1,164 +1,23 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>UTeaDrink</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inbox - Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background: #f5f6fa; font-family: "Segoe UI", sans-serif; }
-
-        .inbox-container {
-            display: flex;
-            height: 90vh;
-            max-width: 1200px;
-            margin: 20px auto;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 300px;
-            background: #2c3e50;
-            color: #ecf0f1;
-            display: flex;
-            flex-direction: column;
-        }
-        .sidebar h4 {
-            padding: 20px;
-            font-weight: bold;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .customer-item {
-            padding: 15px 20px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .customer-item:hover {
-            background: #34495e;
-        }
-        .customer-item.active {
-            background: #1abc9c;
-            color: #fff;
-        }
-
-        /* Chat area */
-        .chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .chat-header {
-            background: #ff6b81;
-            color: white;
-            padding: 15px 20px;
-            font-weight: bold;
-            font-size: 18px;
-        }
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: #fdfdfd;
-        }
-        .message { margin-bottom: 15px; display: flex; }
-        .message.admin { justify-content: flex-end; }
-        .bubble {
-            padding: 10px 15px;
-            border-radius: 16px;
-            max-width: 70%;
-            font-size: 14px;
-        }
-        .customer .bubble {
-            background: #ecf0f1;
-            color: #2c3e50;
-            border-bottom-left-radius: 0;
-        }
-        .admin .bubble {
-            background: #3498db;
-            color: white;
-            border-bottom-right-radius: 0;
-        }
-        .chat-input {
-            border-top: 1px solid #ddd;
-            padding: 10px;
-            display: flex;
-        }
-        .chat-input input {
-            flex: 1;
-            border: none;
-            padding: 12px;
-            border-radius: 25px;
-            background: #f1f1f1;
-            outline: none;
-        }
-        .chat-input button {
-            margin-left: 10px;
-            border: none;
-            border-radius: 50%;
-            width: 45px;
-            height: 45px;
-            background: #ff6b81;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-        }
-        .chat-input button:hover { background: #e63950; }
-    </style>
 </head>
 <body>
-<div th:replace="fragments/header :: header"></div>
-
-<div class="inbox-container">
-    <!-- Sidebar khách hàng -->
-    <div class="sidebar">
-        <h4>📨 Khách hàng</h4>
-        <div th:each="cust : ${customers}"
-             class="customer-item"
-             th:classappend="${activeCustomer != null and activeCustomer.id == cust.id} ? 'active'"
-             th:data-id="${cust.id}">
-            <span th:text="${cust.displayName}"></span>
-        </div>
-    </div>
-
-    <!-- Chat area -->
-    <div class="chat-area">
-        <div class="chat-header">
-            💬 Trò chuyện với
-            <span th:text="${activeCustomer != null ? activeCustomer.displayName : '...'}"></span>
-        </div>
-        <div class="chat-messages" id="chat-box">
-            <div th:each="msg : ${messages}"
-                 th:classappend="${msg.sender.role == 'ADMIN'} ? 'message admin' : 'message customer'">
-                <div class="bubble">
-                    <small class="fw-bold" th:text="${msg.sender.displayName}"></small><br>
-                    <span th:text="${msg.content}"></span>
-                </div>
-            </div>
-        </div>
-        <form id="chatForm" class="chat-input" th:if="${activeCustomer != null}">
-            <input type="hidden" id="conversationId" th:value="${conversationId}"/>
-            <input type="hidden" id="currentUserId" th:value="${currentUserId}"/>
-            <input type="text" id="messageInput" placeholder="Nhập tin nhắn..." autocomplete="off"/>
-            <button type="submit">➤</button>
-        </form>
-    </div>
+<div class="container mt-5">
+    <h2>Your Conversations</h2>
+    <ul class="list-group">
+        <!-- Example for one conversation, repeat this for all conversations -->
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            Conversation with {{customer.name}}
+            <a href="/chat/{{conversation.id}}" class="btn btn-primary btn-sm">Start Chat</a>
+        </li>
+    </ul>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-<script src="/js/chat.js"></script>
-
-<script>
-    // Bắt sự kiện click vào khách hàng để load lại chat (dùng redirect)
-    document.querySelectorAll(".customer-item").forEach(item => {
-        item.addEventListener("click", () => {
-            const id = item.getAttribute("data-id");
-            window.location.href = "/chat?customerId=" + id;
-        });
-    });
-</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
