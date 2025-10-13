@@ -1,4 +1,4 @@
-package net.codejava.utea.service;
+package net.codejava.utea.service.impl;
 
 import net.codejava.utea.entity.Account;
 import org.springframework.security.core.GrantedAuthority;

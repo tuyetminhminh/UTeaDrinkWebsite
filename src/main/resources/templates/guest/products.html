@@ -123,14 +123,14 @@
 <!-- ✅ HEADER -->
 <div th:replace="fragments/header-home :: siteHeader"></div>
 
-<!-- ✅ CATEGORY BAR -->
+<!-- CATEGORY BAR -->
 <div class="category-bar">
-    <a th:href="@{/products}"
+    <a th:href="@{/GuestProducts}"
        th:classappend="${selectedCategoryId == null} ? 'active'"
        class="category-btn">Tất cả</a>
 
     <a th:each="c : ${categories}"
-       th:href="@{/products(categoryId=${c.categoryId})}"
+       th:href="@{/GuestProducts(categoryId=${c.categoryId})}"
        th:classappend="${selectedCategoryId == c.categoryId} ? 'active' : ''"
        class="category-btn"
        th:text="${c.categoryName}">Tên danh mục</a>
@@ -148,10 +148,12 @@
     </div>
 </div>
 
-<!-- ✅ PAGINATION -->
+<!-- PAGINATION -->
 <div class="pagination" th:if="${totalPages > 1}">
     <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-       th:href="@{/products(page=${i}, categoryId=${selectedCategoryId})}"
+       th:href="${selectedCategoryId != null} ?
+            @{/GuestProducts(page=${i}, categoryId=${selectedCategoryId})} :
+            @{/GuestProducts(page=${i})}"
        th:text="${i + 1}"
        th:classappend="${i == currentPage} ? 'active' : ''"></a>
 </div>

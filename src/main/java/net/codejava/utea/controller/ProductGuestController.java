@@ -23,7 +23,7 @@ public class ProductGuestController {
         this.categoryRepo = categoryRepo;
     }
 
-    @GetMapping("/products")
+    @GetMapping("/GuestProducts")
     public String listProducts(@RequestParam(value = "categoryId", required = false) Long categoryId,
                                @RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "8") int size,
@@ -40,7 +40,7 @@ public class ProductGuestController {
 
         model.addAttribute("categories", categoryRepo.findAll());
         model.addAttribute("products", productPage.getContent());
-        model.addAttribute("selectedCategory", categoryId);
+        model.addAttribute("selectedCategoryId", categoryId);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", productPage.getTotalPages());
         model.addAttribute("categoryId", categoryId);

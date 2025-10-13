@@ -5,8 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import net.codejava.utea.service.CustomUserDetailsService;
-import net.codejava.utea.service.JwtService;
+import net.codejava.utea.service.impl.CustomUserDetailsService;
+import net.codejava.utea.service.impl.JwtService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -67,22 +67,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 // Token lỗi -> bỏ qua, để vào EntryPoint xử lý 401 khi endpoint yêu cầu auth.
             }
         }
-        // **Xác thực WebSocket**: Kiểm tra nếu yêu cầu là WebSocket
-        if (request.getRequestURI().startsWith("/ws")) {
-            // Nếu là WebSocket, thực hiện xác thực
-            String authHeaderWs = request.getHeader("Authorization");
-            if (authHeaderWs != null && authHeaderWs.startsWith("Bearer ")) {
-                String tokenWs = authHeaderWs.substring(7);
-                // Kiểm tra token WebSocket
-                if (jwtService.isTokenValid(tokenWs, userDetailsService.loadUserByUsername(jwtService.extractUsername(tokenWs)))) {
-                    filterChain.doFilter(request, response);
-                    return;
-                }
-            }
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // Trả về Unauthorized nếu không hợp lệ
-            return;
-        }
-
 
         filterChain.doFilter(request, response);
     }

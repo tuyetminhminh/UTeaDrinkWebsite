@@ -1,4 +1,4 @@
-package net.codejava.utea.service;
+package net.codejava.utea.service.impl;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

@@ -7,8 +7,8 @@ import net.codejava.utea.entity.Account;
 import net.codejava.utea.entity.Customer;
 import net.codejava.utea.repository.AccountRepository;
 import net.codejava.utea.repository.CustomerRepository;
-import net.codejava.utea.service.JwtService;
-import net.codejava.utea.service.CustomUserDetails;
+import net.codejava.utea.service.impl.JwtService;
+import net.codejava.utea.service.impl.CustomUserDetails;
 import net.codejava.utea.service.OtpService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -114,6 +114,12 @@ public class AuthController {
     @GetMapping("/admin/home")
     public String adminHome() { return "home/admin-home"; }
 
+    @GetMapping("/seller/home")
+    public String sellerHome() { return "home/seller-home"; }
+
+    @GetMapping("/shipper/home")
+    public String shipperHome() { return "home/shipper-home"; }
+
     // ===================== ĐĂNG KÝ =====================
     @GetMapping("/register")
     public String registerPage(Model model) {
@@ -179,6 +185,7 @@ public class AuthController {
             return "auth/forgot";
         }
     }
+
 
     // ===================== ĐẶT LẠI MẬT KHẨU =====================
     @GetMapping("/reset")
