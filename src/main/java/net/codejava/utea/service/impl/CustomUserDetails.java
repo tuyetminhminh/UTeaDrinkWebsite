@@ -63,6 +63,6 @@ public class CustomUserDetails implements UserDetails, Principal {
 
     @Override
     public String getName() {
-        return getUsername();  // Trả về username như tên của Principal
+        return getUsername();
     }
 }

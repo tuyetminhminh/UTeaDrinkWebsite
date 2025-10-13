@@ -89,7 +89,7 @@ public class SecurityConfig {
     }
 
     /* ==========================================================
-       🧱 CHUỖI BẢO MẬT CHÍNH
+       🧱 CHUỖI BẢO MẬT CHÍNH - CHỈ DÙNG JWT (STATELESS)
        ========================================================== */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -98,48 +98,38 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(eh -> eh.authenticationEntryPoint(entryPoint))
 
-                // Cho phép Spring tạo session tạm (để Thymeleaf nhận diện user)
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                // 🚫 Không tạo session - chỉ dùng JWT
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
-                        // ✅ API không cần auth
+                        // ✅ API công khai
                         .requestMatchers("/api/auth/**", "/login", "/register", "/forgot", "/reset", "/otp/**").permitAll()
 
-                        // ✅ Public area (ai cũng xem được)
+                        // ✅ Public area (ai cũng truy cập được)
                         .requestMatchers("/", "/main-home", "/home", "/index", "/about", "/contact",
-                                "/products", "/products/**","/GuestProducts","/GuestProducts/**",
+                                "/products", "/products/**", "/GuestProducts", "/GuestProducts/**",
                                 "/fragments/**", "/css/**", "/js/**", "/images/**",
                                 "/uploads/**", "/assets/**", "/ws/**"
                         ).permitAll()
 
-                        // ✅ Phân quyền
+                        // ✅ Phân quyền theo vai trò
                         .requestMatchers("/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/customer/**").hasAuthority("CUSTOMER")
                         .requestMatchers("/seller/**").hasAuthority("SELLER")
                         .requestMatchers("/shipper/**").hasAuthority("SHIPPER")
 
+                        // 🔒 Còn lại phải xác thực
                         .anyRequest().authenticated()
                 )
 
-                // ✅ FORM LOGIN
-                .formLogin(form -> form
-                        .loginPage("/login")
-                        .successHandler(customSuccessHandler()) // ⬅️ CHUYỂN HƯỚNG THEO ROLE
-                        .permitAll()
-                )
+                // 🚫 Tắt hoàn toàn form login và logout của session-based
+                .formLogin(form -> form.disable())
+                .logout(logout -> logout.disable());
 
-                // ✅ LOGOUT
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .deleteCookies("UTEA_TOKEN")  // Xóa cookie JWT khi logout
-                        .logoutSuccessUrl("/login?logout")
-                        .permitAll()
-                );
-
-        // ✅ THÊM JWT FILTER TRƯỚC AUTH FILTER CHUẨN
+        // ✅ Thêm JWT filter trước filter chuẩn của Spring
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // ✅ GẮN PROVIDER
+        // ✅ Gắn provider xác thực
         http.authenticationProvider(authenticationProvider());
 
         return http.build();
