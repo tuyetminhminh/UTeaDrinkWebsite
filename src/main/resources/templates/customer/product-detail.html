@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${product.name}">Chi tiết sản phẩm</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/customer.css}" />
+
+    <style>
+        :root{ --brand:#ee7f00; --text:#222; --header-h:80px; }
+        body.page-with-header{ padding-top:var(--header-h); background:#fff; color:var(--text); }
+
+        .pd-wrap{max-width:1120px;margin:24px auto;padding:0 16px;}
+        .pd-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:stretch}
+
+        .pd-img{
+            background:#faf7f4;border-radius:14px;padding:18px;
+            display:flex;align-items:center;justify-content:center;
+            height:520px;
+        }
+        .pd-img img{max-width:100%;max-height:100%;object-fit:contain;height:auto}
+
+        .pd-right{display:flex;flex-direction:column;min-height:100%}
+
+        .pd-name{font-size:28px;font-weight:800;margin:0 0 8px}
+        .pd-price{font-size:24px;font-weight:800;color:#d58500;margin:0 0 18px}
+
+        .pill-group{display:flex;gap:10px;flex-wrap:wrap}
+        .pill{border:1.5px solid #ddd;border-radius:999px;padding:10px 14px;cursor:pointer;font-weight:600;background:#fff}
+        .pill input{display:none}
+        .pill.active{border-color:#222;background:#222;color:#fff}
+
+        .qty{display:flex;align-items:center;gap:10px;margin-top:14px}
+        .qty button{width:36px;height:36px;border:1px solid #ddd;border-radius:8px;background:#fff}
+        .qty input{width:64px;text-align:center;border:1px solid #ddd;border-radius:8px;height:36px}
+
+        .pd-desc{margin-top:22px;border-top:1px solid #eee;padding-top:16px;line-height:1.6}
+
+        .pd-actions{margin-top:auto;display:flex;gap:12px;flex-wrap:wrap}
+        .btn-primary{background:var(--brand);color:#fff;border:none;border-radius:12px;padding:14px 24px;font-weight:800;cursor:pointer}
+        .btn-wide{width:100%;max-width:420px;font-size:1.05rem}
+
+        .pd-related{margin-top:22px}
+        .rel-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+        .rel-card{border:1px solid #eee;border-radius:12px;padding:10px;text-align:center;background:#fff}
+        .rel-card img{width:100%;height:120px;object-fit:cover;border-radius:10px;background:#faf7f4}
+
+        @media (max-width:900px){
+            .pd-grid{grid-template-columns:1fr}
+            .pd-img{height:360px}
+        }
+    </style>
+</head>
+<body class="page-with-header">
+
+<div th:replace="~{fragments/header :: header}"></div>
+<div style="height:40px"></div>
+
+<main class="pd-wrap">
+    <div class="pd-grid">
+
+        <div class="pd-img">
+            <img th:src="${product.imageUrl}" alt="Ảnh sản phẩm" loading="lazy"/>
+        </div>
+
+        <div class="pd-right">
+            <h1 class="pd-name" th:text="${product.name}">Tên SP</h1>
+            <div id="priceBox" class="pd-price"
+                 th:text="${#numbers.formatDecimal(defaultPrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</div>
+
+            <div th:if="${variants != null and variants.size() > 0}">
+                <div style="font-weight:700;margin-bottom:8px">Chọn size (bắt buộc)</div>
+                <div id="sizePills" class="pill-group" th:data-prices='${priceMapJson}'>
+                    <label class="pill"
+                           th:each="v : ${variants}"
+                           th:classappend="${v.id == defaultVariantId} ? ' active' : ''">
+                        <input type="radio" name="variantId"
+                               th:value="${v.id}"
+                               th:checked="${v.id == defaultVariantId}"/>
+                        <span th:text="${v.size.name}">Vừa</span>
+                        <span style="opacity:.7;font-weight:600"
+                              th:text="' + ' + ${#numbers.formatDecimal(v.price - defaultPrice,0,'COMMA',0,'POINT')} + ' đ'"></span>
+                    </label>
+                </div>
+            </div>
+
+            <form th:action="@{/customer/cart/add}" method="post" id="addForm">
+                <input type="hidden" name="productId" th:value="${product.productId}"/>
+                <input type="hidden" name="variantId" id="variantInput"
+                       th:if="${variants != null and !#lists.isEmpty(variants)}"
+                       th:value="${defaultVariantId}"/>
+                <input type="hidden" name="redirect" value="/customer/menu"/>
+
+                <div class="qty">
+                    <span style="font-weight:700">Số lượng</span>
+                    <button type="button" onclick="stepQty(-1)">−</button>
+                    <input id="qty" type="number" name="quantity" value="1" min="1"/>
+                    <button type="button" onclick="stepQty(1)">+</button>
+                </div>
+
+                <div class="pd-desc">
+                    <div style="font-weight:800;margin-bottom:6px">Mô tả sản phẩm</div>
+                    <p th:text="${product.description}">Mô tả...</p>
+                </div>
+
+                <div class="pd-actions">
+                    <button class="btn-primary btn-wide" type="submit">🛒 THÊM VÀO GIỎ HÀNG</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</main>
+
+<div style="height:50px"></div>
+<div th:replace="~{fragments/footer-home :: siteFooter}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+<script>
+    (function(){
+        const header=document.querySelector('.navbar')||document.querySelector('header');
+        function upd(){
+            if(header){
+                const h=header.getBoundingClientRect().height||80;
+                document.documentElement.style.setProperty('--header-h',h+'px');
+            }
+        }
+        upd(); window.addEventListener('resize',upd);
+    })();
+
+    function stepQty(n){
+        const el=document.getElementById('qty');
+        el.value=Math.max(1,parseInt(el.value||'1',10)+n);
+    }
+
+    // pills chọn size + cập nhật giá + hidden input
+    (function(){
+        const group=document.getElementById('sizePills');
+        if(!group) return;
+        const prices=JSON.parse(group.dataset.prices||"{}");
+        const priceBox=document.getElementById('priceBox');
+        const hidden=document.getElementById('variantInput');
+        const formatVND=v=>(v||0).toLocaleString('vi-VN')+' đ';
+
+        group.addEventListener('click',e=>{
+            const label=e.target.closest('.pill'); if(!label) return;
+            group.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+            label.classList.add('active');
+            const id=label.querySelector('input').value;
+            if(hidden) hidden.value=id;
+            const val=Number(prices[id]||0);
+            priceBox.textContent=formatVND(val);
+        });
+    })();
+</script>
+</body>
+</html>

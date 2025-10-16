@@ -59,4 +59,7 @@ public class Product {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    @Column(name = "sold_count")
+    private Integer soldCount = 0;
 }
