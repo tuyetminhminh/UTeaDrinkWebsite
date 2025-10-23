@@ -1,0 +1,24 @@
+.metadata/
+.project
+.classpath
+.settings/
+.idea/
+*.iml
+.vscode/
+
+# Build outputs
+target/
+build/
+out/
+
+# Node (nếu có)
+node_modules/
+dist/
+
+# Logs & OS junk
+*.log
+logs/
+tmp/
+.DS_Store
+Thumbs.db
+EOF
