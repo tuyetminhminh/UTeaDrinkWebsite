@@ -43,6 +43,12 @@ public class AuthController {
     public String customerHome() { return "home/customer-home"; }
     @GetMapping("/seller/home")
     public String sellerHome() { return "home/seller-home"; }
+	@GetMapping("/manager/home")
+	public String managerHome() { return "manager/manager-home"; }
+
+
+	@GetMapping("/shipper/home")
+	public String shipperHome() { return "home/shipper-home"; }
 
 	@GetMapping("/login")
 	public String loginPage() {

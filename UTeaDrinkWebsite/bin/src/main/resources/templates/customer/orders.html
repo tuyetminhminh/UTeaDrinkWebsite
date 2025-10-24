@@ -1,0 +1,54 @@
+<!-- templates/customer/orders.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đơn hàng của tôi</title>
+    <link th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}" rel="stylesheet">
+    <style>
+        .wrap {max-width: 1000px; margin: 24px auto;}
+        .order-card {border-radius: 12px;}
+        .status-badge{font-weight:600;}
+        .status-NEW{color:#0d6efd;}
+        .status-PENDING{color:#fd7e14;}
+        .status-PAID{color:#198754;}
+        .status-COMPLETED{color:#0a7a07;}
+        .status-CANCELLED{color:#b10000;}
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <h3 class="mb-3">Đơn hàng của tôi</h3>
+
+    <div th:if="${#lists.isEmpty(orders)}" class="alert alert-info">
+        Bạn chưa có đơn hàng nào.
+    </div>
+
+    <div th:each="o : ${orders}" class="card order-card mb-3 p-3">
+        <div class="d-flex justify-content-between flex-wrap">
+            <div>
+                <div><b>Mã đơn:</b>
+                    <a th:href="@{'/customer/orders/' + ${o.orderCode}}"
+                       th:text="${o.orderCode}">ORD-XXXXXX</a>
+                </div>
+                <div><b>Ngày tạo:</b>
+                    <span th:text="${#temporals.format(o.createdAt, 'dd/MM/yyyy HH:mm')}">-</span>
+                </div>
+                <div><b>Thanh toán:</b>
+                    <span th:text="${o.paymentMethod}">COD</span>
+                </div>
+            </div>
+            <div class="text-end">
+                <div><b>Tổng tiền:</b>
+                    <span th:text="${#numbers.formatDecimal(o.totalAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+                </div>
+                <div class="status-badge"
+                     th:classappend="' status-' + ${o.status}"
+                     th:text="${o.status}">PENDING</div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

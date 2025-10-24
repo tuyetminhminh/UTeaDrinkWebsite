@@ -1,0 +1,31 @@
+<header th:fragment="customerHeader">
+    <nav class="navbar navbar-expand-lg bg-white shadow-sm py-3">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-warning" th:href="@{/customer/home}">UTeaDrink 🍹</a>
+
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item mx-2">
+                    <a class="nav-link" th:href="@{/customer/home}">Trang chủ</a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link" th:href="@{/menu}">Menu</a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link" th:href="@{/customer/cart}">
+                        🛒 Giỏ hàng
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link" th:href="@{/chat}">💬 Chat</a>
+                </li>
+            </ul>
+
+            <div class="ms-3 d-flex align-items-center gap-2">
+                <span th:text="${#authentication.principal.username}" class="fw-semibold"></span>
+                <form th:action="@{/logout}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Đăng xuất</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+</header>

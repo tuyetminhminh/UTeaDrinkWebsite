@@ -10,4 +10,6 @@ import net.codejava.utea.common.entity.User;
 public interface AddressRepository extends JpaRepository<Address, Long>{
 
 	List<Address> findByUserOrderByIsDefaultDescIdDesc(User user);
+
+	List<Address> findByUserId(Long userId);
 }

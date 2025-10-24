@@ -24,6 +24,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Optional<Product> findByIdAndStatus(Long id, String status);
 
+    Optional<Product> findByNameAndShopId(String name, Long shopId);
+
     // JPQL search: dùng basePrice (KHÔNG phải price), category.id, name
     @Query("""
         SELECT p FROM Product p
