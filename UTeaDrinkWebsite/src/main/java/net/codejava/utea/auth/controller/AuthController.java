@@ -35,6 +35,14 @@ public class AuthController {
 	private String sameSite;
 	@Value("${security.jwt.expiration-time:604800000}")
 	private long expMs; // 7 ngày
+    @GetMapping({"/", "/main-home"})
+    public String home() { return "home/main-home"; }
+    @GetMapping("/admin/home")
+    public String adminHome() { return "home/admin-home"; }
+    @GetMapping("/customer/home")
+    public String customerHome() { return "home/customer-home"; }
+    @GetMapping("/seller/home")
+    public String sellerHome() { return "home/seller-home"; }
 
 	@GetMapping("/login")
 	public String loginPage() {

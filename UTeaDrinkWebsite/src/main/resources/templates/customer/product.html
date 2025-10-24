@@ -62,13 +62,14 @@
     <div class="pd-grid">
 
         <div class="pd-img">
-            <img th:src="${product.imageUrl}" alt="Ảnh sản phẩm" loading="lazy"/>
+            <!-- Sử dụng phương thức getMainImageUrl() để lấy ảnh chính -->
+            <img th:src="@{${product.mainImageUrl}}" alt="Ảnh sản phẩm" loading="lazy"/>
         </div>
 
         <div class="pd-right">
             <h1 class="pd-name" th:text="${product.name}">Tên SP</h1>
             <div id="priceBox" class="pd-price"
-                 th:text="${#numbers.formatDecimal(defaultPrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</div>
+                 th:text="${#numbers.formatDecimal(product.basePrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</div>
 
             <div th:if="${variants != null and variants.size() > 0}">
                 <div style="font-weight:700;margin-bottom:8px">Chọn size (bắt buộc)</div>
@@ -81,13 +82,13 @@
                                th:checked="${v.id == defaultVariantId}"/>
                         <span th:text="${v.size.name}">Vừa</span>
                         <span style="opacity:.7;font-weight:600"
-                              th:text="' + ' + ${#numbers.formatDecimal(v.price - defaultPrice,0,'COMMA',0,'POINT')} + ' đ'"></span>
+                              th:text="' + ' + ${#numbers.formatDecimal(v.price - product.basePrice,0,'COMMA',0,'POINT')} + ' đ'"></span>
                     </label>
                 </div>
             </div>
 
             <form th:action="@{/customer/cart/add}" method="post" id="addForm">
-                <input type="hidden" name="productId" th:value="${product.productId}"/>
+                <input type="hidden" name="productId" th:value="${product.id}"/>
                 <input type="hidden" name="variantId" id="variantInput"
                        th:if="${variants != null and !#lists.isEmpty(variants)}"
                        th:value="${defaultVariantId}"/>

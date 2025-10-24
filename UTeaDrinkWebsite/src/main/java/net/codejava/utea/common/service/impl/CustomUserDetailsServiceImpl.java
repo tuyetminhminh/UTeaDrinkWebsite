@@ -14,27 +14,38 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class CustomUserDetailsServiceImpl implements CustomUserDetailsService {
 
-	private final UserRepository userRepository;
+    private final UserRepository userRepository;
 
-	@Override
+    @Override
     public CustomUserDetails loadUserByUsername(String principal) throws UsernameNotFoundException {
-        // nhận cả email hoặc username
-        User u = userRepository.findByEmailOrUsername(principal)
+        // ✅ Tìm user theo email hoặc username (tự động nhận diện)
+        User user = userRepository.findByEmailOrUsername(principal)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user: " + principal));
-        return new CustomUserDetails(u);
-    }
-	
-	@Override
-	public CustomUserDetails loadUserByEmail(String email) {
-		User u = userRepository.findByEmail(email)
-				.orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user với email: " + email));
-		return new CustomUserDetails(u);
-	}
 
-	@Override
-	public CustomUserDetails loadUserById(Long id) {
-		User u = userRepository.findById(id)
-				.orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user id=" + id));
-		return new CustomUserDetails(u);
-	}
+        // ✅ Tạo CustomUserDetails và set lại loginId để Spring dùng đúng chuỗi xác thực
+        CustomUserDetails cud = new CustomUserDetails(user);
+        cud.setLoginId(principal);
+        System.out.println(">>> [DEBUG] Đăng nhập bằng: " + principal);
+        System.out.println(">>> [DEBUG] User trong DB: " + user.getUsername() + " / " + user.getEmail());
+        System.out.println(">>> [DEBUG] Password trong DB: " + user.getPasswordHash());
+        return cud;
+    }
+
+    @Override
+    public CustomUserDetails loadUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user với email: " + email));
+        CustomUserDetails cud = new CustomUserDetails(user);
+        cud.setLoginId(email);
+        return cud;
+    }
+
+    @Override
+    public CustomUserDetails loadUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user id=" + id));
+        CustomUserDetails cud = new CustomUserDetails(user);
+        cud.setLoginId(user.getUsername() != null ? user.getUsername() : user.getEmail());
+        return cud;
+    }
 }

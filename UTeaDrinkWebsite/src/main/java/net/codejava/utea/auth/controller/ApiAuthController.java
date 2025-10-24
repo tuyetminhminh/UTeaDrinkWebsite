@@ -34,19 +34,31 @@ public class ApiAuthController {
     @Value("${security.jwt.expiration-time:604800000}") // 7 ngày
     private long expMs;
 
-    /** Đăng nhập JSON -> trả token và gắn cookie HttpOnly để dùng trên web */
+    /**
+     * ✅ Đăng nhập JSON -> trả token và gắn cookie HttpOnly để dùng trên web.
+     * Cho phép đăng nhập bằng username hoặc email, không mã hóa mật khẩu.
+     */
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody Map<String, String> body, HttpServletResponse response) {
-        String email = body.getOrDefault("email", body.get("username")); // cho phép client gửi "email" hoặc "username"
+        // lấy username hoặc email tùy client gửi
+        String loginId = body.getOrDefault("username", body.get("email"));
         String password = body.get("password");
 
+        // log để debug nếu cần
+        System.out.println(">>> Đang xác thực: " + loginId + " / " + password);
+
+        // xác thực tài khoản
         Authentication auth = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, password)
+                new UsernamePasswordAuthenticationToken(loginId, password)
         );
+
+        // nếu xác thực thành công
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
 
+        // tạo JWT token
         String token = jwtService.generateTokenFromEmail(user.getUsername(), user.getRoleSummary());
 
+        // tạo cookie JWT
         ResponseCookie cookie = ResponseCookie.from(cookieName, token)
                 .httpOnly(true)
                 .secure(cookieSecure)
@@ -54,17 +66,23 @@ public class ApiAuthController {
                 .maxAge(expMs / 1000)
                 .sameSite(sameSite)
                 .build();
+
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
+        System.out.println(">>> Đăng nhập thành công: " + user.getUsername());
+
         return Map.of(
+                "message", "Đăng nhập thành công",
                 "token", token,
-                "email", user.getUsername(),
+                "username", user.getUsername(),
                 "displayName", user.getDisplayName(),
                 "roles", user.getRoleSummary()
         );
     }
 
-    /** Đăng xuất JSON: xoá cookie JWT */
+    /**
+     * 🚪 Đăng xuất JSON -> xóa cookie JWT
+     */
     @PostMapping("/logout")
     public Map<String, String> logout(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from(cookieName, "")
@@ -75,6 +93,6 @@ public class ApiAuthController {
                 .sameSite(sameSite)
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-        return Map.of("message", "OK");
+        return Map.of("message", "Đăng xuất thành công");
     }
 }

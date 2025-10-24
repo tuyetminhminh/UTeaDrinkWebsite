@@ -169,6 +169,11 @@
                         <a class="nav-link mx-3 text-uppercase small fw-semibold" th:href="@{/customer/orders}">ĐƠN HÀNG</a>
                     </li>
 
+                    <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">
+                        <a class="nav-link mx-3 text-uppercase small fw-semibold" th:href="@{/customer/products}">SẢN PHẨM</a>
+                    </li>
+
+
                     <!-- SELLER -->
                     <li class="nav-item dropdown" sec:authorize="hasAuthority('SELLER')">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-shop"></i> Cửa hàng</a>

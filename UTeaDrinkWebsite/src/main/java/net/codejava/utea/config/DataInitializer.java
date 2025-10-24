@@ -26,7 +26,6 @@ public class DataInitializer implements CommandLineRunner {
         // 1) Tạo sẵn các ROLE nếu chưa có
         ensureRole("ADMIN",   "Quản trị");
         ensureRole("MANAGER", "Quản lý");
-        ensureRole("SELLER",  "Người bán");
         ensureRole("CUSTOMER","Khách hàng");
         ensureRole("SHIPPER", "Tài xế");
 
@@ -41,12 +40,6 @@ public class DataInitializer implements CommandLineRunner {
                 "manager@utea.local", "manager",
                 "Manager Seed", "123456", "ACTIVE",
                 "MANAGER"
-        );
-
-        ensureUserWithRole(
-                "seller@utea.local", "seller",
-                "Seller Seed", "123456", "ACTIVE",
-                "SELLER"
         );
 
         ensureUserWithRole(

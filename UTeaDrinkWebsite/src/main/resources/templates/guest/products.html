@@ -121,7 +121,7 @@
 <body>
 
 <!-- ✅ HEADER -->
-<div th:replace="fragments/header-home :: siteHeader"></div>
+<div th:replace="~{fragments/header-home :: siteHeader}"></div>
 
 <!-- CATEGORY BAR -->
 <div class="category-bar">
@@ -130,62 +130,27 @@
        class="category-btn">Tất cả</a>
 
     <a th:each="c : ${categories}"
-       th:href="@{/GuestProducts(categoryId=${c.categoryId})}"
-       th:classappend="${selectedCategoryId == c.categoryId} ? 'active' : ''"
+       th:href="@{/GuestProducts(categoryId=${c.id})}"
+       th:classappend="${selectedCategoryId == c.id} ? 'active' : ''"
        class="category-btn"
-       th:text="${c.categoryName}">Tên danh mục</a>
-       <a href="/login?next=/chat/start" class="btn btn-main">💬 Trò chuyện với UTea</a>
-       
+       th:text="${c.name}">Tên danh mục</a>
 </div>
-
-<!-- ✅ FILTER BAR -->
-<form th:action="@{/guest/products}" method="get" style="max-width:1200px;margin:0 auto;padding:0 16px;">
-  <div class="row g-2 align-items-end">
-    <div class="col-md-3">
-      <label class="form-label">Từ khóa</label>
-      <input type="text" class="form-control" name="q" th:value="${q}">
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">Danh mục</label>
-      <select class="form-select" name="categoryId">
-        <option th:value="${null}" th:selected="${selectedCategoryId == null}">Tất cả</option>
-        <option th:each="c : ${categories}"
-                th:value="${c.categoryId}"
-                th:text="${c.categoryName}"
-                th:selected="${selectedCategoryId == c.categoryId}">Danh mục</option>
-      </select>
-    </div>
-    <div class="col-md-2">
-      <label class="form-label">Giá từ</label>
-      <input type="number" class="form-control" name="min" th:value="${min}">
-    </div>
-    <div class="col-md-2">
-      <label class="form-label">đến</label>
-      <input type="number" class="form-control" name="max" th:value="${max}">
-    </div>
-    <div class="col-md-2">
-      <label class="form-label">Sắp xếp</label>
-      <select class="form-select" name="sort">
-        <option value="new" th:selected="${sort=='new'}">Mới nhất</option>
-        <option value="priceAsc" th:selected="${sort=='priceAsc'}">Giá tăng</option>
-        <option value="priceDesc" th:selected="${sort=='priceDesc'}">Giá giảm</option>
-      </select>
-    </div>
-    <div class="col-12 mt-2">
-      <button class="btn btn-primary">Lọc</button>
-    </div>
-  </div>
-</form>
 
 
 <!-- ✅ PRODUCT LIST -->
 <div class="product-container" th:if="${products}">
     <div th:each="p : ${products}" class="product-card">
-        <img th:src="${p.imageUrl}" th:alt="${p.name}">
+
+        <!-- Ảnh sản phẩm -->
+        <div class="product-image">
+            <img th:src="${(p.images != null and !p.images.isEmpty()) ? p.images.get(0).url : '/images/no-image.png'}"
+                 th:alt="${p.name}">
+        </div>
+
         <h3 th:text="${p.name}"></h3>
         <p th:text="${p.description}"></p>
         <div class="price"
-             th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></div>
+             th:text="${#numbers.formatDecimal(p.basePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></div>
     </div>
 </div>
 
