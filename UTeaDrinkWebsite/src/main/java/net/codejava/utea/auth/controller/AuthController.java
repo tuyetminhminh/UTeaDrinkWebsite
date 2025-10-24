@@ -43,6 +43,23 @@ public class AuthController {
 	private String sameSite;
 	@Value("${security.jwt.expiration-time:604800000}")
 	private long expMs; // 7 ngày
+<<<<<<< Updated upstream
+=======
+    @GetMapping({"/", "/main-home"})
+    public String home() { return "home/main-home"; }
+    @GetMapping("/admin/home")
+    public String adminHome() { return "home/admin-home"; }
+    @GetMapping("/customer/home")
+    public String customerHome() { return "home/customer-home"; }
+    @GetMapping("/seller/home")
+    public String sellerHome() { return "home/seller-home"; }
+	@GetMapping("/manager/home")
+	public String managerHome() { return "manager/manager-home"; }
+
+
+	@GetMapping("/shipper/home")
+	public String shipperHome() { return "home/shipper-home"; }
+>>>>>>> Stashed changes
 
 	@GetMapping("/login")
 	public String loginPage() {

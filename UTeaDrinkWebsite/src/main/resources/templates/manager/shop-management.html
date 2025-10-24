@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Shop - UTea</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h2>Quản lý Shop</h2>
+                
+                <div th:if="${hasShop}" class="card mt-4">
+                    <div class="card-header">
+                        <h4>Thông tin Shop</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="shopForm">
+                            <div class="mb-3">
+                                <label for="shopName" class="form-label">Tên Shop</label>
+                                <input type="text" class="form-control" id="shopName" 
+                                       th:value="${shop?.name}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="shopAddress" class="form-label">Địa chỉ</label>
+                                <input type="text" class="form-control" id="shopAddress" 
+                                       th:value="${shop?.address}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="shopPhone" class="form-label">Số điện thoại</label>
+                                <input type="tel" class="form-control" id="shopPhone" 
+                                       th:value="${shop?.phone}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="shopStatus" class="form-label">Trạng thái</label>
+                                <select class="form-select" id="shopStatus">
+                                    <option value="OPEN" th:selected="${shop?.status == 'OPEN'}">Đang mở</option>
+                                    <option value="CLOSED" th:selected="${shop?.status == 'CLOSED'}">Đã đóng</option>
+                                    <option value="MAINTENANCE" th:selected="${shop?.status == 'MAINTENANCE'}">Bảo trì</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Cập nhật
+                            </button>
+                            <a href="/manager/shop/banners" class="btn btn-info">
+                                <i class="fas fa-images"></i> Quản lý Banner
+                            </a>
+                            <a href="/manager/shop/sections" class="btn btn-secondary">
+                                <i class="fas fa-th-large"></i> Quản lý Section
+                            </a>
+                        </form>
+                    </div>
+                </div>
+
+                <div th:unless="${hasShop}" class="alert alert-warning mt-4">
+                    <h4>Chưa đăng ký Shop</h4>
+                    <p>Bạn cần đăng ký shop để bắt đầu quản lý sản phẩm và đơn hàng.</p>
+                    <a href="/manager/shop/register" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Đăng ký Shop ngay
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('shopForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const data = {
+                name: document.getElementById('shopName').value,
+                address: document.getElementById('shopAddress').value,
+                phone: document.getElementById('shopPhone').value,
+                status: document.getElementById('shopStatus').value
+            };
+
+            fetch('/manager/shop/api/update', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Cập nhật shop thành công!');
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi cập nhật shop');
+            });
+        });
+    </script>
+</body>
+</html>
+

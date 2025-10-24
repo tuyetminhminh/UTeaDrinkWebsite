@@ -83,6 +83,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>1.18.34</version>
             <optional>true</optional>
         </dependency>
 
@@ -117,11 +118,20 @@
             <scope>runtime</scope>
         </dependency>
         
+<<<<<<< Updated upstream
         <dependency>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-oauth2-client</artifactId>
 </dependency>
 
+=======
+        <!-- Apache POI for Excel export -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.3</version>
+        </dependency>
+>>>>>>> Stashed changes
     </dependencies>
 
     <build>
@@ -138,7 +148,11 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+<<<<<<< Updated upstream
                             <version>1.18.30</version>
+=======
+                            <version>1.18.34</version>
+>>>>>>> Stashed changes
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -148,7 +162,10 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+<<<<<<< Updated upstream
                 <version>3.3.5</version>
+=======
+>>>>>>> Stashed changes
                 <configuration>
                     <excludes>
                         <exclude>
