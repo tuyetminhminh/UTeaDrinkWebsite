@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Sản phẩm - UTea</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 bg-light">
+                <div th:replace="~{manager/fragments/sidebar :: sidebar}"></div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-10">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Quản lý Sản phẩm</h2>
+                    <div>
+                        <a href="/manager/products/create" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Thêm sản phẩm
+                        </a>
+                        <a href="/manager/products/toppings" class="btn btn-secondary">
+                            <i class="fas fa-layer-group"></i> Quản lý Topping
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Products Table -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Hình ảnh</th>
+                                        <th>Tên sản phẩm</th>
+                                        <th>Danh mục</th>
+                                        <th>Giá</th>
+                                        <th>Đã bán</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody th:if="${products != null and !products.empty}">
+                                    <tr th:each="product : ${products.content}">
+                                        <td th:text="${product.id}">1</td>
+                                        <td>
+                                            <img th:if="${product.images != null and !product.images.empty}" 
+                                                 th:src="${product.images[0].url}" 
+                                                 alt="Product Image" class="img-thumbnail" style="width: 50px; height: 50px;">
+                                        </td>
+                                        <td th:text="${product.name}">Product Name</td>
+                                        <td th:text="${product.categoryName}">Category</td>
+                                        <td th:text="${#numbers.formatDecimal(product.basePrice, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">30,000 VNĐ</td>
+                                        <td th:text="${product.soldCount}">0</td>
+                                        <td>
+                                            <span class="badge" 
+                                                  th:classappend="${product.status == 'AVAILABLE' ? 'bg-success' : 'bg-secondary'}"
+                                                  th:text="${product.status == 'AVAILABLE' ? 'Đang bán' : 'Ngừng bán'}">
+                                                Đang bán
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a th:href="@{/manager/products/{id}/edit(id=${product.id})}" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-danger" th:onclick="'deleteProduct(' + ${product.id} + ')'">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tbody th:if="${products == null or products.empty}">
+                                    <tr>
+                                        <td colspan="8" class="text-center">Chưa có sản phẩm nào</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <nav th:if="${products != null and products.totalPages > 1}">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/manager/products(page=${currentPage - 1})}">Trước</a>
+                                </li>
+                                <li class="page-item" 
+                                    th:each="i : ${#numbers.sequence(0, products.totalPages - 1)}"
+                                    th:classappend="${i == currentPage} ? 'active'">
+                                    <a class="page-link" th:href="@{/manager/products(page=${i})}" th:text="${i + 1}">1</a>
+                                </li>
+                                <li class="page-item" th:classappend="${currentPage == products.totalPages - 1} ? 'disabled'">
+                                    <a class="page-link" th:href="@{/manager/products(page=${currentPage + 1})}">Sau</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function deleteProduct(productId) {
+            if (confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
+                fetch(`/manager/products/api/${productId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Xóa sản phẩm thành công!');
+                        location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra khi xóa sản phẩm');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra');
+                });
+            }
+        }
+    </script>
+</body>
+</html>
+

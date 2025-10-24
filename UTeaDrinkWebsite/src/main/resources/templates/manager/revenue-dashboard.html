@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo Doanh thu - UTea</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Báo cáo Doanh thu</h2>
+                    <div>
+                        <form class="row g-3" method="get" action="/manager/revenue">
+                            <div class="col-auto">
+                                <input type="date" class="form-control" name="fromDate" 
+                                       th:value="${fromDate}" required>
+                            </div>
+                            <div class="col-auto">
+                                <span class="form-control-plaintext">đến</span>
+                            </div>
+                            <div class="col-auto">
+                                <input type="date" class="form-control" name="toDate" 
+                                       th:value="${toDate}" required>
+                            </div>
+                            <div class="col-auto">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search"></i> Xem báo cáo
+                                </button>
+                            </div>
+                            <div class="col-auto">
+                                <a th:href="@{/manager/revenue/api/export/excel(fromDate=${fromDate},toDate=${toDate})}" 
+                                   class="btn btn-success">
+                                    <i class="fas fa-file-excel"></i> Xuất Excel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="row mb-4" th:if="${report != null}">
+                    <div class="col-md-3">
+                        <div class="card text-white bg-primary">
+                            <div class="card-body">
+                                <h5 class="card-title">Tổng doanh thu</h5>
+                                <h2 class="card-text" th:text="${#numbers.formatDecimal(report.totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">
+                                    0 VNĐ
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-success">
+                            <div class="card-body">
+                                <h5 class="card-title">Đơn hoàn thành</h5>
+                                <h2 class="card-text" th:text="${report.completedOrders}">0</h2>
+                                <small th:text="'/ ' + ${report.totalOrders} + ' đơn'">/ 0 đơn</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-warning">
+                            <div class="card-body">
+                                <h5 class="card-title">Tỷ lệ hủy</h5>
+                                <h2 class="card-text" th:text="${#numbers.formatDecimal(report.cancelRate, 1, 'COMMA', 2, 'POINT')} + '%'">
+                                    0%
+                                </h2>
+                                <small th:text="${report.canceledOrders} + ' đơn bị hủy'"">0 đơn bị hủy</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-info">
+                            <div class="card-body">
+                                <h5 class="card-title">Giá trị TB</h5>
+                                <h2 class="card-text" th:text="${#numbers.formatDecimal(report.averageOrderValue, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">
+                                    0 VNĐ
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="row mb-4" th:if="${report != null}">
+                    <!-- Daily Revenue Chart -->
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Doanh thu theo ngày</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="dailyRevenueChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hourly Revenue Chart -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Doanh thu theo giờ</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="hourlyRevenueChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Products -->
+                <div class="row" th:if="${report != null and report.topProducts != null}">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Top 10 Sản phẩm bán chạy</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>STT</th>
+                                                <th>Tên sản phẩm</th>
+                                                <th>Số lượng bán</th>
+                                                <th>Doanh thu</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="product, iterStat : ${report.topProducts}">
+                                                <td th:text="${iterStat.count}">1</td>
+                                                <td th:text="${product.productName}">Product Name</td>
+                                                <td th:text="${product.totalSold}">0</td>
+                                                <td class="fw-bold" th:text="${#numbers.formatDecimal(product.totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'">
+                                                    0 VNĐ
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:if="${report != null}">
+        // Daily Revenue Chart
+        const dailyRevenueData = [
+            <th:block th:each="day : ${report.dailyRevenue}">
+                {
+                    date: '[[${day.date}]]',
+                    revenue: [[${day.revenue}]],
+                    orderCount: [[${day.orderCount}]]
+                },
+            </th:block>
+        ];
+
+        const dailyCtx = document.getElementById('dailyRevenueChart').getContext('2d');
+        new Chart(dailyCtx, {
+            type: 'line',
+            data: {
+                labels: dailyRevenueData.map(d => d.date),
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    data: dailyRevenueData.map(d => d.revenue),
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true
+                    }
+                }
+            }
+        });
+
+        // Hourly Revenue Chart
+        const hourlyRevenueData = [
+            <th:block th:each="hour : ${report.hourlyRevenue}">
+                {
+                    hour: [[${hour.hour}]],
+                    revenue: [[${hour.revenue}]],
+                    orderCount: [[${hour.orderCount}]]
+                },
+            </th:block>
+        ];
+
+        const hourlyCtx = document.getElementById('hourlyRevenueChart').getContext('2d');
+        new Chart(hourlyCtx, {
+            type: 'bar',
+            data: {
+                labels: hourlyRevenueData.map(h => h.hour + ':00'),
+                datasets: [{
+                    label: 'Số đơn',
+                    data: hourlyRevenueData.map(h => h.orderCount),
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgb(54, 162, 235)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

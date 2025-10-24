@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Sản phẩm | UTeaDrink</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background: #fff8f2;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ===== CATEGORY BAR ===== */
+        .category-bar {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 100px;
+            padding: 10px 0;
+            gap: 12px;
+        }
+
+        .category-btn {
+            border: 1px solid #e67e22;
+            color: #e67e22;
+            padding: 8px 18px;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.25s ease;
+        }
+
+        .category-btn:hover {
+            background: #f39c12;
+            color: white;
+        }
+
+        .category-btn.active {
+            background: #e67e22;
+            color: white;
+        }
+
+        /* ===== PRODUCT CARDS ===== */
+        .product-container {
+            max-width: 1200px;
+            margin: 40px auto 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 230px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .product-card h3 {
+            margin: 10px 0 5px;
+            color: #333;
+        }
+
+        .product-card p {
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 10px;
+        }
+
+        .price {
+            color: #e67e22;
+            font-weight: bold;
+        }
+
+        /* ===== PAGINATION ===== */
+        .pagination {
+            text-align: center;
+            margin: 30px 0 60px;
+        }
+
+        .pagination a {
+            color: #e67e22;
+            text-decoration: none;
+            margin: 0 5px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #e67e22;
+        }
+
+        .pagination a.active {
+            background: #e67e22;
+            color: white;
+        }
+
+        .pagination a:hover {
+            background: #f39c12;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ✅ HEADER -->
+<div th:replace="~{fragments/header-home :: siteHeader}"></div>
+
+<!-- CATEGORY BAR -->
+<div class="category-bar">
+    <a th:href="@{/GuestProducts}"
+       th:classappend="${selectedCategoryId == null} ? 'active'"
+       class="category-btn">Tất cả</a>
+
+    <a th:each="c : ${categories}"
+       th:href="@{/GuestProducts(categoryId=${c.id})}"
+       th:classappend="${selectedCategoryId == c.id} ? 'active' : ''"
+       class="category-btn"
+       th:text="${c.name}">Tên danh mục</a>
+</div>
+
+
+<!-- ✅ PRODUCT LIST -->
+<div class="product-container" th:if="${products}">
+    <div th:each="p : ${products}" class="product-card">
+
+        <!-- Ảnh sản phẩm -->
+        <div class="product-image">
+            <img th:src="${(p.images != null and !p.images.isEmpty()) ? p.images.get(0).url : '/images/no-image.png'}"
+                 th:alt="${p.name}">
+        </div>
+
+        <h3 th:text="${p.name}"></h3>
+        <p th:text="${p.description}"></p>
+        <div class="price"
+             th:text="${#numbers.formatDecimal(p.basePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></div>
+    </div>
+</div>
+
+<!-- PAGINATION -->
+<div class="pagination" th:if="${totalPages > 1}">
+    <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+       th:href="${selectedCategoryId != null} ?
+            @{/GuestProducts(page=${i}, categoryId=${selectedCategoryId})} :
+            @{/GuestProducts(page=${i})}"
+       th:text="${i + 1}"
+       th:classappend="${i == currentPage} ? 'active' : ''"></a>
+</div>
+
+</body>
+</html>
