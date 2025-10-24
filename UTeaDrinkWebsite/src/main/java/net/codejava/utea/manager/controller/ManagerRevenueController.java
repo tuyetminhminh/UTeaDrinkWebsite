@@ -127,15 +127,62 @@ public class ManagerRevenueController {
     }
 
     /**
-     * API: Lấy báo cáo nhanh (hôm nay)
+     * API: Lấy báo cáo nhanh (hôm nay) - Enhanced for Dashboard
      */
     @GetMapping("/api/today")
     @ResponseBody
     public ResponseEntity<?> getTodayReport(@AuthenticationPrincipal User currentUser) {
         try {
             LocalDate today = LocalDate.now();
-            RevenueReportDTO report = revenueService.getRevenueReport(currentUser.getId(), today, today);
-            return ResponseEntity.ok(report);
+            LocalDate yesterday = today.minusDays(1);
+            
+            RevenueReportDTO todayReport = revenueService.getRevenueReport(currentUser.getId(), today, today);
+            RevenueReportDTO yesterdayReport = revenueService.getRevenueReport(currentUser.getId(), yesterday, yesterday);
+            
+            // Calculate trends
+            double revenueTrend = yesterdayReport.getTotalRevenue().doubleValue() > 0
+                    ? ((todayReport.getTotalRevenue().doubleValue() - yesterdayReport.getTotalRevenue().doubleValue()) 
+                       / yesterdayReport.getTotalRevenue().doubleValue()) * 100
+                    : 0;
+                    
+            int orderTrend = todayReport.getTotalOrders() - yesterdayReport.getTotalOrders();
+            
+            return ResponseEntity.ok(java.util.Map.of(
+                "totalRevenue", todayReport.getTotalRevenue(),
+                "totalOrders", todayReport.getTotalOrders(),
+                "trend", Math.round(revenueTrend * 10) / 10.0,
+                "orderTrend", orderTrend
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
+    /**
+     * API: Lấy dữ liệu doanh thu 7 ngày gần nhất (cho chart)
+     */
+    @GetMapping("/api/last7days")
+    @ResponseBody
+    public ResponseEntity<?> getLast7DaysRevenue(@AuthenticationPrincipal User currentUser) {
+        try {
+            LocalDate endDate = LocalDate.now();
+            LocalDate startDate = endDate.minusDays(6);
+            
+            java.util.List<String> labels = new java.util.ArrayList<>();
+            java.util.List<java.math.BigDecimal> values = new java.util.ArrayList<>();
+            
+            for (int i = 0; i < 7; i++) {
+                LocalDate date = startDate.plusDays(i);
+                RevenueReportDTO dayReport = revenueService.getRevenueReport(currentUser.getId(), date, date);
+                
+                labels.add(date.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM")));
+                values.add(dayReport.getTotalRevenue());
+            }
+            
+            return ResponseEntity.ok(java.util.Map.of(
+                "labels", labels,
+                "values", values
+            ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

@@ -2,21 +2,30 @@ package net.codejava.utea.manager.controller;
 
 import lombok.RequiredArgsConstructor;
 import net.codejava.utea.common.entity.User;
+import net.codejava.utea.common.security.CustomUserDetails;
 import net.codejava.utea.manager.dto.OrderManagementDTO;
 import net.codejava.utea.manager.dto.ShipperAssignmentDTO;
+import net.codejava.utea.manager.service.ExcelExportService;
 import net.codejava.utea.manager.service.OrderManagementService;
 import net.codejava.utea.manager.service.ShipperAssignmentService;
 import net.codejava.utea.order.entity.enums.OrderStatus;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Controller
@@ -27,6 +36,17 @@ public class ManagerOrderController {
 
     private final OrderManagementService orderService;
     private final ShipperAssignmentService shipperService;
+    private final ExcelExportService excelExportService;
+
+    // ==================== HELPER METHODS ====================
+    
+    private User getCurrentUser(Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            return ((CustomUserDetails) principal).getUser();
+        }
+        throw new RuntimeException("Invalid authentication principal");
+    }
 
     // ==================== VIEW ENDPOINTS ====================
 
@@ -35,13 +55,40 @@ public class ManagerOrderController {
      */
     @GetMapping
     public String orderManagement(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String status,
             Model model) {
+        User currentUser = getCurrentUser(authentication);
+        
         Pageable pageable = PageRequest.of(page, size);
-        Page<OrderManagementDTO> orders = orderService.getAllOrders(currentUser.getId(), pageable);
+        Page<OrderManagementDTO> orders;
+        
+        // Filter by status if provided
+        if (status != null && !status.isEmpty()) {
+            try {
+                OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+                List<OrderManagementDTO> filteredOrders = orderService.getOrdersByStatus(
+                        currentUser.getId(), orderStatus);
+                
+                // Convert List to Page
+                int start = Math.min((int) pageable.getOffset(), filteredOrders.size());
+                int end = Math.min((start + pageable.getPageSize()), filteredOrders.size());
+                List<OrderManagementDTO> pageContent = start < filteredOrders.size() 
+                        ? filteredOrders.subList(start, end) 
+                        : java.util.Collections.emptyList();
+                
+                orders = new org.springframework.data.domain.PageImpl<>(
+                        pageContent, pageable, filteredOrders.size());
+            } catch (IllegalArgumentException e) {
+                // Invalid status, show all
+                System.err.println("Invalid status: " + status + " - Error: " + e.getMessage());
+                orders = orderService.getAllOrders(currentUser.getId(), pageable);
+            }
+        } else {
+            orders = orderService.getAllOrders(currentUser.getId(), pageable);
+        }
         
         model.addAttribute("orders", orders);
         model.addAttribute("currentPage", page);
@@ -56,87 +103,103 @@ public class ManagerOrderController {
      */
     @GetMapping("/{orderId}")
     public String orderDetail(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long orderId,
             Model model) {
+        User currentUser = getCurrentUser(authentication);
         OrderManagementDTO order = orderService.getOrderById(currentUser.getId(), orderId);
+        
         model.addAttribute("order", order);
-        
-        // Lấy thông tin shipper nếu có
-        try {
-            ShipperAssignmentDTO assignment = shipperService.getAssignment(currentUser.getId(), orderId);
-            model.addAttribute("assignment", assignment);
-        } catch (Exception e) {
-            model.addAttribute("assignment", null);
-        }
-        
+        model.addAttribute("orderStatuses", OrderStatus.values());
         return "manager/order-detail";
     }
 
-    /**
-     * Trang phân công shipper
-     */
-    @GetMapping("/{orderId}/assign-shipper")
-    public String assignShipperPage(
-            @AuthenticationPrincipal User currentUser,
-            @PathVariable Long orderId,
-            Model model) {
-        OrderManagementDTO order = orderService.getOrderById(currentUser.getId(), orderId);
-        List<ShipperAssignmentDTO> shippers = shipperService.getAvailableShippers();
-        
-        model.addAttribute("order", order);
-        model.addAttribute("shippers", shippers);
-        return "manager/order-assign-shipper";
-    }
-
-    // ==================== API ENDPOINTS - ORDER ====================
+    // ==================== API ENDPOINTS ====================
 
     /**
-     * API: Lấy tất cả đơn hàng
+     * API: Get all orders with optional status filter
      */
-    @GetMapping("/api")
+    @GetMapping("/api/list")
     @ResponseBody
-    public ResponseEntity<?> getAllOrders(
-            @AuthenticationPrincipal User currentUser,
+    public ResponseEntity<Page<OrderManagementDTO>> getOrders(
+            Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        try {
-            Pageable pageable = PageRequest.of(page, size);
-            Page<OrderManagementDTO> orders = orderService.getAllOrders(currentUser.getId(), pageable);
-            return ResponseEntity.ok(orders);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String status) {
+        User currentUser = getCurrentUser(authentication);
+        Pageable pageable = PageRequest.of(page, size);
+        
+        Page<OrderManagementDTO> orders;
+        if (status != null && !status.isEmpty()) {
+            OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+            List<OrderManagementDTO> orderList = orderService.getOrdersByStatus(currentUser.getId(), orderStatus);
+            orders = new org.springframework.data.domain.PageImpl<>(orderList, pageable, orderList.size());
+        } else {
+            orders = orderService.getAllOrders(currentUser.getId(), pageable);
         }
+        
+        return ResponseEntity.ok(orders);
     }
 
     /**
-     * API: Lấy đơn hàng theo trạng thái
-     */
-    @GetMapping("/api/status/{status}")
-    @ResponseBody
-    public ResponseEntity<?> getOrdersByStatus(
-            @AuthenticationPrincipal User currentUser,
-            @PathVariable String status) {
-        try {
-            OrderStatus orderStatus = OrderStatus.valueOf(status);
-            List<OrderManagementDTO> orders = orderService.getOrdersByStatus(currentUser.getId(), orderStatus);
-            return ResponseEntity.ok(orders);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    /**
-     * API: Lấy chi tiết đơn hàng
+     * API: Get single order details
      */
     @GetMapping("/api/{orderId}")
     @ResponseBody
     public ResponseEntity<?> getOrderById(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long orderId) {
         try {
+            User currentUser = getCurrentUser(authentication);
             OrderManagementDTO order = orderService.getOrderById(currentUser.getId(), orderId);
             return ResponseEntity.ok(order);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * API: Lấy số lượng đơn hàng đang giao
+     */
+    @GetMapping("/api/delivering-count")
+    @ResponseBody
+    public ResponseEntity<?> getDeliveringCount(Authentication authentication) {
+        try {
+            User currentUser = getCurrentUser(authentication);
+            List<OrderManagementDTO> deliveringOrders = orderService.getOrdersByStatus(
+                    currentUser.getId(), OrderStatus.DELIVERING);
+
+            return ResponseEntity.ok(java.util.Map.of(
+                "count", deliveringOrders.size()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * API: Lấy phân bố trạng thái đơn hàng cho pie chart
+     */
+    @GetMapping("/api/status-distribution")
+    @ResponseBody
+    public ResponseEntity<?> getStatusDistribution(Authentication authentication) {
+        try {
+            User currentUser = getCurrentUser(authentication);
+            java.util.List<String> labels = new java.util.ArrayList<>();
+            java.util.List<Integer> values = new java.util.ArrayList<>();
+
+            for (OrderStatus status : OrderStatus.values()) {
+                List<OrderManagementDTO> orders = orderService.getOrdersByStatus(currentUser.getId(), status);
+                if (!orders.isEmpty()) {
+                    labels.add(getStatusTextVietnamese(status));
+                    values.add(orders.size());
+                }
+            }
+
+            return ResponseEntity.ok(java.util.Map.of(
+                "labels", labels,
+                "values", values
+            ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -148,9 +211,10 @@ public class ManagerOrderController {
     @PutMapping("/api/{orderId}/confirm")
     @ResponseBody
     public ResponseEntity<?> confirmOrder(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long orderId) {
         try {
+            User currentUser = getCurrentUser(authentication);
             OrderManagementDTO order = orderService.confirmOrder(currentUser.getId(), orderId);
             return ResponseEntity.ok(order);
         } catch (Exception e) {
@@ -164,9 +228,10 @@ public class ManagerOrderController {
     @PutMapping("/api/{orderId}/prepare")
     @ResponseBody
     public ResponseEntity<?> prepareOrder(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long orderId) {
         try {
+            User currentUser = getCurrentUser(authentication);
             OrderManagementDTO order = orderService.prepareOrder(currentUser.getId(), orderId);
             return ResponseEntity.ok(order);
         } catch (Exception e) {
@@ -175,20 +240,22 @@ public class ManagerOrderController {
     }
 
     /**
-     * API: Bắt đầu giao hàng
+     * API: Bắt đầu giao hàng (DISABLED - Option 2: Shipper tự nhận)
+     * Manager KHÔNG thể bắt đầu giao hàng. Shipper sẽ tự nhận từ PREPARING -> ASSIGNED -> DELIVERING
      */
-    @PutMapping("/api/{orderId}/deliver")
-    @ResponseBody
-    public ResponseEntity<?> deliverOrder(
-            @AuthenticationPrincipal User currentUser,
-            @PathVariable Long orderId) {
-        try {
-            OrderManagementDTO order = orderService.deliverOrder(currentUser.getId(), orderId);
-            return ResponseEntity.ok(order);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
+    // @PutMapping("/api/{orderId}/deliver")
+    // @ResponseBody
+    // public ResponseEntity<?> deliverOrder(
+    //         Authentication authentication,
+    //         @PathVariable Long orderId) {
+    //     try {
+    //         User currentUser = getCurrentUser(authentication);
+    //         OrderManagementDTO order = orderService.deliverOrder(currentUser.getId(), orderId);
+    //         return ResponseEntity.ok(order);
+    //     } catch (Exception e) {
+    //         return ResponseEntity.badRequest().body(e.getMessage());
+    //     }
+    // }
 
     /**
      * API: Hoàn thành đơn hàng
@@ -196,9 +263,10 @@ public class ManagerOrderController {
     @PutMapping("/api/{orderId}/complete")
     @ResponseBody
     public ResponseEntity<?> completeOrder(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long orderId) {
         try {
+            User currentUser = getCurrentUser(authentication);
             OrderManagementDTO order = orderService.completeOrder(currentUser.getId(), orderId);
             return ResponseEntity.ok(order);
         } catch (Exception e) {
@@ -212,10 +280,11 @@ public class ManagerOrderController {
     @PutMapping("/api/{orderId}/cancel")
     @ResponseBody
     public ResponseEntity<?> cancelOrder(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long orderId,
             @RequestParam(required = false) String reason) {
         try {
+            User currentUser = getCurrentUser(authentication);
             OrderManagementDTO order = orderService.cancelOrder(currentUser.getId(), orderId, reason);
             return ResponseEntity.ok(order);
         } catch (Exception e) {
@@ -224,15 +293,16 @@ public class ManagerOrderController {
     }
 
     /**
-     * API: Trả hàng
+     * API: Xử lý trả hàng
      */
     @PutMapping("/api/{orderId}/return")
     @ResponseBody
     public ResponseEntity<?> returnOrder(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long orderId,
             @RequestParam(required = false) String reason) {
         try {
+            User currentUser = getCurrentUser(authentication);
             OrderManagementDTO order = orderService.returnOrder(currentUser.getId(), orderId, reason);
             return ResponseEntity.ok(order);
         } catch (Exception e) {
@@ -241,15 +311,16 @@ public class ManagerOrderController {
     }
 
     /**
-     * API: Hoàn tiền
+     * API: Xử lý hoàn tiền
      */
     @PutMapping("/api/{orderId}/refund")
     @ResponseBody
     public ResponseEntity<?> refundOrder(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long orderId,
             @RequestParam(required = false) String reason) {
         try {
+            User currentUser = getCurrentUser(authentication);
             OrderManagementDTO order = orderService.refundOrder(currentUser.getId(), orderId, reason);
             return ResponseEntity.ok(order);
         } catch (Exception e) {
@@ -257,103 +328,130 @@ public class ManagerOrderController {
         }
     }
 
-    // ==================== API ENDPOINTS - SHIPPER ASSIGNMENT ====================
-
     /**
-     * API: Phân công shipper
+     * API: Get current shipper of an order
      */
-    @PostMapping("/api/{orderId}/assign-shipper")
+    @GetMapping("/api/{orderId}/shipper")
     @ResponseBody
-    public ResponseEntity<?> assignShipper(
-            @AuthenticationPrincipal User currentUser,
-            @PathVariable Long orderId,
-            @RequestParam Long shipperId) {
-        try {
-            ShipperAssignmentDTO assignment = shipperService.assignShipper(currentUser.getId(), orderId, shipperId);
-            return ResponseEntity.ok(assignment);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    /**
-     * API: Đổi shipper
-     */
-    @PutMapping("/api/{orderId}/change-shipper")
-    @ResponseBody
-    public ResponseEntity<?> changeShipper(
-            @AuthenticationPrincipal User currentUser,
-            @PathVariable Long orderId,
-            @RequestParam Long newShipperId) {
-        try {
-            ShipperAssignmentDTO assignment = shipperService.changeShipper(currentUser.getId(), orderId, newShipperId);
-            return ResponseEntity.ok(assignment);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    /**
-     * API: Lấy thông tin phân công
-     */
-    @GetMapping("/api/{orderId}/assignment")
-    @ResponseBody
-    public ResponseEntity<?> getAssignment(
-            @AuthenticationPrincipal User currentUser,
+    public ResponseEntity<?> getCurrentShipper(
+            Authentication authentication,
             @PathVariable Long orderId) {
         try {
-            ShipperAssignmentDTO assignment = shipperService.getAssignment(currentUser.getId(), orderId);
+            User currentUser = getCurrentUser(authentication);
+            ShipperAssignmentDTO assignment = shipperService.getAssignment(
+                    currentUser.getId(), orderId);
             return ResponseEntity.ok(assignment);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
+    }
+    
+    /**
+     * API: Assign shipper to order (DISABLED - Option 2: Shipper tự nhận)
+     * Manager KHÔNG thể assign shipper. Shipper tự nhận từ danh sách available orders
+     */
+    // @PostMapping("/api/{orderId}/assign-shipper")
+    // @ResponseBody
+    // public ResponseEntity<?> assignShipper(
+    //         Authentication authentication,
+    //         @PathVariable Long orderId,
+    //         @RequestParam Long shipperId) {
+    //     try {
+    //         User currentUser = getCurrentUser(authentication);
+    //         ShipperAssignmentDTO assignment = shipperService.assignShipper(
+    //                 currentUser.getId(), orderId, shipperId);
+    //         return ResponseEntity.ok(assignment);
+    //     } catch (Exception e) {
+    //         return ResponseEntity.badRequest().body(e.getMessage());
+    //     }
+    // }
+
+    /**
+     * API: Update shipper assignment (DISABLED - Option 2: Shipper tự nhận)
+     * Manager KHÔNG thể thay đổi shipper assignment
+     */
+    // @PutMapping("/api/{orderId}/update-shipper")
+    // @ResponseBody
+    // public ResponseEntity<?> updateShipper(
+    //         Authentication authentication,
+    //         @PathVariable Long orderId,
+    //         @RequestParam Long newShipperId) {
+    //     try {
+    //         User currentUser = getCurrentUser(authentication);
+    //         ShipperAssignmentDTO assignment = shipperService.changeShipper(
+    //                 currentUser.getId(), orderId, newShipperId);
+    //         return ResponseEntity.ok(assignment);
+    //     } catch (Exception e) {
+    //         return ResponseEntity.badRequest().body(e.getMessage());
+    //     }
+    // }
+
+    /**
+     * API: Get available shippers (DISABLED - Option 2: Shipper tự nhận)
+     * Không cần lấy danh sách shipper vì manager không assign
+     */
+    // @GetMapping("/api/shippers/available")
+    // @ResponseBody
+    // public ResponseEntity<?> getAvailableShippers(Authentication authentication) {
+    //     try {
+    //         List<ShipperAssignmentDTO> shippers = shipperService.getAvailableShippers();
+    //         return ResponseEntity.ok(shippers);
+    //     } catch (Exception e) {
+    //         return ResponseEntity.badRequest().body(e.getMessage());
+    //     }
+    // }
+
+    // ==================== EXCEL EXPORT ====================
+
+    /**
+     * Export orders to Excel
+     */
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportToExcel(
+            Authentication authentication,
+            @RequestParam(required = false) String status) {
+        try {
+            User currentUser = getCurrentUser(authentication);
+            List<OrderManagementDTO> orders;
+
+            if (status != null && !status.isEmpty() && !status.equals("ALL")) {
+                orders = orderService.getOrdersByStatus(currentUser.getId(), OrderStatus.valueOf(status));
+            } else {
+                Page<OrderManagementDTO> page = orderService.getAllOrders(
+                        currentUser.getId(), PageRequest.of(0, 1000));
+                orders = page.getContent();
+            }
+
+            byte[] excelBytes = excelExportService.exportOrdersToExcel(orders);
+
+            // Generate filename with current date
+            String filename = "DonHang_" + LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyyyy")) + ".xlsx";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", filename);
+            headers.setContentLength(excelBytes.length);
+
+            return new ResponseEntity<>(excelBytes, headers, HttpStatus.OK);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 
-    /**
-     * API: Lấy danh sách shipper khả dụng
-     */
-    @GetMapping("/api/shippers/available")
-    @ResponseBody
-    public ResponseEntity<?> getAvailableShippers() {
-        try {
-            List<ShipperAssignmentDTO> shippers = shipperService.getAvailableShippers();
-            return ResponseEntity.ok(shippers);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
+    // ==================== HELPER METHODS ====================
 
-    /**
-     * API: Cập nhật trạng thái phân công
-     */
-    @PutMapping("/api/assignments/{assignmentId}/status")
-    @ResponseBody
-    public ResponseEntity<?> updateAssignmentStatus(
-            @AuthenticationPrincipal User currentUser,
-            @PathVariable Long assignmentId,
-            @RequestParam String status) {
-        try {
-            ShipperAssignmentDTO assignment = shipperService.updateAssignmentStatus(currentUser.getId(), assignmentId, status);
-            return ResponseEntity.ok(assignment);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    /**
-     * API: Hủy phân công shipper
-     */
-    @DeleteMapping("/api/{orderId}/assignment")
-    @ResponseBody
-    public ResponseEntity<?> cancelAssignment(
-            @AuthenticationPrincipal User currentUser,
-            @PathVariable Long orderId) {
-        try {
-            shipperService.cancelAssignment(currentUser.getId(), orderId);
-            return ResponseEntity.ok("Đã hủy phân công shipper");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    private String getStatusTextVietnamese(OrderStatus status) {
+        return switch (status) {
+            case NEW -> "Mới";
+            case CONFIRMED -> "Đã xác nhận";
+            case PREPARING -> "Đang chuẩn bị";
+            case DELIVERING -> "Đang giao";
+            case DELIVERED -> "Đã giao";
+            case CANCELED -> "Đã hủy";
+            case RETURNED -> "Đã trả hàng";
+            case REFUNDED -> "Đã hoàn tiền";
+        };
     }
 }
-

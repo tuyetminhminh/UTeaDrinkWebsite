@@ -46,10 +46,6 @@ public class AuthController {
 	@GetMapping("/manager/home")
 	public String managerHome() { return "manager/manager-home"; }
 
-
-	@GetMapping("/shipper/home")
-	public String shipperHome() { return "home/shipper-home"; }
-
 	@GetMapping("/login")
 	public String loginPage() {
 		return "auth/login";

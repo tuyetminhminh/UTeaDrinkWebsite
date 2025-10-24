@@ -15,7 +15,9 @@ import net.codejava.utea.customer.entity.enums.CouponType;
 import net.codejava.utea.customer.repository.CouponRepository;
 import net.codejava.utea.customer.repository.SizeRepository;
 import net.codejava.utea.manager.entity.Shop;
+import net.codejava.utea.manager.entity.ShopManager;
 import net.codejava.utea.manager.repository.ShopRepository;
+import net.codejava.utea.manager.repository.ShopManagerRepository;
 import net.codejava.utea.order.entity.Order;
 import net.codejava.utea.order.entity.OrderItem;
 import net.codejava.utea.order.entity.enums.OrderStatus;
@@ -29,8 +31,10 @@ import net.codejava.utea.promotion.repository.VoucherRepository;
 import net.codejava.utea.review.entity.Review;
 import net.codejava.utea.review.entity.enums.ReviewStatus;
 import net.codejava.utea.review.repository.ReviewRepository;
+import net.codejava.utea.shipping.entity.ShipAssignment;
 import net.codejava.utea.shipping.entity.ShippingProvider;
 import net.codejava.utea.shipping.entity.ShipperProfile;
+import net.codejava.utea.shipping.repository.ShipAssignmentRepository;
 import net.codejava.utea.shipping.repository.ShipperProfileRepository;
 import net.codejava.utea.shipping.repository.ShippingProviderRepository;
 
@@ -51,6 +55,7 @@ public class DataInitializer implements CommandLineRunner {
     private final RoleRepository roleRepo;
     private final PasswordEncoder passwordEncoder;
     private final ShopRepository shopRepo;
+    private final ShopManagerRepository shopManagerRepo;
     private final ProductCategoryRepository categoryRepo;
     private final SizeRepository sizeRepo;
     private final ProductRepository productRepo;
@@ -63,6 +68,7 @@ public class DataInitializer implements CommandLineRunner {
     private final ReviewRepository reviewRepo;
     private final ShippingProviderRepository shippingProviderRepo;
     private final ShipperProfileRepository shipperProfileRepo;
+    private final ShipAssignmentRepository shipAssignmentRepo;
 
     @Override
     @Transactional
@@ -74,6 +80,9 @@ public class DataInitializer implements CommandLineRunner {
 
         // 2. Shops
         Shop shop1 = initShops();
+        
+        // 2.1. Shop Managers (gán manager vào shop)
+        initShopManagers(shop1);
 
         // 3. Product Categories
         initProductCategories();
@@ -111,6 +120,9 @@ public class DataInitializer implements CommandLineRunner {
         // 14. Shipper Profiles
         initShipperProfiles();
 
+        // 15. Ship Assignments (gán shipper vào đơn hàng)
+        initShipAssignments(shop1);
+
         System.out.println("=== HOÀN THÀNH KHỞI TẠO DỮ LIỆU MẪU ===");
     }
 
@@ -129,6 +141,7 @@ public class DataInitializer implements CommandLineRunner {
         ensureUserWithRole("seller@utea.local", "seller", "Seller Seed", "123456", "ACTIVE", "SELLER");
         ensureUserWithRole("customer@utea.local", "customer", "Nguyễn Văn A", "123456", "ACTIVE", "CUSTOMER");
         ensureUserWithRole("customer2@utea.local", "customer2", "Trần Thị B", "123456", "ACTIVE", "CUSTOMER");
+        ensureUserWithRole("customer3@utea.local", "customer3", "Lê Văn C", "123456", "ACTIVE", "CUSTOMER");
         
         // Shippers
         ensureUserWithRole("shipper@utea.local", "shipper", "Phạm Văn Thành", "123456", "ACTIVE", "SHIPPER");
@@ -176,6 +189,30 @@ public class DataInitializer implements CommandLineRunner {
                         .phone("0901234567")
                         .status("OPEN")
                         .build()));
+    }
+
+    // ==================== 2.1. SHOP MANAGERS ====================
+    private void initShopManagers(Shop shop) {
+        System.out.println("→ Khởi tạo Shop Managers...");
+        
+        User manager = userRepo.findByEmail("manager@utea.local").orElse(null);
+        if (manager == null) {
+            System.out.println("  ⚠ WARNING: Manager user not found!");
+            return;
+        }
+        
+        System.out.println("  → Found manager user: " + manager.getEmail() + " (ID: " + manager.getId() + ")");
+        
+        if (!shopManagerRepo.existsByManagerId(manager.getId())) {
+            ShopManager shopManager = ShopManager.builder()
+                    .shop(shop)
+                    .manager(manager)
+                    .build();
+            shopManagerRepo.save(shopManager);
+            System.out.println("  ✓ Đã gán Manager vào shop: " + shop.getName() + " (ShopManager ID: " + shopManager.getId() + ")");
+        } else {
+            System.out.println("  → Manager đã được gán vào shop rồi");
+        }
     }
 
     // ==================== 3. PRODUCT CATEGORIES ====================
@@ -652,37 +689,118 @@ public class DataInitializer implements CommandLineRunner {
         System.out.println("→ Khởi tạo Orders...");
         
         User customer = userRepo.findByEmail("customer@utea.local").orElse(null);
-        Address address = customer != null ? addressRepo.findByUserId(customer.getId()).stream().findFirst().orElse(null) : null;
-        Product product = productRepo.findAll().stream().findFirst().orElse(null);
-
-        if (customer != null && address != null && product != null) {
-            if (orderRepo.findByOrderCode("ORD-2025-000001").isEmpty()) {
-                Order order = Order.builder()
-                        .orderCode("ORD-2025-000001")
-                        .user(customer)
-                        .shop(shop)
-                        .status(OrderStatus.NEW)
-                        .shippingAddress(address)
-                        .subtotal(new BigDecimal("65000"))
-                        .shippingFee(new BigDecimal("15000"))
-                        .discount(new BigDecimal("0"))
-                        .total(new BigDecimal("80000"))
-                        .createdAt(LocalDateTime.now())
-                        .build();
-
-                OrderItem item = OrderItem.builder()
-                        .order(order)
-                        .product(product)
-                        .quantity(2)
-                        .unitPrice(new BigDecimal("30000"))
-                        .lineTotal(new BigDecimal("65000"))
-                        .toppingsJson("[{\"name\":\"Trân châu đen\",\"price\":5000}]")
-                        .note("Ít đường")
-                        .build();
-                
-                order.getItems().add(item);
-                orderRepo.save(order);
+        User customer2 = userRepo.findByEmail("customer2@utea.local").orElse(null);
+        User customer3 = userRepo.findByEmail("customer3@utea.local").orElse(null);
+        
+        Address address1 = customer != null ? addressRepo.findByUserId(customer.getId()).stream().findFirst().orElse(null) : null;
+        Address address2 = customer2 != null ? addressRepo.findByUserId(customer2.getId()).stream().findFirst().orElse(null) : null;
+        
+        java.util.List<Product> products = productRepo.findAll();
+        
+        if (customer != null && address1 != null && !products.isEmpty()) {
+            // 2 đơn NEW - Mới tạo, chưa xác nhận
+            createSampleOrder(shop, customer, address1, products.get(0), 
+                    "ORD-2025-000011", OrderStatus.NEW, LocalDateTime.now().minusMinutes(30),
+                    2, new BigDecimal("35000"), new BigDecimal("75000"), new BigDecimal("90000"));
+            
+            if (products.size() > 1) {
+                createSampleOrder(shop, customer2, address2, products.get(1), 
+                        "ORD-2025-000012", OrderStatus.NEW, LocalDateTime.now().minusMinutes(15),
+                        1, new BigDecimal("40000"), new BigDecimal("45000"), new BigDecimal("60000"));
             }
+            
+            // 3 đơn PREPARING - Chờ shipper tự nhận
+            createSampleOrder(shop, customer, address1, products.get(0), 
+                    "ORD-2025-000001", OrderStatus.PREPARING, LocalDateTime.now().minusHours(2),
+                    2, new BigDecimal("30000"), new BigDecimal("65000"), new BigDecimal("80000"));
+            
+            if (products.size() > 1) {
+                createSampleOrder(shop, customer2, address2, products.get(1), 
+                        "ORD-2025-000002", OrderStatus.PREPARING, LocalDateTime.now().minusHours(3),
+                        1, new BigDecimal("35000"), new BigDecimal("40000"), new BigDecimal("55000"));
+            }
+            
+            if (products.size() > 2) {
+                createSampleOrder(shop, customer3, address1, products.get(2), 
+                        "ORD-2025-000003", OrderStatus.PREPARING, LocalDateTime.now().minusHours(4),
+                        3, new BigDecimal("32000"), new BigDecimal("96000"), new BigDecimal("111000"));
+            }
+            
+            // 1 đơn DELIVERING - Đang giao
+            if (products.size() > 3) {
+                createSampleOrder(shop, customer, address1, products.get(3), 
+                        "ORD-2025-000004", OrderStatus.DELIVERING, LocalDateTime.now().minusHours(5),
+                        2, new BigDecimal("35000"), new BigDecimal("75000"), new BigDecimal("90000"));
+            }
+            
+            // 6 đơn DELIVERED - Đã giao
+            if (products.size() > 4) {
+                createSampleOrder(shop, customer2, address2, products.get(4), 
+                        "ORD-2025-000005", OrderStatus.DELIVERED, LocalDateTime.now().minusHours(10),
+                        1, new BigDecimal("40000"), new BigDecimal("45000"), new BigDecimal("60000"));
+            }
+            
+            if (products.size() > 5) {
+                createSampleOrder(shop, customer, address1, products.get(5), 
+                        "ORD-2025-000006", OrderStatus.DELIVERED, LocalDateTime.now().minusDays(1).minusHours(3),
+                        2, new BigDecimal("38000"), new BigDecimal("81000"), new BigDecimal("96000"));
+            }
+            
+            if (products.size() > 6) {
+                createSampleOrder(shop, customer3, address1, products.get(6), 
+                        "ORD-2025-000007", OrderStatus.DELIVERED, LocalDateTime.now().minusDays(2).minusHours(5),
+                        1, new BigDecimal("42000"), new BigDecimal("47000"), new BigDecimal("62000"));
+            }
+            
+            if (products.size() > 7) {
+                createSampleOrder(shop, customer2, address2, products.get(7), 
+                        "ORD-2025-000008", OrderStatus.DELIVERED, LocalDateTime.now().minusDays(3).minusHours(2),
+                        3, new BigDecimal("33000"), new BigDecimal("99000"), new BigDecimal("114000"));
+            }
+            
+            if (products.size() > 8) {
+                createSampleOrder(shop, customer, address1, products.get(8), 
+                        "ORD-2025-000009", OrderStatus.DELIVERED, LocalDateTime.now().minusDays(4).minusHours(6),
+                        2, new BigDecimal("36000"), new BigDecimal("77000"), new BigDecimal("92000"));
+            }
+            
+            if (products.size() > 9) {
+                createSampleOrder(shop, customer3, address1, products.get(9), 
+                        "ORD-2025-000010", OrderStatus.DELIVERED, LocalDateTime.now().minusDays(5).minusHours(4),
+                        1, new BigDecimal("45000"), new BigDecimal("50000"), new BigDecimal("65000"));
+            }
+        }
+    }
+    
+    private void createSampleOrder(Shop shop, User customer, Address address, Product product,
+                                   String orderCode, OrderStatus status, LocalDateTime createdAt,
+                                   int quantity, BigDecimal unitPrice, BigDecimal subtotal, BigDecimal total) {
+        if (orderRepo.findByOrderCode(orderCode).isEmpty()) {
+            Order order = Order.builder()
+                    .orderCode(orderCode)
+                    .user(customer)
+                    .shop(shop)
+                    .status(status)
+                    .shippingAddress(address)
+                    .subtotal(subtotal)
+                    .shippingFee(new BigDecimal("15000"))
+                    .discount(new BigDecimal("0"))
+                    .total(total)
+                    .createdAt(createdAt)
+                    .build();
+
+            OrderItem item = OrderItem.builder()
+                    .order(order)
+                    .product(product)
+                    .quantity(quantity)
+                    .unitPrice(unitPrice)
+                    .lineTotal(subtotal)
+                    .toppingsJson("[{\"name\":\"Trân châu đen\",\"price\":5000}]")
+                    .note(status == OrderStatus.CANCELED ? "Khách hủy đơn" : "")
+                    .build();
+            
+            order.getItems().add(item);
+            orderRepo.save(order);
         }
     }
 
@@ -762,6 +880,91 @@ public class DataInitializer implements CommandLineRunner {
             profile.setLicenseNumber(licenseNumber);
             profile.setNote(note);
             shipperProfileRepo.save(profile);
+        }
+    }
+
+    // ==================== 15. SHIP ASSIGNMENTS ====================
+    private void initShipAssignments(Shop shop) {
+        System.out.println("→ Khởi tạo Ship Assignments (gán shipper vào đơn hàng)...");
+        
+        User shipper1 = userRepo.findByEmail("shipper@utea.local").orElse(null);
+        User shipper2 = userRepo.findByEmail("shipper2@utea.local").orElse(null);
+        User shipper3 = userRepo.findByEmail("shipper3@utea.local").orElse(null);
+        User shipper4 = userRepo.findByEmail("shipper4@utea.local").orElse(null);
+        User shipper5 = userRepo.findByEmail("shipper5@utea.local").orElse(null);
+        
+        if (shipper1 == null || shipper2 == null || shipper3 == null) {
+            System.out.println("  ⚠ WARNING: Không tìm thấy shipper users!");
+            return;
+        }
+        
+        // ===== GÁN SHIPPER CHO 1 ĐƠN DELIVERING =====
+        // Order 4: DELIVERING (hôm nay, 5h trước)
+        assignShipperToOrder("ORD-2025-000004", shipper1, "DELIVERING", 
+                "Đang giao hàng khu vực Quận 1", LocalDateTime.now().minusHours(5));
+        
+        // ===== GÁN SHIPPER CHO 6 ĐƠN DELIVERED =====
+        // Order 5: DELIVERED (hôm nay, 10h trước)
+        assignShipperToOrder("ORD-2025-000005", shipper2, "DELIVERED", 
+                "Đã giao hàng thành công", 
+                LocalDateTime.now().minusHours(10), 
+                LocalDateTime.now().minusHours(9).minusMinutes(30));
+        
+        // Order 6: DELIVERED (1 ngày trước)
+        assignShipperToOrder("ORD-2025-000006", shipper3, "DELIVERED", 
+                "Đã giao hàng thành công", 
+                LocalDateTime.now().minusDays(1).minusHours(3), 
+                LocalDateTime.now().minusDays(1).minusHours(2));
+        
+        // Order 7: DELIVERED (2 ngày trước)
+        assignShipperToOrder("ORD-2025-000007", shipper4 != null ? shipper4 : shipper1, "DELIVERED", 
+                "Đã giao hàng thành công", 
+                LocalDateTime.now().minusDays(2).minusHours(5), 
+                LocalDateTime.now().minusDays(2).minusHours(4));
+        
+        // Order 8: DELIVERED (3 ngày trước)
+        assignShipperToOrder("ORD-2025-000008", shipper5 != null ? shipper5 : shipper2, "DELIVERED", 
+                "Đã giao hàng thành công", 
+                LocalDateTime.now().minusDays(3).minusHours(2), 
+                LocalDateTime.now().minusDays(3).minusHours(1));
+        
+        // Order 9: DELIVERED (4 ngày trước)
+        assignShipperToOrder("ORD-2025-000009", shipper1, "DELIVERED", 
+                "Đã giao hàng thành công", 
+                LocalDateTime.now().minusDays(4).minusHours(6), 
+                LocalDateTime.now().minusDays(4).minusHours(5));
+        
+        // Order 10: DELIVERED (5 ngày trước)
+        assignShipperToOrder("ORD-2025-000010", shipper2, "DELIVERED", 
+                "Đã giao hàng thành công", 
+                LocalDateTime.now().minusDays(5).minusHours(4), 
+                LocalDateTime.now().minusDays(5).minusHours(3));
+        
+        System.out.println("  ✓ Đã gán shipper cho 1 đơn DELIVERING và 6 đơn DELIVERED");
+    }
+    
+    private void assignShipperToOrder(String orderCode, User shipper, String status, 
+                                     String note, LocalDateTime assignedAt) {
+        assignShipperToOrder(orderCode, shipper, status, note, assignedAt, null);
+    }
+    
+    private void assignShipperToOrder(String orderCode, User shipper, String status, 
+                                     String note, LocalDateTime assignedAt, LocalDateTime deliveredAt) {
+        Order order = orderRepo.findByOrderCode(orderCode).orElse(null);
+        
+        if (order != null && shipAssignmentRepo.findByOrderId(order.getId()).isEmpty()) {
+            ShipAssignment assignment = ShipAssignment.builder()
+                    .order(order)
+                    .shipper(shipper)
+                    .status(status)
+                    .note(note)
+                    .assignedAt(assignedAt)
+                    .pickedUpAt(assignedAt != null ? assignedAt.plusMinutes(30) : null)
+                    .deliveredAt(deliveredAt)
+                    .build();
+            
+            shipAssignmentRepo.save(assignment);
+            System.out.println("  → Đã gán shipper " + shipper.getFullName() + " cho đơn " + orderCode + " (" + status + ")");
         }
     }
 }

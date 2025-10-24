@@ -98,31 +98,6 @@
                     </div>
                 </div>
 
-                <!-- Recent Orders -->
-                <div class="row">
-                    <div class="col-12">
-                        <h4>Đơn hàng gần đây</h4>
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Mã đơn</th>
-                                        <th>Khách hàng</th>
-                                        <th>Tổng tiền</th>
-                                        <th>Trạng thái</th>
-                                        <th>Thời gian</th>
-                                        <th>Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recentOrdersTable">
-                                    <tr>
-                                        <td colspan="6" class="text-center">Đang tải...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -132,7 +107,6 @@
         // Load dashboard data
         document.addEventListener('DOMContentLoaded', function() {
             loadDashboardStats();
-            loadRecentOrders();
         });
 
         function loadDashboardStats() {
@@ -147,70 +121,6 @@
                         data.totalOrders || 0;
                 })
                 .catch(error => console.error('Error loading stats:', error));
-        }
-
-        function loadRecentOrders() {
-            fetch('/manager/orders/api?page=0&size=10')
-                .then(response => response.json())
-                .then(data => {
-                    const tbody = document.getElementById('recentOrdersTable');
-                    tbody.innerHTML = '';
-                    
-                    if (data.content && data.content.length > 0) {
-                        data.content.forEach(order => {
-                            const row = `
-                                <tr>
-                                    <td>${order.orderCode}</td>
-                                    <td>${order.customerName}</td>
-                                    <td>${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.total)}</td>
-                                    <td><span class="badge bg-${getStatusColor(order.status)}">${getStatusText(order.status)}</span></td>
-                                    <td>${new Date(order.createdAt).toLocaleString('vi-VN')}</td>
-                                    <td>
-                                        <a href="/manager/orders/${order.id}" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            `;
-                            tbody.innerHTML += row;
-                        });
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="6" class="text-center">Chưa có đơn hàng nào</td></tr>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading orders:', error);
-                    document.getElementById('recentOrdersTable').innerHTML = 
-                        '<tr><td colspan="6" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>';
-                });
-        }
-
-        function getStatusColor(status) {
-            const colors = {
-                'NEW': 'primary',
-                'CONFIRMED': 'info',
-                'PREPARING': 'warning',
-                'DELIVERING': 'secondary',
-                'DELIVERED': 'success',
-                'CANCELED': 'danger',
-                'RETURNED': 'dark',
-                'REFUNDED': 'secondary'
-            };
-            return colors[status] || 'secondary';
-        }
-
-        function getStatusText(status) {
-            const texts = {
-                'NEW': 'Mới',
-                'CONFIRMED': 'Đã xác nhận',
-                'PREPARING': 'Đang chuẩn bị',
-                'DELIVERING': 'Đang giao',
-                'DELIVERED': 'Đã giao',
-                'CANCELED': 'Đã hủy',
-                'RETURNED': 'Trả hàng',
-                'REFUNDED': 'Hoàn tiền'
-            };
-            return texts[status] || status;
         }
     </script>
 </body>

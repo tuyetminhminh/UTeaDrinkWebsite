@@ -37,25 +37,41 @@ public class OrderManagementService {
     /**
      * Lấy tất cả đơn hàng của shop (phân trang)
      */
+    @Transactional(readOnly = true)
     public Page<OrderManagementDTO> getAllOrders(Long managerId, Pageable pageable) {
-        // Get shop to verify manager has shop
-        getShopByManagerId(managerId);
+        Shop shop = getShopByManagerId(managerId);
         
-        Page<Order> orders = orderRepo.findAll(pageable);
+        // Lấy TẤT CẢ orders của shop này (không phân trang trước)
+        List<Order> allShopOrders = orderRepo.findAll().stream()
+                .filter(order -> order.getShop() != null && order.getShop().getId().equals(shop.getId()))
+                .collect(Collectors.toList());
         
-        return orders.map(this::convertToDTO);
+        // Áp dụng pagination TRÊN kết quả đã filter
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allShopOrders.size());
+        List<Order> pageContent = allShopOrders.subList(start, end);
+        
+        // Convert to Page
+        return new org.springframework.data.domain.PageImpl<>(
+                pageContent.stream().map(this::convertToDTO).collect(Collectors.toList()),
+                pageable,
+                allShopOrders.size()
+        );
     }
 
     /**
      * Lấy đơn hàng theo trạng thái
      */
+    @Transactional(readOnly = true)
     public List<OrderManagementDTO> getOrdersByStatus(Long managerId, OrderStatus status) {
         Shop shop = getShopByManagerId(managerId);
         
         List<Order> orders = orderRepo.findAll();
         
         return orders.stream()
-                .filter(order -> order.getStatus() == status && order.getShop().getId().equals(shop.getId()))
+                .filter(order -> order.getShop() != null 
+                        && order.getShop().getId().equals(shop.getId())
+                        && order.getStatus() == status)
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -63,6 +79,7 @@ public class OrderManagementService {
     /**
      * Lấy chi tiết đơn hàng
      */
+    @Transactional(readOnly = true)
     public OrderManagementDTO getOrderById(Long managerId, Long orderId) {
         Shop shop = getShopByManagerId(managerId);
         
@@ -197,6 +214,14 @@ public class OrderManagementService {
 
     private OrderManagementDTO convertToDTO(Order order) {
         ShipAssignment shipAssignment = shipAssignmentRepo.findByOrderId(order.getId()).orElse(null);
+        
+        List<OrderItemDTO> itemDTOs = order.getItems().stream()
+                .map(this::convertItemToDTO)
+                .collect(Collectors.toList());
+        
+        int totalItemCount = order.getItems().stream()
+                .mapToInt(OrderItem::getQuantity)
+                .sum();
 
         return OrderManagementDTO.builder()
                 .id(order.getId())
@@ -217,7 +242,8 @@ public class OrderManagementService {
                 .voucherCode(order.getVoucherCode())
                 .paymentMethod(order.getPayment() != null ? order.getPayment().getMethod().name() : "")
                 .paymentStatus(order.getPayment() != null ? order.getPayment().getStatus().name() : "")
-                .items(order.getItems().stream().map(this::convertItemToDTO).collect(Collectors.toList()))
+                .items(itemDTOs)
+                .itemCount(totalItemCount)
                 .shipperId(shipAssignment != null ? shipAssignment.getShipper().getId() : null)
                 .shipperName(shipAssignment != null ? shipAssignment.getShipper().getFullName() : null)
                 .createdAt(order.getCreatedAt())

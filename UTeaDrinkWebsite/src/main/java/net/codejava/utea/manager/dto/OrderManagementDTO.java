@@ -40,6 +40,7 @@ public class OrderManagementDTO {
     
     // Items
     private List<OrderItemDTO> items;
+    private Integer itemCount; // Tổng số món
     
     // Shipper
     private Long shipperId;

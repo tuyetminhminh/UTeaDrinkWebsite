@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết đơn hàng - Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding-top: 70px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .detail-header {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .detail-header h4 {
+            color: #1e3a8a;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            color: white;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-card h5 {
+            color: #1e3a8a;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .info-value {
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .items-table {
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .items-table th {
+            background: #f8fafc;
+            color: #475569;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .items-table td {
+            padding: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .product-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .shipper-section {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .shipper-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid #10b981;
+        }
+
+        .shipper-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .no-shipper {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+        }
+
+        .select-shipper {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        .select-shipper:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .detail-header h4 {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn-action {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Fragment -->
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="container">
+        <!-- Header with back button -->
+        <div class="detail-header">
+            <h4>
+                <span>
+                    <i class="fas fa-file-invoice"></i> Chi tiết đơn hàng #<span th:text="${order.orderCode}">ORD-001</span>
+                </span>
+                <a th:href="@{/manager/orders}" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
+            </h4>
+            <div class="d-flex align-items-center gap-3">
+                <span class="info-label">Trạng thái:</span>
+                <span class="badge status-badge" 
+                      th:classappend="${order.status == 'NEW' ? 'bg-warning' : 
+                                       order.status == 'CONFIRMED' ? 'bg-info' :
+                                       order.status == 'PREPARING' ? 'bg-secondary' :
+                                       order.status == 'DELIVERING' ? 'bg-primary' :
+                                       order.status == 'DELIVERED' ? 'bg-success' : 
+                                       'bg-danger'}"
+                      th:text="${order.status == 'NEW' ? 'Mới' :
+                                order.status == 'CONFIRMED' ? 'Đã xác nhận' :
+                                order.status == 'PREPARING' ? 'Đang chuẩn bị' :
+                                order.status == 'DELIVERING' ? 'Đang giao' :
+                                order.status == 'DELIVERED' ? 'Đã giao' :
+                                order.status == 'CANCELED' ? 'Đã hủy' : order.status}">
+                    NEW
+                </span>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Left Column: Order Info -->
+            <div class="col-lg-8">
+                <!-- Customer Info -->
+                <div class="info-card">
+                    <h5><i class="fas fa-user"></i> Thông tin khách hàng</h5>
+                    <div class="info-row">
+                        <span class="info-label">Họ tên:</span>
+                        <span class="info-value" th:text="${order.customerName}">Nguyễn Văn A</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Số điện thoại:</span>
+                        <span class="info-value" th:text="${order.customerPhone}">0901234567</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Địa chỉ giao hàng:</span>
+                        <span class="info-value" th:text="${order.shippingAddress}">123 Đường ABC, Quận 1, TP.HCM</span>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="info-card">
+                    <h5><i class="fas fa-shopping-cart"></i> Sản phẩm đã đặt</h5>
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Giá</th>
+                                <th>SL</th>
+                                <th>Tổng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${order.items}">
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img th:if="${item.productImage}" 
+                                             th:src="${item.productImage}" 
+                                             alt="Product" 
+                                             class="product-img">
+                                        <div>
+                                            <strong th:text="${item.productName}">Trà sữa trân châu</strong>
+                                            <div class="text-muted small" th:if="${item.variantSize}">
+                                                Size: <span th:text="${item.variantSize}">M</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">50,000 đ</td>
+                                <td th:text="${item.quantity}">2</td>
+                                <td><strong th:text="${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</strong></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>
+                                <td><strong class="text-success" 
+                                            th:text="${#numbers.formatDecimal(order.total, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                    200,000 đ
+                                </strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Right Column: Actions & Shipper -->
+            <div class="col-lg-4">
+                <!-- Order Actions -->
+                <div class="info-card">
+                    <h5><i class="fas fa-cogs"></i> Thao tác</h5>
+                    <div class="action-buttons">
+                        <button th:if="${order.status == 'NEW'}" 
+                                class="btn btn-success btn-action" 
+                                onclick="confirmOrder()">
+                            <i class="fas fa-check"></i> Xác nhận đơn
+                        </button>
+                        <button th:if="${order.status == 'CONFIRMED'}" 
+                                class="btn btn-info btn-action" 
+                                onclick="prepareOrder()">
+                            <i class="fas fa-utensils"></i> Bắt đầu chuẩn bị
+                        </button>
+                        <!-- OPTION 2: Không có nút giao hàng - Shipper tự nhận -->
+                        <div th:if="${order.status == 'PREPARING'}" class="alert alert-info mb-2" style="font-size: 13px;">
+                            <i class="fas fa-info-circle"></i> <strong>Đơn đang chờ shipper tự nhận</strong><br>
+                            <small>Shipper sẽ tự động nhận đơn từ danh sách "Đơn khả dụng"</small>
+                        </div>
+                        <div th:if="${order.status == 'DELIVERING'}" class="alert alert-primary mb-2" style="font-size: 13px;">
+                            <i class="fas fa-shipping-fast"></i> <strong>Shipper đang giao hàng</strong><br>
+                            <small>Shipper sẽ tự cập nhật khi giao thành công</small>
+                        </div>
+                        <button th:if="${order.status == 'NEW' or order.status == 'CONFIRMED'}" 
+                                class="btn btn-danger btn-action" 
+                                onclick="cancelOrder()">
+                            <i class="fas fa-times"></i> Hủy đơn
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Shipper Info (Read-Only) -->
+                <div class="info-card">
+                    <h5><i class="fas fa-motorcycle"></i> Thông tin Shipper</h5>
+                    
+                    <!-- Đơn đã có shipper (DELIVERING/DELIVERED) -->
+                    <div th:if="${order.shipperName != null}" id="shipperInfo">
+                        <div class="shipper-info">
+                            <div class="shipper-avatar">
+                                <i class="fas fa-user-check text-success"></i>
+                            </div>
+                            <div>
+                                <strong th:text="${order.shipperName}">Shipper Name</strong>
+                                <div class="small text-muted">
+                                    <i class="fas fa-clock me-1"></i> 
+                                    <span th:if="${order.status == 'DELIVERING'}">Đang giao hàng</span>
+                                    <span th:if="${order.status == 'DELIVERED'}">Đã giao hàng</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Đơn chưa có shipper -->
+                    <div th:if="${order.shipperName == null}">
+                        <div class="no-shipper">
+                            <i class="fas fa-info-circle fa-2x text-info mb-2"></i>
+                            <p th:if="${order.status == 'PREPARING'}">
+                                <strong>Đơn hàng đang chờ Shipper tự nhận</strong><br>
+                                <small class="text-muted">Shipper sẽ tự động nhận đơn từ danh sách đơn khả dụng</small>
+                            </p>
+                            <p th:if="${order.status != 'PREPARING' && order.status != 'DELIVERING' && order.status != 'DELIVERED'}">
+                                <small class="text-muted">Chưa có shipper nhận đơn</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Timeline -->
+                <div class="info-card">
+                    <h5><i class="fas fa-clock"></i> Thời gian</h5>
+                    <div class="info-row">
+                        <span class="info-label">Tạo đơn:</span>
+                        <span class="info-value" th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2025 10:00</span>
+                    </div>
+                    <div class="info-row" th:if="${order.updatedAt}">
+                        <span class="info-label">Cập nhật:</span>
+                        <span class="info-value" th:text="${#temporals.format(order.updatedAt, 'dd/MM/yyyy HH:mm')}">01/01/2025 11:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        const orderId = /*[[${order.id}]]*/ 0;
+
+        // ========== ORDER ACTIONS ==========
+        function confirmOrder() {
+            if (confirm('Xác nhận đơn hàng này?')) {
+                updateOrderStatus('confirm');
+            }
+        }
+
+        function prepareOrder() {
+            if (confirm('Bắt đầu chuẩn bị đơn hàng?\n\nLưu ý: Đơn hàng sẽ được shipper tự nhận sau khi chuẩn bị xong.')) {
+                updateOrderStatus('prepare');
+            }
+        }
+
+        function cancelOrder() {
+            const reason = prompt('Nhập lý do hủy đơn:');
+            if (reason) {
+                fetch(`/manager/orders/api/${orderId}/cancel?reason=${encodeURIComponent(reason)}`, {
+                    method: 'PUT'
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed');
+                    return response.json();
+                })
+                .then(data => {
+                    alert('Đã hủy đơn hàng!');
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi hủy đơn hàng!');
+                });
+            }
+        }
+
+        function updateOrderStatus(action) {
+            fetch(`/manager/orders/api/${orderId}/${action}`, {
+                method: 'PUT'
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Failed');
+                return response.json();
+            })
+            .then(data => {
+                alert('Đã cập nhật trạng thái đơn hàng!');
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi cập nhật trạng thái!');
+            });
+        }
+    </script>
+</body>
+</html>
+

@@ -315,5 +315,26 @@ public class ManagerProductController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    // ==================== API ENDPOINTS - DASHBOARD STATS ====================
+
+    /**
+     * API: Đếm tổng số sản phẩm (cho dashboard)
+     */
+    @GetMapping("/api/count")
+    @ResponseBody
+    public ResponseEntity<?> getProductCount(@AuthenticationPrincipal User currentUser) {
+        try {
+            Pageable pageable = PageRequest.of(0, 1);
+            Page<ProductManagementDTO> products = productService.getAllProducts(currentUser.getId(), pageable);
+            
+            return ResponseEntity.ok(java.util.Map.of(
+                "total", products.getTotalElements(),
+                "active", products.getTotalElements() // TODO: Count only AVAILABLE products
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
 
