@@ -124,6 +124,7 @@ public class DataInitializer implements CommandLineRunner {
         ensureRole("CUSTOMER", "Khách hàng");
         ensureRole("SHIPPER", "Tài xế");
 
+        // Users
         ensureUserWithRole("admin@utea.local", "admin", "Admin Seed", "123456", "ACTIVE", "ADMIN");
         ensureUserWithRole("manager@utea.local", "manager", "Manager Seed", "123456", "ACTIVE", "MANAGER");
         ensureUserWithRole("seller@utea.local", "seller", "Seller Seed", "123456", "ACTIVE", "SELLER");

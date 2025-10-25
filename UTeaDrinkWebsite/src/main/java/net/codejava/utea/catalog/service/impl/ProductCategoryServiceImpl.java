@@ -1,6 +1,7 @@
 package net.codejava.utea.catalog.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import net.codejava.utea.admin.controller.AdminCategoryController.CategoryForm;
 import net.codejava.utea.catalog.entity.ProductCategory;
 import net.codejava.utea.catalog.repository.ProductCategoryRepository;
 import net.codejava.utea.catalog.service.ProductCategoryService;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -57,4 +59,30 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
 		String n = name.trim();
 		return (excludeId == null) ? repo.existsByNameIgnoreCase(n) : repo.existsByNameIgnoreCaseAndIdNot(n, excludeId);
 	}
+	@Override
+    public ProductCategory createCategory(CategoryForm form) {
+        ProductCategory c = new ProductCategory();
+        c.setName(form.getName().trim());
+        c.setDescription(form.getDescription());
+        // LOGIC NGHIỆP VỤ ĐÃ Ở ĐÂY
+        c.setStatus(Objects.equals(form.getActive(), true) ? "ACTIVE" : "INACTIVE");
+        return repo.save(c);
+    }
+
+    @Override
+    public ProductCategory updateCategory(Long id, CategoryForm form) {
+        ProductCategory c = repo.findById(id).orElseThrow(() -> new RuntimeException("Category not found"));
+        c.setName(form.getName().trim());
+        c.setDescription(form.getDescription());
+        // LOGIC NGHIỆP VỤ ĐÃ Ở ĐÂY
+        c.setStatus(Objects.equals(form.getActive(), true) ? "ACTIVE" : "INACTIVE");
+        return repo.save(c);
+    }
+
+    @Override
+    public void updateStatus(Long id, String newStatus) {
+        ProductCategory category = repo.findById(id).orElseThrow(() -> new RuntimeException("Category not found"));
+        category.setStatus(newStatus);
+        repo.save(category);
+    }
 }

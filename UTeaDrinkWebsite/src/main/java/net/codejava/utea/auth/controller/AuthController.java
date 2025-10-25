@@ -1,5 +1,10 @@
 package net.codejava.utea.auth.controller;
 
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.boot.web.servlet.error.ErrorController;
+import org.springframework.http.HttpStatus;
+
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import net.codejava.utea.auth.service.JwtService;
@@ -19,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
-public class AuthController {
+public class AuthController implements ErrorController {
 
 	private final AuthenticationManager authManager;
 	private final JwtService jwtService;
@@ -35,20 +40,73 @@ public class AuthController {
 	private String sameSite;
 	@Value("${security.jwt.expiration-time:604800000}")
 	private long expMs; // 7 ngày
-    @GetMapping({"/", "/main-home"})
-    public String home() { return "home/main-home"; }
-    @GetMapping("/admin/home")
-    public String adminHome() { return "home/admin-home"; }
-    @GetMapping("/customer/home")
-    public String customerHome() { return "home/customer-home"; }
-    @GetMapping("/seller/home")
-    public String sellerHome() { return "home/seller-home"; }
-	@GetMapping("/manager/home")
-	public String managerHome() { return "manager/manager-home"; }
 
+	@GetMapping({ "/", "/home", "/main-home" })
+	public String home(Authentication auth) {
+		if (auth == null) {
+			return "home/main-home"; // trang public của bạn
+		}
+		return redirectByRole(auth);
+	}
+
+	/** Helper điều hướng theo vai trò */
+	private String redirectByRole(Authentication auth) {
+		if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ADMIN")))
+			return "redirect:/admin/home";
+		if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("MANAGER")))
+			return "redirect:/manager/home";
+		if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("SHIPPER")))
+			return "redirect:/shipper/home";
+		return "redirect:/customer/home";
+	}
+
+	/** Trang lỗi tùy biến – luôn có nút "Về trang phù hợp" */
+	@RequestMapping("/error")
+	public String handleError(HttpServletRequest request, Authentication auth, Model model) {
+		Object statusAttr = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+		int statusCode = (statusAttr != null) ? Integer.parseInt(statusAttr.toString()) : 500;
+
+		String backUrl;
+		if (auth != null) {
+			backUrl = redirectByRole(auth).replace("redirect:", ""); // "/admin/home" | "/customer/home" ...
+		} else {
+			backUrl = (statusCode == 401) ? "/login" : "/"; // chưa đăng nhập
+		}
+		model.addAttribute("backUrl", backUrl);
+
+		if (statusCode == HttpStatus.NOT_FOUND.value())
+			return "error/404";
+		if (statusCode == HttpStatus.INTERNAL_SERVER_ERROR.value())
+			return "error/500";
+		if (statusCode == HttpStatus.FORBIDDEN.value())
+			return "error/403";
+		return "error/error";
+	}
+
+	@GetMapping("/admin/home")
+	public String adminHome() {
+		return "home/admin-home";
+	}
+
+	@GetMapping("/customer/home")
+	public String customerHome() {
+		return "home/customer-home";
+	}
+
+	@GetMapping("/seller/home")
+	public String sellerHome() {
+		return "home/seller-home";
+	}
+
+	@GetMapping("/manager/home")
+	public String managerHome() {
+		return "manager/manager-home";
+	}
 
 	@GetMapping("/shipper/home")
-	public String shipperHome() { return "home/shipper-home"; }
+	public String shipperHome() {
+		return "home/shipper-home";
+	}
 
 	@GetMapping("/login")
 	public String loginPage() {

@@ -1,6 +1,7 @@
 package net.codejava.utea.catalog.service;
 
 import net.codejava.utea.catalog.entity.ProductCategory;
+import net.codejava.utea.admin.controller.AdminCategoryController.CategoryForm;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -24,10 +25,26 @@ public interface ProductCategoryService {
      */
     Page<ProductCategory> search(String name, Pageable pageable);
 
-    /**
-     * Kiểm tra tên đã tồn tại (không phân biệt hoa thường).
-     * @param name      tên cần kiểm tra
-     * @param excludeId bỏ qua id (khi update), truyền null nếu tạo mới
-     */
     boolean nameExists(String name, Long excludeId);
+    /**
+     * Tạo mới một danh mục từ dữ liệu form.
+     * @param form Dữ liệu từ người dùng.
+     * @return Entity đã được lưu.
+     */
+    ProductCategory createCategory(CategoryForm form);
+
+    /**
+     * Cập nhật một danh mục từ dữ liệu form.
+     * @param id ID của danh mục cần cập nhật.
+     * @param form Dữ liệu mới từ người dùng.
+     * @return Entity đã được cập nhật.
+     */
+    ProductCategory updateCategory(Long id, CategoryForm form);
+
+    /**
+     * Thay đổi trạng thái của danh mục (ACTIVE/INACTIVE).
+     * @param id ID của danh mục.
+     * @param newStatus Trạng thái mới.
+     */
+    void updateStatus(Long id, String newStatus);
 }
