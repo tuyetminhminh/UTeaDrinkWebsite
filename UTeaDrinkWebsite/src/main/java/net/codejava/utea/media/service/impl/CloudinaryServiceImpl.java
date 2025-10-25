@@ -10,24 +10,43 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class CloudinaryServiceImpl implements CloudinaryService {
 
     private final Cloudinary cloudinary;
-    private final String folder;
+    private final String baseFolder; // ví dụ: "utea"
 
-    public CloudinaryServiceImpl(Cloudinary cloudinary,
-                                 @Value("${cloudinary.folder:uteadrink/products.html}") String folder) {
+    public CloudinaryServiceImpl(Cloudinary cloudinary, @Value("${cloudinary.folder:utea}") String baseFolder) {
         this.cloudinary = cloudinary;
-        this.folder = folder;
+        this.baseFolder = baseFolder;
     }
 
     @Override
-    public Map upload(MultipartFile file) throws IOException {
-        return cloudinary.uploader().upload(file.getBytes(),
-                ObjectUtils.asMap("folder", folder));
+    public Map<String, Object> upload(MultipartFile file) throws IOException {
+        return cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap("folder", baseFolder));
+    }
+
+    @Override
+//	public Map<String, Object> upload(MultipartFile file, String folder, String publicId) throws IOException {
+//		String target = (folder == null || folder.isBlank()) ? baseFolder : baseFolder + "/" + folder;
+//
+//		Map<String, Object> opts = new HashMap<>();
+//		opts.put("folder", target);
+//		if (publicId != null && !publicId.isBlank())
+//			opts.put("public_id", publicId);
+//		opts.put("overwrite", true);
+//		return cloudinary.uploader().upload(file.getBytes(), opts);
+//	}
+    public Map<String, Object> upload(MultipartFile file, String folder, String publicId) throws IOException {
+        return cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                "folder", "utea/" + folder, // Thêm prefix "utea" cho toàn bộ dự án
+                "public_id", publicId,
+                "overwrite", true,
+                "resource_type", "auto"
+        ));
     }
 
     @Override

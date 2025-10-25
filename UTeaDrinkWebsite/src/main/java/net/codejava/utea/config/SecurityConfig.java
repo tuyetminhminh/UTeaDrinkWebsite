@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,6 +21,7 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 
 @Configuration
 @RequiredArgsConstructor
@@ -78,6 +80,7 @@ public class SecurityConfig {
                 // Quyền truy cập
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/", "/home", "/main-home", "/error", "/error/**",
                                 "/api/auth/**", "/login", "/register", "/forgot", "/reset", "/otp/**",
                                 "/oauth2/**", "/login/oauth2/**", "/error", "/auth/**",
                                 "/css/**", "/js/**", "/images/**", "/webjars/**"
@@ -91,7 +94,6 @@ public class SecurityConfig {
                         .requestMatchers("/manager/**").hasAuthority("MANAGER")
                         .requestMatchers("/customer/**").hasAuthority("CUSTOMER")
                         .requestMatchers("/shipper/**").hasAuthority("SHIPPER")
-                        .requestMatchers("/api/chat/**").hasAnyAuthority("CUSTOMER","MANAGER","ADMIN")
                         .requestMatchers("/chat/start", "/chat/customer/**")
                         .hasAnyAuthority("CUSTOMER","MANAGER","ADMIN")
                         .requestMatchers("/chat/inbox", "/chat/admin/**").hasAuthority("ADMIN")

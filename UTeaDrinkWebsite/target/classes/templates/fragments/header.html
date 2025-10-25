@@ -145,15 +145,15 @@
                 <!-- MENU -->
                 <ul class="navbar-nav mb-2 mb-lg-0 ms-auto me-3">
                 	
-                	<!-- ADMIN -->
-                    <li class="nav-item dropdown" sec:authorize="hasAuthority('ADMIN')">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Quản trị</a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" th:href="@{/admin/home}">🏠 Trang quản trị</a></li>
-                            <li><a class="dropdown-item" th:href="@{/admin/users}">👥 Người dùng</a></li>
-                            <li><a class="dropdown-item" th:href="@{/admin/orders}">📦 Đơn hàng</a></li>
-                        </ul>
-                    </li>
+<!--                	&lt;!&ndash; ADMIN &ndash;&gt;-->
+<!--                    <li class="nav-item dropdown" sec:authorize="hasAuthority('ADMIN')">-->
+<!--                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Quản trị</a>-->
+<!--                        <ul class="dropdown-menu">-->
+<!--                            <li><a class="dropdown-item" th:href="@{/admin/home}">🏠 Trang quản trị</a></li>-->
+<!--                            <li><a class="dropdown-item" th:href="@{/admin/users}">👥 Người dùng</a></li>-->
+<!--                            <li><a class="dropdown-item" th:href="@{/admin/orders}">📦 Đơn hàng</a></li>-->
+<!--                        </ul>-->
+<!--                    </li>-->
 
                     <!-- CUSTOMER NAV -->
                     <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">

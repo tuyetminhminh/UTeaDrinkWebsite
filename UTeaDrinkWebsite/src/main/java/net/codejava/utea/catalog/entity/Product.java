@@ -10,11 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "products",
-        indexes = {
-                @Index(name = "ix_product_shop", columnList = "shop_id"),
-                @Index(name = "ix_product_cat", columnList = "category_id")
-        })
+@Table(name = "products", indexes = { @Index(name = "ix_product_shop", columnList = "shop_id"),
+        @Index(name = "ix_product_cat", columnList = "category_id") })
 @Getter
 @Setter
 @NoArgsConstructor
@@ -73,17 +70,11 @@ public class Product {
     }
 
     /* Ảnh và biến thể */
-    @OneToMany(mappedBy = "product",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Builder.Default
     private List<ProductImage> images = new ArrayList<>();
 
-    @OneToMany(mappedBy = "product",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<ProductVariant> variants = new ArrayList<>();
 
@@ -94,4 +85,5 @@ public class Product {
         }
         return images.get(0).getUrl();
     }
+
 }
