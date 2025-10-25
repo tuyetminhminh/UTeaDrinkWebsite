@@ -12,6 +12,7 @@ import net.codejava.utea.order.repository.OrderRepository;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -34,28 +35,58 @@ public class RevenueReportService {
 
     /**
      * Lấy báo cáo doanh thu theo khoảng thời gian
+     * Doanh thu tính theo ngày đơn hàng được GIAO (DELIVERED), không phải ngày tạo đơn
      */
+    @Transactional(readOnly = true)
     public RevenueReportDTO getRevenueReport(Long managerId, LocalDate fromDate, LocalDate toDate) {
         Shop shop = getShopByManagerId(managerId);
+        
+        // Compact logging - only summary
+        boolean isVerbose = false; // Set to true for detailed debugging
+        
+        if (isVerbose) {
+            System.out.println("\n=== getRevenueReport: " + fromDate + " to " + toDate + " ===");
+        }
 
         LocalDateTime startDateTime = fromDate.atStartOfDay();
         LocalDateTime endDateTime = toDate.atTime(LocalTime.MAX);
 
-        // Lấy tất cả đơn hàng trong khoảng thời gian
-        List<Order> orders = orderRepo.findAll().stream()
+        // Lấy tất cả đơn hàng của shop
+        List<Order> allShopOrders = orderRepo.findAll().stream()
                 .filter(o -> o.getShop().getId().equals(shop.getId()))
-                .filter(o -> o.getCreatedAt().isAfter(startDateTime) && o.getCreatedAt().isBefore(endDateTime))
                 .collect(Collectors.toList());
 
-        // Tính toán các chỉ số
-        List<Order> completedOrders = orders.stream()
+        // Lọc đơn hàng ĐÃ GIAO trong khoảng thời gian
+        // Doanh thu chỉ tính từ đơn hàng DELIVERED
+        List<Order> completedOrders = allShopOrders.stream()
                 .filter(o -> o.getStatus() == OrderStatus.DELIVERED)
+                .filter(o -> {
+                    // Tìm thời điểm chuyển sang DELIVERED từ lịch sử
+                    LocalDateTime deliveredAt = getDeliveredTime(o);
+                    // Nếu không có lịch sử, dùng updatedAt
+                    if (deliveredAt == null) {
+                        deliveredAt = o.getUpdatedAt() != null ? o.getUpdatedAt() : o.getCreatedAt();
+                    }
+                    
+                    // Sử dụng !isBefore và !isAfter để bao gồm cả boundary dates
+                    return !deliveredAt.isBefore(startDateTime) && !deliveredAt.isAfter(endDateTime);
+                })
                 .collect(Collectors.toList());
 
+        // Lấy tất cả đơn hàng TẠO trong khoảng thời gian (để tính tổng đơn, tỷ lệ hủy)
+        List<Order> orders = allShopOrders.stream()
+                .filter(o -> {
+                    LocalDateTime createdAt = o.getCreatedAt();
+                    return !createdAt.isBefore(startDateTime) && !createdAt.isAfter(endDateTime);
+                })
+                .collect(Collectors.toList());
+
+        // Lọc đơn hủy từ orders
         List<Order> canceledOrders = orders.stream()
                 .filter(o -> o.getStatus() == OrderStatus.CANCELED)
                 .collect(Collectors.toList());
 
+        // Tính doanh thu từ các đơn ĐÃ GIAO trong khoảng thời gian
         BigDecimal totalRevenue = completedOrders.stream()
                 .map(Order::getTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -63,6 +94,10 @@ public class RevenueReportService {
         Integer totalOrders = orders.size();
         Integer completedCount = completedOrders.size();
         Integer canceledCount = canceledOrders.size();
+        
+        if (isVerbose) {
+            System.out.println("  Completed: " + completedCount + ", Revenue: " + totalRevenue.longValue() + " VND");
+        }
 
         Double cancelRate = totalOrders > 0 
                 ? (canceledCount.doubleValue() / totalOrders.doubleValue()) * 100 
@@ -130,6 +165,7 @@ public class RevenueReportService {
 
     /**
      * Lấy doanh thu theo ngày
+     * orders đã truyền vào là danh sách DELIVERED orders, lọc theo delivery date
      */
     private List<DailyRevenueDTO> getDailyRevenue(List<Order> orders, LocalDate fromDate, LocalDate toDate) {
         Map<LocalDate, DailyRevenueDTO> dailyMap = new HashMap<>();
@@ -145,9 +181,14 @@ public class RevenueReportService {
             date = date.plusDays(1);
         }
 
-        // Tính doanh thu cho mỗi ngày
+        // Tính doanh thu cho mỗi ngày (theo ngày GIAO, không phải ngày tạo)
         for (Order order : orders) {
-            LocalDate orderDate = order.getCreatedAt().toLocalDate();
+            LocalDateTime deliveredAt = getDeliveredTime(order);
+            if (deliveredAt == null) {
+                deliveredAt = order.getUpdatedAt() != null ? order.getUpdatedAt() : order.getCreatedAt();
+            }
+            
+            LocalDate orderDate = deliveredAt.toLocalDate();
             DailyRevenueDTO dto = dailyMap.get(orderDate);
             if (dto != null) {
                 dto.setRevenue(dto.getRevenue().add(order.getTotal()));
@@ -161,7 +202,7 @@ public class RevenueReportService {
     }
 
     /**
-     * Lấy doanh thu theo giờ
+     * Lấy doanh thu theo giờ (theo giờ GIAO, không phải giờ tạo đơn)
      */
     private List<HourlyRevenueDTO> getHourlyRevenue(List<Order> orders) {
         Map<Integer, HourlyRevenueDTO> hourlyMap = new HashMap<>();
@@ -175,9 +216,14 @@ public class RevenueReportService {
                     .build());
         }
 
-        // Tính doanh thu cho mỗi giờ
+        // Tính doanh thu cho mỗi giờ (theo giờ GIAO)
         for (Order order : orders) {
-            int hour = order.getCreatedAt().getHour();
+            LocalDateTime deliveredAt = getDeliveredTime(order);
+            if (deliveredAt == null) {
+                deliveredAt = order.getUpdatedAt() != null ? order.getUpdatedAt() : order.getCreatedAt();
+            }
+            
+            int hour = deliveredAt.getHour();
             HourlyRevenueDTO dto = hourlyMap.get(hour);
             dto.setRevenue(dto.getRevenue().add(order.getTotal()));
             dto.setOrderCount(dto.getOrderCount() + 1);
@@ -191,6 +237,7 @@ public class RevenueReportService {
     /**
      * Xuất báo cáo Excel
      */
+    @Transactional(readOnly = true)
     public byte[] exportToExcel(Long managerId, LocalDate fromDate, LocalDate toDate) throws IOException {
         RevenueReportDTO report = getRevenueReport(managerId, fromDate, toDate);
 
@@ -331,9 +378,29 @@ public class RevenueReportService {
     // ==================== HELPER METHODS ====================
 
     private Shop getShopByManagerId(Long managerId) {
-        ShopManager shopManager = shopManagerRepo.findByManagerId(managerId)
+        ShopManager shopManager = shopManagerRepo.findByManager_Id(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager chưa đăng ký shop"));
         return shopManager.getShop();
+    }
+
+    /**
+     * Lấy thời điểm đơn hàng chuyển sang DELIVERED từ lịch sử trạng thái
+     */
+    private LocalDateTime getDeliveredTime(Order order) {
+        try {
+            if (order.getStatusHistories() == null || order.getStatusHistories().isEmpty()) {
+                return null;
+            }
+            
+            return order.getStatusHistories().stream()
+                    .filter(h -> h.getStatus() == OrderStatus.DELIVERED)
+                    .map(h -> h.getChangedAt())
+                    .findFirst()
+                    .orElse(null);
+        } catch (Exception e) {
+            // Silently handle LazyInitializationException or other errors
+            return null;
+        }
     }
 }
 

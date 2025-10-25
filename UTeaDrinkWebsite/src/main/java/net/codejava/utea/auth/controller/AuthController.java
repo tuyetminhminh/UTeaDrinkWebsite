@@ -40,8 +40,7 @@ public class AuthController {
     public String home() { return "home/main-home"; }
     @GetMapping("/admin/home")
     public String adminHome() { return "home/admin-home"; }
-    @GetMapping("/customer/home")
-    public String customerHome() { return "home/customer-home"; }
+    // Customer home moved to HomeController for banner support
     @GetMapping("/seller/home")
     public String sellerHome() { return "home/seller-home"; }
 	@GetMapping("/manager/home")

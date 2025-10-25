@@ -2,11 +2,12 @@ package net.codejava.utea.manager.controller;
 
 import lombok.RequiredArgsConstructor;
 import net.codejava.utea.common.entity.User;
+import net.codejava.utea.common.security.CustomUserDetails;
 import net.codejava.utea.manager.dto.PromotionManagementDTO;
 import net.codejava.utea.manager.service.PromotionManagementService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,16 @@ public class ManagerPromotionController {
 
     private final PromotionManagementService promotionService;
 
+    // ==================== HELPER ====================
+    
+    private User getCurrentUser(Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            return ((CustomUserDetails) principal).getUser();
+        }
+        throw new RuntimeException("Invalid authentication principal");
+    }
+
     // ==================== VIEW ENDPOINTS ====================
 
     /**
@@ -28,10 +39,18 @@ public class ManagerPromotionController {
      */
     @GetMapping
     public String promotionManagement(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             Model model) {
-        List<PromotionManagementDTO> promotions = promotionService.getAllPromotions(currentUser.getId());
-        model.addAttribute("promotions", promotions);
+        try {
+            User currentUser = getCurrentUser(authentication);
+            List<PromotionManagementDTO> promotions = promotionService.getAllPromotions(currentUser.getId());
+            model.addAttribute("promotions", promotions);
+            model.addAttribute("hasShop", true);
+        } catch (RuntimeException e) {
+            // Manager chưa có shop
+            model.addAttribute("hasShop", false);
+            model.addAttribute("errorMessage", e.getMessage());
+        }
         return "manager/promotion-management";
     }
 
@@ -48,9 +67,10 @@ public class ManagerPromotionController {
      */
     @GetMapping("/{promotionId}/edit")
     public String editPromotionPage(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long promotionId,
             Model model) {
+        User currentUser = getCurrentUser(authentication);
         PromotionManagementDTO promotion = promotionService.getPromotionById(currentUser.getId(), promotionId);
         model.addAttribute("promotion", promotion);
         return "manager/promotion-edit";
@@ -63,8 +83,9 @@ public class ManagerPromotionController {
      */
     @GetMapping("/api")
     @ResponseBody
-    public ResponseEntity<?> getAllPromotions(@AuthenticationPrincipal User currentUser) {
+    public ResponseEntity<?> getAllPromotions(Authentication authentication) {
         try {
+            User currentUser = getCurrentUser(authentication);
             List<PromotionManagementDTO> promotions = promotionService.getAllPromotions(currentUser.getId());
             return ResponseEntity.ok(promotions);
         } catch (Exception e) {
@@ -78,9 +99,10 @@ public class ManagerPromotionController {
     @GetMapping("/api/{promotionId}")
     @ResponseBody
     public ResponseEntity<?> getPromotionById(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long promotionId) {
         try {
+            User currentUser = getCurrentUser(authentication);
             PromotionManagementDTO promotion = promotionService.getPromotionById(currentUser.getId(), promotionId);
             return ResponseEntity.ok(promotion);
         } catch (Exception e) {
@@ -94,9 +116,10 @@ public class ManagerPromotionController {
     @PostMapping("/api")
     @ResponseBody
     public ResponseEntity<?> createPromotion(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @RequestBody PromotionManagementDTO promotionDTO) {
         try {
+            User currentUser = getCurrentUser(authentication);
             PromotionManagementDTO createdPromotion = promotionService.createPromotion(currentUser.getId(), promotionDTO);
             return ResponseEntity.ok(createdPromotion);
         } catch (Exception e) {
@@ -110,10 +133,11 @@ public class ManagerPromotionController {
     @PutMapping("/api/{promotionId}")
     @ResponseBody
     public ResponseEntity<?> updatePromotion(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long promotionId,
             @RequestBody PromotionManagementDTO promotionDTO) {
         try {
+            User currentUser = getCurrentUser(authentication);
             PromotionManagementDTO updatedPromotion = promotionService.updatePromotion(currentUser.getId(), promotionId, promotionDTO);
             return ResponseEntity.ok(updatedPromotion);
         } catch (Exception e) {
@@ -127,9 +151,10 @@ public class ManagerPromotionController {
     @DeleteMapping("/api/{promotionId}")
     @ResponseBody
     public ResponseEntity<?> deletePromotion(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long promotionId) {
         try {
+            User currentUser = getCurrentUser(authentication);
             promotionService.deletePromotion(currentUser.getId(), promotionId);
             return ResponseEntity.ok("Khuyến mãi đã được xóa");
         } catch (Exception e) {
@@ -143,9 +168,10 @@ public class ManagerPromotionController {
     @PutMapping("/api/{promotionId}/toggle")
     @ResponseBody
     public ResponseEntity<?> togglePromotionStatus(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long promotionId) {
         try {
+            User currentUser = getCurrentUser(authentication);
             PromotionManagementDTO promotion = promotionService.togglePromotionStatus(currentUser.getId(), promotionId);
             return ResponseEntity.ok(promotion);
         } catch (Exception e) {

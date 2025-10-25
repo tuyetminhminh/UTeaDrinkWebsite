@@ -72,8 +72,26 @@ public class OrderManagementService {
                 .filter(order -> order.getShop() != null 
                         && order.getShop().getId().equals(shop.getId())
                         && order.getStatus() == status)
+                .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt())) // Sort DESC by createdAt
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Lấy đơn hàng NEW mới nhất (cho voice notification)
+     */
+    @Transactional(readOnly = true)
+    public OrderManagementDTO getLatestNewOrder(Long managerId) {
+        Shop shop = getShopByManagerId(managerId);
+        
+        return orderRepo.findAll().stream()
+                .filter(order -> order.getShop() != null 
+                        && order.getShop().getId().equals(shop.getId())
+                        && order.getStatus() == OrderStatus.NEW)
+                .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt())) // Mới nhất trước
+                .findFirst()
+                .map(this::convertToDTO)
+                .orElse(null);
     }
 
     /**
@@ -176,7 +194,7 @@ public class OrderManagementService {
     // ==================== HELPER METHODS ====================
 
     private Shop getShopByManagerId(Long managerId) {
-        ShopManager shopManager = shopManagerRepo.findByManagerId(managerId)
+        ShopManager shopManager = shopManagerRepo.findByManager_Id(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager chưa đăng ký shop"));
         return shopManager.getShop();
     }

@@ -20,8 +20,10 @@ import net.codejava.utea.customer.entity.enums.CouponType;
 import net.codejava.utea.customer.repository.CouponRepository;
 import net.codejava.utea.customer.repository.SizeRepository;
 import net.codejava.utea.manager.entity.Shop;
+import net.codejava.utea.manager.entity.ShopBanner;
 import net.codejava.utea.manager.entity.ShopManager;
 import net.codejava.utea.manager.repository.ShopRepository;
+import net.codejava.utea.manager.repository.ShopBannerRepository;
 import net.codejava.utea.manager.repository.ShopManagerRepository;
 import net.codejava.utea.order.entity.Order;
 import net.codejava.utea.order.entity.OrderItem;
@@ -61,6 +63,7 @@ public class DataInitializer implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final ShopRepository shopRepo;
     private final ShopManagerRepository shopManagerRepo;
+    private final ShopBannerRepository bannerRepo;
     private final ProductCategoryRepository categoryRepo;
     private final SizeRepository sizeRepo;
     private final ProductRepository productRepo;
@@ -88,6 +91,9 @@ public class DataInitializer implements CommandLineRunner {
         
         // 2.1. Shop Managers (gán manager vào shop)
         initShopManagers(shop1);
+        
+        // 2.2. Shop Banners (banner cho trang chủ)
+        initBanners(shop1);
 
         // 3. Product Categories
         initProductCategories();
@@ -150,7 +156,7 @@ public class DataInitializer implements CommandLineRunner {
         ensureUserWithRole("seller@utea.local", "seller", "Seller Seed", "123456", "ACTIVE", "SELLER");
         ensureUserWithRole("customer@utea.local", "customer", "Nguyễn Văn A", "123456", "ACTIVE", "CUSTOMER");
         ensureUserWithRole("customer2@utea.local", "customer2", "Trần Thị B", "123456", "ACTIVE", "CUSTOMER");
-        ensureUserWithRole("customer3@utea.local", "customer3", "Lê Văn C", "123456", "ACTIVE", "CUSTOMER");
+        ensureUserWithRole("thanhnau25@gmail.com", "customer3", "Lê Văn C", "123456", "ACTIVE", "CUSTOMER");
         
         // Shippers
         ensureUserWithRole("shipper@utea.local", "shipper", "Phạm Văn Thành", "123456", "ACTIVE", "SHIPPER");
@@ -169,22 +175,43 @@ public class DataInitializer implements CommandLineRunner {
                                     String rawPassword, String status, String roleCode) {
         Role role = ensureRole(roleCode, roleCode);
         
-        userRepo.findByEmail(email).ifPresentOrElse(u -> {
-            if (u.getRoles() == null || !u.getRoles().contains(role)) {
-                u.getRoles().add(role);
-                userRepo.save(u);
+        // ✅ FIX: Check cả EMAIL và USERNAME để tránh duplicate key error
+        User existingUser = userRepo.findByEmail(email).orElse(null);
+        
+        if (existingUser != null) {
+            // User đã tồn tại theo email → chỉ cần update role nếu thiếu
+            if (existingUser.getRoles() == null || !existingUser.getRoles().contains(role)) {
+                existingUser.getRoles().add(role);
+                userRepo.save(existingUser);
+                System.out.println("  → Updated role for existing user: " + email);
             }
-        }, () -> {
-            User u = User.builder()
-                    .email(email)
-                    .username(username)
-                    .fullName(fullName)
-                    .passwordHash(passwordEncoder.encode(rawPassword))
-                    .status(status)
-                    .roles(Set.of(role))
-                    .build();
-            userRepo.save(u);
-        });
+        } else {
+            // Kiểm tra xem username đã tồn tại chưa (tránh duplicate key)
+            User existingByUsername = userRepo.findByUsername(username).orElse(null);
+            
+            if (existingByUsername != null) {
+                // Username đã tồn tại nhưng email khác → update email và role
+                existingByUsername.setEmail(email);
+                existingByUsername.setFullName(fullName);
+                if (existingByUsername.getRoles() == null || !existingByUsername.getRoles().contains(role)) {
+                    existingByUsername.getRoles().add(role);
+                }
+                userRepo.save(existingByUsername);
+                System.out.println("  → Updated existing user (by username): " + username + " -> " + email);
+            } else {
+                // User hoàn toàn mới → tạo mới
+                User u = User.builder()
+                        .email(email)
+                        .username(username)
+                        .fullName(fullName)
+                        .passwordHash(passwordEncoder.encode(rawPassword))
+                        .status(status)
+                        .roles(Set.of(role))
+                        .build();
+                userRepo.save(u);
+                System.out.println("  → Created new user: " + email);
+            }
+        }
     }
 
     // ==================== 2. SHOPS ====================
@@ -212,7 +239,7 @@ public class DataInitializer implements CommandLineRunner {
         
         System.out.println("  → Found manager user: " + manager.getEmail() + " (ID: " + manager.getId() + ")");
         
-        if (!shopManagerRepo.existsByManagerId(manager.getId())) {
+        if (!shopManagerRepo.existsByManager_Id(manager.getId())) {
             ShopManager shopManager = ShopManager.builder()
                     .shop(shop)
                     .manager(manager)
@@ -222,6 +249,41 @@ public class DataInitializer implements CommandLineRunner {
         } else {
             System.out.println("  → Manager đã được gán vào shop rồi");
         }
+    }
+
+    // ==================== 2.2. SHOP BANNERS ====================
+    private void initBanners(Shop shop) {
+        System.out.println("→ Khởi tạo Shop Banners...");
+        
+        if (bannerRepo.findByShopIdOrderBySortOrderAsc(shop.getId()).isEmpty()) {
+            createBanner(shop, "Trà Sữa Đặc Biệt Mùa Hè", 
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1760047323/1-tuan-nen-uong-bao-nhieu-tra-sua-1000x690_slbfnn.jpg",
+                "/customer/menu", 0, true);
+                
+            createBanner(shop, "Combo Sinh Nhật Ưu Đãi 20%",
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1760047294/tra-sua-da-lat-topbanner_sdeac5.jpg",
+                "/customer/menu?category=combo", 1, true);
+                
+            createBanner(shop, "Cà Phê Sáng - Thức Dậy Năng Lượng",
+                "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=1400&h=500&fit=crop",
+                "/customer/menu?category=coffee", 2, true);
+                
+            System.out.println("  ✓ Đã tạo 3 banners mẫu cho shop");
+        } else {
+            System.out.println("  → Banners đã tồn tại");
+        }
+    }
+    
+    private void createBanner(Shop shop, String title, String imageUrl, String link, int sortOrder, boolean active) {
+        ShopBanner banner = ShopBanner.builder()
+                .shop(shop)
+                .title(title)
+                .imageUrl(imageUrl)
+                .link(link)
+                .sortOrder(sortOrder)
+                .active(active)
+                .build();
+        bannerRepo.save(banner);
     }
 
     // ==================== 3. PRODUCT CATEGORIES ====================

@@ -2,6 +2,7 @@ package net.codejava.utea.manager.controller;
 
 import lombok.RequiredArgsConstructor;
 import net.codejava.utea.common.entity.User;
+import net.codejava.utea.common.security.CustomUserDetails;
 import net.codejava.utea.manager.dto.*;
 import net.codejava.utea.manager.service.ProductManagementService;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,6 +26,17 @@ import java.util.List;
 public class ManagerProductController {
 
     private final ProductManagementService productService;
+    
+    /**
+     * Helper method to extract User from Authentication
+     */
+    private User getCurrentUser(Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            return ((CustomUserDetails) principal).getUser();
+        }
+        throw new IllegalStateException("Không thể xác định người dùng hiện tại");
+    }
 
     // ==================== VIEW ENDPOINTS ====================
 
@@ -32,17 +45,26 @@ public class ManagerProductController {
      */
     @GetMapping
     public String productManagement(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "20") int size,
             Model model) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<ProductManagementDTO> products = productService.getAllProducts(currentUser.getId(), pageable);
-        
-        model.addAttribute("products", products);
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", products.getTotalPages());
-        return "manager/product-management";
+        try {
+            User currentUser = getCurrentUser(authentication);
+            Pageable pageable = PageRequest.of(page, size);
+            Page<ProductManagementDTO> products = productService.getAllProducts(currentUser.getId(), pageable, null, null, null);
+            
+            model.addAttribute("products", products);
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", products.getTotalPages());
+            model.addAttribute("pageSize", size);
+            model.addAttribute("hasShop", true);
+            return "manager/product-management";
+        } catch (RuntimeException e) {
+            model.addAttribute("hasShop", false);
+            model.addAttribute("errorMessage", e.getMessage());
+            return "manager/product-management";
+        }
     }
 
     /**
@@ -54,16 +76,24 @@ public class ManagerProductController {
     }
 
     /**
-     * Trang chỉnh sửa sản phẩm
+     * Trang xem chi tiết sản phẩm
      */
-    @GetMapping("/{productId}/edit")
-    public String editProductPage(
-            @AuthenticationPrincipal User currentUser,
+    @GetMapping("/{productId}")
+    public String productDetailPage(
+            Authentication authentication,
             @PathVariable Long productId,
             Model model) {
-        ProductManagementDTO product = productService.getProductById(currentUser.getId(), productId);
-        model.addAttribute("product", product);
-        return "manager/product-edit";
+        try {
+            User currentUser = getCurrentUser(authentication);
+            ProductManagementDTO product = productService.getProductById(currentUser.getId(), productId);
+            model.addAttribute("product", product);
+            model.addAttribute("hasShop", true);
+            return "manager/product-detail";
+        } catch (RuntimeException e) {
+            model.addAttribute("hasShop", false);
+            model.addAttribute("errorMessage", e.getMessage());
+            return "manager/product-detail";
+        }
     }
 
     /**
@@ -81,17 +111,22 @@ public class ManagerProductController {
     // ==================== API ENDPOINTS - PRODUCT ====================
 
     /**
-     * API: Lấy tất cả sản phẩm
+     * API: Lấy tất cả sản phẩm (với filter)
      */
     @GetMapping("/api")
     @ResponseBody
     public ResponseEntity<?> getAllProducts(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String status) {
         try {
+            User currentUser = getCurrentUser(authentication);
             Pageable pageable = PageRequest.of(page, size);
-            Page<ProductManagementDTO> products = productService.getAllProducts(currentUser.getId(), pageable);
+            Page<ProductManagementDTO> products = productService.getAllProducts(
+                currentUser.getId(), pageable, search, categoryId, status);
             return ResponseEntity.ok(products);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -104,9 +139,10 @@ public class ManagerProductController {
     @GetMapping("/api/{productId}")
     @ResponseBody
     public ResponseEntity<?> getProductById(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long productId) {
         try {
+            User currentUser = getCurrentUser(authentication);
             ProductManagementDTO product = productService.getProductById(currentUser.getId(), productId);
             return ResponseEntity.ok(product);
         } catch (Exception e) {
@@ -115,49 +151,17 @@ public class ManagerProductController {
     }
 
     /**
-     * API: Tạo sản phẩm mới
+     * API: Chuyển đổi trạng thái sản phẩm (AVAILABLE <-> HIDDEN)
      */
-    @PostMapping("/api")
+    @PutMapping("/api/{productId}/toggle-status")
     @ResponseBody
-    public ResponseEntity<?> createProduct(
-            @AuthenticationPrincipal User currentUser,
-            @RequestBody ProductManagementDTO productDTO) {
-        try {
-            ProductManagementDTO createdProduct = productService.createProduct(currentUser.getId(), productDTO);
-            return ResponseEntity.ok(createdProduct);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    /**
-     * API: Cập nhật sản phẩm
-     */
-    @PutMapping("/api/{productId}")
-    @ResponseBody
-    public ResponseEntity<?> updateProduct(
-            @AuthenticationPrincipal User currentUser,
-            @PathVariable Long productId,
-            @RequestBody ProductManagementDTO productDTO) {
-        try {
-            ProductManagementDTO updatedProduct = productService.updateProduct(currentUser.getId(), productId, productDTO);
-            return ResponseEntity.ok(updatedProduct);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    /**
-     * API: Xóa sản phẩm
-     */
-    @DeleteMapping("/api/{productId}")
-    @ResponseBody
-    public ResponseEntity<?> deleteProduct(
-            @AuthenticationPrincipal User currentUser,
+    public ResponseEntity<?> toggleProductStatus(
+            Authentication authentication,
             @PathVariable Long productId) {
         try {
-            productService.deleteProduct(currentUser.getId(), productId);
-            return ResponseEntity.ok("Sản phẩm đã được xóa");
+            User currentUser = getCurrentUser(authentication);
+            ProductManagementDTO product = productService.toggleProductStatus(currentUser.getId(), productId);
+            return ResponseEntity.ok(product);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -171,12 +175,35 @@ public class ManagerProductController {
     @PostMapping("/api/{productId}/images")
     @ResponseBody
     public ResponseEntity<?> uploadImage(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long productId,
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false) Integer sortOrder) {
         try {
+            User currentUser = getCurrentUser(authentication);
             ProductImageDTO image = productService.uploadImage(currentUser.getId(), productId, file, sortOrder);
+            return ResponseEntity.ok(image);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * API: Thêm ảnh từ URL
+     */
+    @PostMapping("/api/{productId}/images/url")
+    @ResponseBody
+    public ResponseEntity<?> addImageFromUrl(
+            Authentication authentication,
+            @PathVariable Long productId,
+            @RequestBody java.util.Map<String, String> payload) {
+        try {
+            User currentUser = getCurrentUser(authentication);
+            String imageUrl = payload.get("url");
+            if (imageUrl == null || imageUrl.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("URL ảnh không được để trống");
+            }
+            ProductImageDTO image = productService.addImageFromUrl(currentUser.getId(), productId, imageUrl);
             return ResponseEntity.ok(image);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -189,9 +216,10 @@ public class ManagerProductController {
     @DeleteMapping("/api/images/{imageId}")
     @ResponseBody
     public ResponseEntity<?> deleteImage(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long imageId) {
         try {
+            User currentUser = getCurrentUser(authentication);
             productService.deleteImage(currentUser.getId(), imageId);
             return ResponseEntity.ok("Ảnh đã được xóa");
         } catch (Exception e) {
@@ -207,10 +235,11 @@ public class ManagerProductController {
     @PostMapping("/api/{productId}/variants")
     @ResponseBody
     public ResponseEntity<?> addVariant(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long productId,
             @RequestBody ProductVariantDTO variantDTO) {
         try {
+            User currentUser = getCurrentUser(authentication);
             ProductVariantDTO variant = productService.addVariant(currentUser.getId(), productId, variantDTO);
             return ResponseEntity.ok(variant);
         } catch (Exception e) {
@@ -224,10 +253,11 @@ public class ManagerProductController {
     @PutMapping("/api/variants/{variantId}")
     @ResponseBody
     public ResponseEntity<?> updateVariant(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long variantId,
             @RequestBody ProductVariantDTO variantDTO) {
         try {
+            User currentUser = getCurrentUser(authentication);
             ProductVariantDTO variant = productService.updateVariant(currentUser.getId(), variantId, variantDTO);
             return ResponseEntity.ok(variant);
         } catch (Exception e) {
@@ -241,9 +271,10 @@ public class ManagerProductController {
     @DeleteMapping("/api/variants/{variantId}")
     @ResponseBody
     public ResponseEntity<?> deleteVariant(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long variantId) {
         try {
+            User currentUser = getCurrentUser(authentication);
             productService.deleteVariant(currentUser.getId(), variantId);
             return ResponseEntity.ok("Biến thể đã được xóa");
         } catch (Exception e) {
@@ -258,8 +289,9 @@ public class ManagerProductController {
      */
     @GetMapping("/api/toppings")
     @ResponseBody
-    public ResponseEntity<?> getAllToppings(@AuthenticationPrincipal User currentUser) {
+    public ResponseEntity<?> getAllToppings(Authentication authentication) {
         try {
+            User currentUser = getCurrentUser(authentication);
             List<ToppingDTO> toppings = productService.getAllToppings(currentUser.getId());
             return ResponseEntity.ok(toppings);
         } catch (Exception e) {
@@ -273,9 +305,10 @@ public class ManagerProductController {
     @PostMapping("/api/toppings")
     @ResponseBody
     public ResponseEntity<?> createTopping(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @RequestBody ToppingDTO toppingDTO) {
         try {
+            User currentUser = getCurrentUser(authentication);
             ToppingDTO topping = productService.createTopping(currentUser.getId(), toppingDTO);
             return ResponseEntity.ok(topping);
         } catch (Exception e) {
@@ -289,10 +322,11 @@ public class ManagerProductController {
     @PutMapping("/api/toppings/{toppingId}")
     @ResponseBody
     public ResponseEntity<?> updateTopping(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long toppingId,
             @RequestBody ToppingDTO toppingDTO) {
         try {
+            User currentUser = getCurrentUser(authentication);
             ToppingDTO topping = productService.updateTopping(currentUser.getId(), toppingId, toppingDTO);
             return ResponseEntity.ok(topping);
         } catch (Exception e) {
@@ -306,11 +340,29 @@ public class ManagerProductController {
     @DeleteMapping("/api/toppings/{toppingId}")
     @ResponseBody
     public ResponseEntity<?> deleteTopping(
-            @AuthenticationPrincipal User currentUser,
+            Authentication authentication,
             @PathVariable Long toppingId) {
         try {
+            User currentUser = getCurrentUser(authentication);
             productService.deleteTopping(currentUser.getId(), toppingId);
             return ResponseEntity.ok("Topping đã được xóa");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * API: Toggle topping status (ACTIVE/HIDDEN)
+     */
+    @PutMapping("/api/toppings/{id}/toggle-status")
+    @ResponseBody
+    public ResponseEntity<?> toggleToppingStatus(
+            Authentication authentication,
+            @PathVariable Long id) {
+        try {
+            User currentUser = getCurrentUser(authentication);
+            ToppingDTO topping = productService.toggleToppingStatus(currentUser.getId(), id);
+            return ResponseEntity.ok(topping);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -323,15 +375,55 @@ public class ManagerProductController {
      */
     @GetMapping("/api/count")
     @ResponseBody
-    public ResponseEntity<?> getProductCount(@AuthenticationPrincipal User currentUser) {
+    public ResponseEntity<?> getProductCount(Authentication authentication) {
         try {
+            User currentUser = getCurrentUser(authentication);
+            
+            System.out.println("=== DEBUG: getProductCount ===");
+            System.out.println("Manager ID: " + currentUser.getId());
+            
             Pageable pageable = PageRequest.of(0, 1);
-            Page<ProductManagementDTO> products = productService.getAllProducts(currentUser.getId(), pageable);
+            Page<ProductManagementDTO> products = productService.getAllProducts(currentUser.getId(), pageable, null, null, null);
+            
+            long totalProducts = products.getTotalElements();
+            System.out.println("Total products: " + totalProducts);
+            System.out.println("=== END DEBUG ===");
             
             return ResponseEntity.ok(java.util.Map.of(
-                "total", products.getTotalElements(),
-                "active", products.getTotalElements() // TODO: Count only AVAILABLE products
+                "total", totalProducts,
+                "active", totalProducts // TODO: Count only AVAILABLE products
             ));
+        } catch (Exception e) {
+            System.err.println("ERROR in getProductCount: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * API: Lấy thống kê sản phẩm (cho stats cards)
+     */
+    @GetMapping("/api/stats")
+    @ResponseBody
+    public ResponseEntity<?> getProductStats(Authentication authentication) {
+        try {
+            User currentUser = getCurrentUser(authentication);
+            java.util.Map<String, Object> stats = productService.getProductStats(currentUser.getId());
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * API: Lấy danh sách categories
+     */
+    @GetMapping("/api/categories")
+    @ResponseBody
+    public ResponseEntity<?> getCategories() {
+        try {
+            List<java.util.Map<String, Object>> categories = productService.getAllCategories();
+            return ResponseEntity.ok(categories);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

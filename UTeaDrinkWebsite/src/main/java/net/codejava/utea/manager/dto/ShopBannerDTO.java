@@ -1,5 +1,6 @@
 package net.codejava.utea.manager.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +19,19 @@ public class ShopBannerDTO {
     private String imageUrl;
     private String link;
     private Integer sortOrder;
-    private boolean isActive;
+    
+    @JsonProperty("isActive")
+    private boolean active;
+    
     private LocalDateTime createdAt;
+    
+    // Convenience methods for backward compatibility
+    public boolean isActive() {
+        return active;
+    }
+    
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 }
 

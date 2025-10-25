@@ -36,7 +36,7 @@ public class ShopService {
     @Transactional
     public ShopDTO createShop(Long managerId, ShopDTO shopDTO) {
         // Kiểm tra manager đã có shop chưa
-        if (shopManagerRepo.existsByManagerId(managerId)) {
+        if (shopManagerRepo.existsByManager_Id(managerId)) {
             throw new RuntimeException("Manager đã đăng ký shop rồi!");
         }
 
@@ -65,8 +65,9 @@ public class ShopService {
     /**
      * Lấy thông tin shop của manager
      */
+    @Transactional(readOnly = true)
     public ShopDTO getShopByManagerId(Long managerId) {
-        ShopManager shopManager = shopManagerRepo.findByManagerId(managerId)
+        ShopManager shopManager = shopManagerRepo.findByManager_Id(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager chưa đăng ký shop"));
 
         Shop shop = shopManager.getShop();
@@ -80,7 +81,7 @@ public class ShopService {
      */
     @Transactional
     public ShopDTO updateShop(Long managerId, ShopDTO shopDTO) {
-        ShopManager shopManager = shopManagerRepo.findByManagerId(managerId)
+        ShopManager shopManager = shopManagerRepo.findByManager_Id(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager chưa đăng ký shop"));
 
         Shop shop = shopManager.getShop();
@@ -94,11 +95,24 @@ public class ShopService {
         return convertToDTO(shop, shopManager.getManager());
     }
 
+    // ==================== PUBLIC API ====================
+    
+    /**
+     * Lấy tất cả banner ACTIVE của shop (dành cho khách hàng)
+     */
+    public List<ShopBannerDTO> getActiveBanners(Long shopId) {
+        List<ShopBanner> banners = bannerRepo.findByShopIdAndActiveOrderBySortOrderAsc(shopId, true);
+        return banners.stream()
+                .map(this::convertBannerToDTO)
+                .collect(Collectors.toList());
+    }
+
     // ==================== BANNER CRUD ====================
 
     /**
      * Lấy tất cả banner của shop
      */
+    @Transactional(readOnly = true)
     public List<ShopBannerDTO> getAllBanners(Long shopId) {
         return bannerRepo.findByShopIdOrderBySortOrderAsc(shopId).stream()
                 .map(this::convertBannerToDTO)
@@ -110,16 +124,18 @@ public class ShopService {
      */
     @Transactional
     public ShopBannerDTO createBanner(Long managerId, ShopBannerDTO bannerDTO) {
-        ShopManager shopManager = shopManagerRepo.findByManagerId(managerId)
+        ShopManager shopManager = shopManagerRepo.findByManager_Id(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager chưa đăng ký shop"));
 
+        boolean isActive = bannerDTO.isActive();
+        
         ShopBanner banner = ShopBanner.builder()
                 .shop(shopManager.getShop())
                 .title(bannerDTO.getTitle())
                 .imageUrl(bannerDTO.getImageUrl())
                 .link(bannerDTO.getLink())
                 .sortOrder(bannerDTO.getSortOrder() != null ? bannerDTO.getSortOrder() : 0)
-                .isActive(bannerDTO.isActive())
+                .active(isActive)
                 .build();
 
         banner = bannerRepo.save(banner);
@@ -132,7 +148,7 @@ public class ShopService {
      */
     @Transactional
     public ShopBannerDTO updateBanner(Long managerId, Long bannerId, ShopBannerDTO bannerDTO) {
-        ShopManager shopManager = shopManagerRepo.findByManagerId(managerId)
+        ShopManager shopManager = shopManagerRepo.findByManager_Id(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager chưa đăng ký shop"));
 
         ShopBanner banner = bannerRepo.findById(bannerId)
@@ -159,7 +175,7 @@ public class ShopService {
      */
     @Transactional
     public void deleteBanner(Long managerId, Long bannerId) {
-        ShopManager shopManager = shopManagerRepo.findByManagerId(managerId)
+        ShopManager shopManager = shopManagerRepo.findByManager_Id(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager chưa đăng ký shop"));
 
         ShopBanner banner = bannerRepo.findById(bannerId)
@@ -178,6 +194,7 @@ public class ShopService {
     /**
      * Lấy tất cả section của shop
      */
+    @Transactional(readOnly = true)
     public List<ShopSectionDTO> getAllSections(Long shopId) {
         return sectionRepo.findByShopIdOrderBySortOrderAsc(shopId).stream()
                 .map(this::convertSectionToDTO)
@@ -189,7 +206,7 @@ public class ShopService {
      */
     @Transactional
     public ShopSectionDTO createSection(Long managerId, ShopSectionDTO sectionDTO) {
-        ShopManager shopManager = shopManagerRepo.findByManagerId(managerId)
+        ShopManager shopManager = shopManagerRepo.findByManager_Id(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager chưa đăng ký shop"));
 
         ShopSection section = ShopSection.builder()
@@ -211,7 +228,7 @@ public class ShopService {
      */
     @Transactional
     public ShopSectionDTO updateSection(Long managerId, Long sectionId, ShopSectionDTO sectionDTO) {
-        ShopManager shopManager = shopManagerRepo.findByManagerId(managerId)
+        ShopManager shopManager = shopManagerRepo.findByManager_Id(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager chưa đăng ký shop"));
 
         ShopSection section = sectionRepo.findById(sectionId)
@@ -238,7 +255,7 @@ public class ShopService {
      */
     @Transactional
     public void deleteSection(Long managerId, Long sectionId) {
-        ShopManager shopManager = shopManagerRepo.findByManagerId(managerId)
+        ShopManager shopManager = shopManagerRepo.findByManager_Id(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager chưa đăng ký shop"));
 
         ShopSection section = sectionRepo.findById(sectionId)
@@ -276,7 +293,7 @@ public class ShopService {
                 .imageUrl(banner.getImageUrl())
                 .link(banner.getLink())
                 .sortOrder(banner.getSortOrder())
-                .isActive(banner.isActive())
+                .active(banner.isActive())
                 .createdAt(banner.getCreatedAt())
                 .build();
     }

@@ -11,6 +11,6 @@ public interface ShopBannerRepository extends JpaRepository<ShopBanner, Long> {
     
     List<ShopBanner> findByShopIdOrderBySortOrderAsc(Long shopId);
     
-    List<ShopBanner> findByShopIdAndIsActiveOrderBySortOrderAsc(Long shopId, boolean isActive);
+    List<ShopBanner> findByShopIdAndActiveOrderBySortOrderAsc(Long shopId, boolean active);
 }
 

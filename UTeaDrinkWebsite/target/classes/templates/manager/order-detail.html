@@ -14,201 +14,491 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: #f5f7fa;
             padding-top: 70px;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            height: calc(100vh - 70px);
+            width: 260px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e293b 100%);
+            padding: 20px 0;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.2);
+            overflow-y: auto;
+            z-index: 99;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .detail-header {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        .sidebar.collapsed {
+            width: 70px;
         }
 
-        .detail-header h4 {
-            color: #1e3a8a;
-            margin-bottom: 15px;
+        .sidebar.collapsed .brand p,
+        .sidebar.collapsed .nav-link span {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+
+        .sidebar.collapsed .brand h4 {
+            font-size: 0;
+        }
+
+        .sidebar.collapsed .brand h4 i {
+            font-size: 24px;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .nav-link i {
+            margin-right: 0;
+        }
+
+        .sidebar .menu-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 10;
         }
 
-        .btn-back {
-            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 14px;
+        .sidebar .menu-toggle:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.05);
+        }
+
+        .sidebar.collapsed .menu-toggle {
+            right: 50%;
+            transform: translateX(50%);
+        }
+
+        .sidebar .brand {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .sidebar .brand h4 {
+            color: #fff;
+            font-weight: 600;
+            margin: 0;
+            font-size: 18px;
             transition: all 0.3s;
         }
 
-        .btn-back:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            color: white;
+        .sidebar .brand p {
+            color: rgba(255,255,255,0.7);
+            margin: 5px 0 0;
+            font-size: 13px;
+            transition: all 0.3s;
         }
 
-        .info-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        .sidebar .nav-item {
+            margin: 5px 15px;
         }
 
-        .info-card h5 {
-            color: #1e3a8a;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        .info-row {
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
             display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #f1f5f9;
+            align-items: center;
+            text-decoration: none;
+            white-space: nowrap;
         }
 
-        .info-row:last-child {
-            border-bottom: none;
+        .sidebar .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            transform: translateX(5px);
         }
 
-        .info-label {
-            color: #64748b;
+        .sidebar.collapsed .nav-link:hover {
+            transform: none;
+        }
+
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
             font-weight: 500;
         }
 
-        .info-value {
-            color: #1e293b;
-            font-weight: 600;
+        .sidebar .nav-link i {
+            width: 20px;
+            margin-right: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
         }
 
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
+        .sidebar .nav-link span {
+            transition: all 0.3s;
         }
 
-        .items-table {
-            width: 100%;
-            margin-top: 15px;
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+            min-height: calc(100vh - 70px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .items-table th {
-            background: #f8fafc;
-            color: #475569;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
+        .main-content.expanded {
+            margin-left: 70px;
         }
 
-        .items-table td {
-            padding: 12px;
-            border-top: 1px solid #e2e8f0;
+        .page-header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
         }
 
-        .product-img {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-
-        .action-buttons {
+        .page-header h4 {
+            color: #0f172a;
+            margin: 0 0 16px 0;
+            font-size: 22px;
+            font-weight: 700;
             display: flex;
-            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
             flex-wrap: wrap;
+            gap: 12px;
         }
 
-        .btn-action {
-            padding: 10px 20px;
-            border-radius: 10px;
+        .page-header h4 i {
+            color: #0891b2;
+            margin-right: 8px;
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
             border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
             font-weight: 600;
-            cursor: pointer;
             transition: all 0.3s;
             display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
-        .btn-action:hover {
+        .btn-back:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.4);
+            color: white;
         }
 
-        .shipper-section {
-            background: #f8fafc;
+        .status-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
             border-radius: 10px;
-            padding: 20px;
-            margin-top: 15px;
+            border-left: 4px solid #0891b2;
+        }
+
+        .status-wrapper .info-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+            margin: 0;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .info-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-card h5 {
+            color: #0f172a;
+            margin: 0 0 20px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #0891b2;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-card h5 i {
+            color: #0891b2;
+            font-size: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            transition: all 0.3s;
+        }
+
+        .info-row:hover {
+            background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+            transform: translateX(4px);
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            color: #475569;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-label i {
+            color: #0891b2;
+            font-size: 16px;
+        }
+
+        .info-value {
+            color: #0f172a;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .items-table thead {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        .items-table th {
+            color: white;
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .items-table th:first-child {
+            border-top-left-radius: 10px;
+        }
+
+        .items-table th:last-child {
+            border-top-right-radius: 10px;
+        }
+
+        .items-table tbody tr {
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .items-table tbody tr:hover {
+            background: #f8fafc;
+            transform: scale(1.01);
+        }
+
+        .items-table td {
+            padding: 16px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #1e293b;
+            font-size: 14px;
+        }
+
+        .items-table tfoot {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        }
+
+        .items-table tfoot td {
+            padding: 16px;
+            font-weight: 700;
+            font-size: 16px;
+            border-bottom: none;
+        }
+
+        .product-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .product-img:hover {
+            transform: scale(1.1);
+            border-color: #0891b2;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            flex: 1;
+            min-width: 160px;
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .btn-action i {
+            font-size: 16px;
+        }
+
+        .alert {
+            border-radius: 10px;
+            border-left: 4px solid;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: white;
+        }
+
+        .alert-info {
+            border-left-color: #0891b2;
+            background: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%);
+        }
+
+        .alert-primary {
+            border-left-color: #3b82f6;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        }
+
+        .alert i {
+            color: #0891b2;
         }
 
         .shipper-info {
             display: flex;
             align-items: center;
-            gap: 15px;
-            padding: 15px;
-            background: white;
-            border-radius: 10px;
+            gap: 16px;
+            padding: 16px;
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-radius: 12px;
             border-left: 4px solid #10b981;
+            transition: all 0.3s;
+        }
+
+        .shipper-info:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
         }
 
         .shipper-avatar {
-            width: 50px;
-            height: 50px;
+            width: 54px;
+            height: 54px;
             border-radius: 50%;
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: bold;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         }
 
         .no-shipper {
             text-align: center;
-            padding: 20px;
+            padding: 24px;
             color: #64748b;
         }
 
-        .select-shipper {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: 2px solid #e2e8f0;
-            margin-bottom: 15px;
-            font-size: 15px;
+        .no-shipper i {
+            color: #0891b2;
+            margin-bottom: 12px;
         }
 
-        .select-shipper:focus {
-            outline: none;
-            border-color: #3b82f6;
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            body.sidebar-open .sidebar {
+                transform: translateX(0);
+            }
         }
 
         @media (max-width: 768px) {
-            .container {
-                padding: 10px;
+            .main-content {
+                padding: 20px 15px;
             }
 
-            .detail-header h4 {
+            .page-header h4 {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 10px;
+                font-size: 18px;
             }
 
             .action-buttons {
@@ -217,18 +507,99 @@
 
             .btn-action {
                 width: 100%;
-                justify-content: center;
+                min-width: 100%;
+            }
+
+            .info-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .info-value {
+                text-align: left;
+            }
+
+            .items-table {
+                font-size: 13px;
+            }
+
+            .items-table th,
+            .items-table td {
+                padding: 10px 8px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Header Fragment -->
+    <!-- Header -->
     <div th:replace="~{fragments/header :: header}"></div>
 
-    <div class="container">
-        <!-- Header with back button -->
-        <div class="detail-header">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <button class="menu-toggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="brand">
+            <h4><i class="fas fa-store"></i> Manager Panel</h4>
+            <p>Quản lý cửa hàng của bạn</p>
+        </div>
+        <nav class="nav flex-column">
+            <div class="nav-item">
+                <a href="/manager/home" class="nav-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/shop" class="nav-link">
+                    <i class="fas fa-store-alt"></i>
+                    <span>Quản lý Shop</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/products" class="nav-link">
+                    <i class="fas fa-box-open"></i>
+                    <span>Sản phẩm</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/orders" class="nav-link active">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span>Đơn hàng</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/promotions" class="nav-link">
+                    <i class="fas fa-gift"></i>
+                    <span>Khuyến mãi</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/vouchers" class="nav-link">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>Mã giảm giá</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/revenue" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Báo cáo doanh thu</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/settings" class="nav-link">
+                    <i class="fas fa-cog"></i>
+                    <span>Cài đặt</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="orderDetailContainer">
+        <!-- Page Header -->
+        <div class="page-header">
             <h4>
                 <span>
                     <i class="fas fa-file-invoice"></i> Chi tiết đơn hàng #<span th:text="${order.orderCode}">ORD-001</span>
@@ -237,8 +608,8 @@
                     <i class="fas fa-arrow-left"></i> Quay lại
                 </a>
             </h4>
-            <div class="d-flex align-items-center gap-3">
-                <span class="info-label">Trạng thái:</span>
+            <div class="status-wrapper">
+                <span class="info-label">Trạng thái đơn hàng:</span>
                 <span class="badge status-badge" 
                       th:classappend="${order.status == 'NEW' ? 'bg-warning' : 
                                        order.status == 'CONFIRMED' ? 'bg-info' :
@@ -406,11 +777,38 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> <!-- End main-content -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script th:inline="javascript">
         const orderId = /*[[${order.id}]]*/ 0;
+
+        // ========== SIDEBAR TOGGLE ==========
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('orderDetailContainer');
+            
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            // Save state to localStorage
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            localStorage.setItem('sidebarCollapsed', isCollapsed);
+        }
+
+        // Restore sidebar state on page load
+        function restoreSidebarState() {
+            const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            if (isCollapsed) {
+                document.getElementById('sidebar').classList.add('collapsed');
+                document.getElementById('orderDetailContainer').classList.add('expanded');
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            restoreSidebarState();
+        });
 
         // ========== ORDER ACTIONS ==========
         function confirmOrder() {

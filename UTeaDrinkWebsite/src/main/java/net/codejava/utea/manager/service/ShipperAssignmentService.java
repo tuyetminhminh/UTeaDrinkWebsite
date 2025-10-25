@@ -215,7 +215,7 @@ public class ShipperAssignmentService {
     // ==================== HELPER METHODS ====================
 
     private Shop getShopByManagerId(Long managerId) {
-        ShopManager shopManager = shopManagerRepo.findByManagerId(managerId)
+        ShopManager shopManager = shopManagerRepo.findByManager_Id(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager chưa đăng ký shop"));
         return shopManager.getShop();
     }

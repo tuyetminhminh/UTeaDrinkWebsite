@@ -9,10 +9,11 @@ import java.util.Optional;
 @Repository
 public interface ShopManagerRepository extends JpaRepository<ShopManager, Long> {
     
-    Optional<ShopManager> findByManagerId(Long managerId);
+    // Sửa: manager là field name trong entity, manager.id để truy cập User ID
+    Optional<ShopManager> findByManager_Id(Long managerId);
     
-    Optional<ShopManager> findByShopId(Long shopId);
+    Optional<ShopManager> findByShop_Id(Long shopId);
     
-    boolean existsByManagerId(Long managerId);
+    boolean existsByManager_Id(Long managerId);
 }
 

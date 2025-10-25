@@ -27,6 +27,7 @@ public class PromotionManagementService {
     /**
      * Lấy tất cả khuyến mãi của shop
      */
+    @Transactional(readOnly = true)
     public List<PromotionManagementDTO> getAllPromotions(Long managerId) {
         Shop shop = getShopByManagerId(managerId);
         
@@ -38,6 +39,7 @@ public class PromotionManagementService {
     /**
      * Lấy chi tiết khuyến mãi
      */
+    @Transactional(readOnly = true)
     public PromotionManagementDTO getPromotionById(Long managerId, Long promotionId) {
         Shop shop = getShopByManagerId(managerId);
         
@@ -145,8 +147,9 @@ public class PromotionManagementService {
 
     // ==================== HELPER METHODS ====================
 
+    @Transactional(readOnly = true)
     private Shop getShopByManagerId(Long managerId) {
-        ShopManager shopManager = shopManagerRepo.findByManagerId(managerId)
+        ShopManager shopManager = shopManagerRepo.findByManager_Id(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager chưa đăng ký shop"));
         return shopManager.getShop();
     }

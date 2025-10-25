@@ -24,7 +24,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -59,41 +58,96 @@ public class ManagerOrderController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate fromDate,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate toDate,
             Model model) {
         User currentUser = getCurrentUser(authentication);
         
-        Pageable pageable = PageRequest.of(page, size);
-        Page<OrderManagementDTO> orders;
+        System.out.println("\n╔══════════════════════════════════════════════════════╗");
+        System.out.println("║         ORDER MANAGEMENT FILTER REQUEST             ║");
+        System.out.println("╠══════════════════════════════════════════════════════╣");
+        System.out.println("║ Page: " + page + " | Size: " + size);
+        System.out.println("║ Status: " + (status != null ? status : "(all)"));
+        System.out.println("║ FromDate: " + (fromDate != null ? fromDate : "(none)"));
+        System.out.println("║ ToDate: " + (toDate != null ? toDate : "(none)"));
+        System.out.println("╚══════════════════════════════════════════════════════╝");
         
-        // Filter by status if provided
+        Pageable pageable = PageRequest.of(page, size);
+        
+        // Step 1: Get all orders (or by status)
+        List<OrderManagementDTO> allOrders;
         if (status != null && !status.isEmpty()) {
             try {
                 OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
-                List<OrderManagementDTO> filteredOrders = orderService.getOrdersByStatus(
-                        currentUser.getId(), orderStatus);
-                
-                // Convert List to Page
-                int start = Math.min((int) pageable.getOffset(), filteredOrders.size());
-                int end = Math.min((start + pageable.getPageSize()), filteredOrders.size());
-                List<OrderManagementDTO> pageContent = start < filteredOrders.size() 
-                        ? filteredOrders.subList(start, end) 
-                        : java.util.Collections.emptyList();
-                
-                orders = new org.springframework.data.domain.PageImpl<>(
-                        pageContent, pageable, filteredOrders.size());
+                allOrders = orderService.getOrdersByStatus(currentUser.getId(), orderStatus);
+                System.out.println("→ Filtered by status '" + status + "': " + allOrders.size() + " orders");
             } catch (IllegalArgumentException e) {
-                // Invalid status, show all
-                System.err.println("Invalid status: " + status + " - Error: " + e.getMessage());
-                orders = orderService.getAllOrders(currentUser.getId(), pageable);
+                System.err.println("→ Invalid status: " + status);
+                allOrders = orderService.getAllOrders(currentUser.getId(), PageRequest.of(0, Integer.MAX_VALUE)).getContent();
             }
         } else {
-            orders = orderService.getAllOrders(currentUser.getId(), pageable);
+            allOrders = orderService.getAllOrders(currentUser.getId(), PageRequest.of(0, Integer.MAX_VALUE)).getContent();
+            System.out.println("→ All orders (no status filter): " + allOrders.size() + " orders");
         }
+        
+        // Step 2: Filter by date range if provided
+        if (fromDate != null && toDate != null) {
+            // Create start and end of day for inclusive filtering
+            java.time.LocalDateTime startOfDay = fromDate.atStartOfDay();
+            java.time.LocalDateTime endOfDay = toDate.atTime(23, 59, 59, 999999999);
+            
+            System.out.println("→ Filtering from " + startOfDay + " to " + endOfDay);
+            
+            List<OrderManagementDTO> beforeFilter = new java.util.ArrayList<>(allOrders);
+            allOrders = allOrders.stream()
+                    .filter(order -> {
+                        java.time.LocalDateTime createdAt = order.getCreatedAt();
+                        boolean inRange = !createdAt.isBefore(startOfDay) && !createdAt.isAfter(endOfDay);
+                        if (!inRange && beforeFilter.size() <= 10) { // Only log first few for debugging
+                            System.out.println("  ✗ Order #" + order.getId() + " excluded: " + createdAt);
+                        }
+                        return inRange;
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+            
+            System.out.println("→ After date filter: " + allOrders.size() + " orders (removed " + (beforeFilter.size() - allOrders.size()) + ")");
+        } else if (fromDate != null) {
+            // Only fromDate provided - filter from that date onwards
+            java.time.LocalDateTime startOfDay = fromDate.atStartOfDay();
+            allOrders = allOrders.stream()
+                    .filter(order -> !order.getCreatedAt().isBefore(startOfDay))
+                    .collect(java.util.stream.Collectors.toList());
+            System.out.println("→ After 'from date' filter: " + allOrders.size() + " orders");
+        } else if (toDate != null) {
+            // Only toDate provided - filter up to that date
+            java.time.LocalDateTime endOfDay = toDate.atTime(23, 59, 59, 999999999);
+            allOrders = allOrders.stream()
+                    .filter(order -> !order.getCreatedAt().isAfter(endOfDay))
+                    .collect(java.util.stream.Collectors.toList());
+            System.out.println("→ After 'to date' filter: " + allOrders.size() + " orders");
+        }
+        
+        // Step 3: Apply pagination
+        int start = Math.min((int) pageable.getOffset(), allOrders.size());
+        int end = Math.min((start + pageable.getPageSize()), allOrders.size());
+        List<OrderManagementDTO> pageContent = start < allOrders.size() 
+                ? allOrders.subList(start, end) 
+                : java.util.Collections.emptyList();
+        
+        Page<OrderManagementDTO> orders = new org.springframework.data.domain.PageImpl<>(
+                pageContent, pageable, allOrders.size());
+        
+        System.out.println("→ Final result: Page " + (page + 1) + "/" + orders.getTotalPages() + 
+                          " with " + pageContent.size() + " orders (total: " + allOrders.size() + ")");
+        System.out.println("=== END FILTER ===\n");
         
         model.addAttribute("orders", orders);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", orders.getTotalPages());
+        model.addAttribute("pageSize", size);
         model.addAttribute("selectedStatus", status);
+        model.addAttribute("fromDate", fromDate);
+        model.addAttribute("toDate", toDate);
         model.addAttribute("orderStatuses", OrderStatus.values());
         return "manager/order-management";
     }
@@ -174,6 +228,93 @@ public class ManagerOrderController {
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * API: Lấy tổng số đơn hàng (TẤT CẢ, không phải chỉ hôm nay)
+     */
+    @GetMapping("/api/total-count")
+    @ResponseBody
+    public ResponseEntity<?> getTotalOrderCount(Authentication authentication) {
+        try {
+            User currentUser = getCurrentUser(authentication);
+            // Lấy tất cả orders (page size 1 để chỉ lấy count)
+            Pageable pageable = PageRequest.of(0, 1);
+            Page<OrderManagementDTO> orders = orderService.getAllOrders(currentUser.getId(), pageable);
+            
+            return ResponseEntity.ok(java.util.Map.of(
+                "total", orders.getTotalElements()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * API: Đếm số lượng đơn hàng theo trạng thái (cho voice notification)
+     */
+    @GetMapping("/api/count")
+    @ResponseBody
+    public ResponseEntity<Integer> getOrderCountByStatus(
+            Authentication authentication,
+            @RequestParam(required = false) String status) {
+        try {
+            User currentUser = getCurrentUser(authentication);
+            
+            if (status != null && !status.isEmpty()) {
+                // Count by specific status
+                try {
+                    OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+                    List<OrderManagementDTO> orders = orderService.getOrdersByStatus(
+                            currentUser.getId(), orderStatus);
+                    return ResponseEntity.ok(orders.size());
+                } catch (IllegalArgumentException e) {
+                    return ResponseEntity.badRequest().build();
+                }
+            } else {
+                // Count all orders
+                Pageable pageable = PageRequest.of(0, 1);
+                Page<OrderManagementDTO> orders = orderService.getAllOrders(currentUser.getId(), pageable);
+                return ResponseEntity.ok((int) orders.getTotalElements());
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * API: Lấy đơn hàng NEW mới nhất (cho voice notification với tên khách hàng)
+     */
+    @GetMapping("/api/latest-new-order")
+    @ResponseBody
+    public ResponseEntity<?> getLatestNewOrder(Authentication authentication) {
+        try {
+            User currentUser = getCurrentUser(authentication);
+            
+            // Lấy đơn NEW mới nhất
+            OrderManagementDTO latestOrder = orderService.getLatestNewOrder(currentUser.getId());
+            
+            // Đếm tổng số đơn NEW
+            List<OrderManagementDTO> newOrders = orderService.getOrdersByStatus(
+                    currentUser.getId(), OrderStatus.NEW);
+            int count = newOrders.size();
+            
+            if (latestOrder != null) {
+                return ResponseEntity.ok(java.util.Map.of(
+                    "count", count,
+                    "customerName", latestOrder.getCustomerName() != null ? latestOrder.getCustomerName() : "Khách hàng",
+                    "orderCode", latestOrder.getOrderCode() != null ? latestOrder.getOrderCode() : ""
+                ));
+            } else {
+                return ResponseEntity.ok(java.util.Map.of(
+                    "count", 0,
+                    "customerName", "",
+                    "orderCode", ""
+                ));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -409,23 +550,49 @@ public class ManagerOrderController {
     @GetMapping("/export")
     public ResponseEntity<byte[]> exportToExcel(
             Authentication authentication,
-            @RequestParam(required = false) String status) {
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate fromDate,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate toDate) {
         try {
             User currentUser = getCurrentUser(authentication);
             List<OrderManagementDTO> orders;
 
+            // Get orders by status or all
             if (status != null && !status.isEmpty() && !status.equals("ALL")) {
                 orders = orderService.getOrdersByStatus(currentUser.getId(), OrderStatus.valueOf(status));
             } else {
                 Page<OrderManagementDTO> page = orderService.getAllOrders(
-                        currentUser.getId(), PageRequest.of(0, 1000));
+                        currentUser.getId(), PageRequest.of(0, Integer.MAX_VALUE));
                 orders = page.getContent();
+            }
+            
+            // Filter by date range if provided
+            if (fromDate != null || toDate != null) {
+                java.time.LocalDateTime fromDateTime = fromDate != null ? fromDate.atStartOfDay() : java.time.LocalDateTime.MIN;
+                java.time.LocalDateTime toDateTime = toDate != null ? toDate.atTime(23, 59, 59) : java.time.LocalDateTime.MAX;
+                
+                orders = orders.stream()
+                        .filter(order -> {
+                            java.time.LocalDateTime createdAt = order.getCreatedAt();
+                            return !createdAt.isBefore(fromDateTime) && !createdAt.isAfter(toDateTime);
+                        })
+                        .collect(java.util.stream.Collectors.toList());
             }
 
             byte[] excelBytes = excelExportService.exportOrdersToExcel(orders);
 
-            // Generate filename with current date
-            String filename = "DonHang_" + LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyyyy")) + ".xlsx";
+            // Generate filename with current date and filters
+            String dateRange = "";
+            if (fromDate != null && toDate != null) {
+                dateRange = "_" + fromDate.format(DateTimeFormatter.ofPattern("ddMMyyyy")) + 
+                           "_" + toDate.format(DateTimeFormatter.ofPattern("ddMMyyyy"));
+            } else if (fromDate != null) {
+                dateRange = "_tu" + fromDate.format(DateTimeFormatter.ofPattern("ddMMyyyy"));
+            } else if (toDate != null) {
+                dateRange = "_den" + toDate.format(DateTimeFormatter.ofPattern("ddMMyyyy"));
+            }
+            
+            String filename = "DonHang" + dateRange + ".xlsx";
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);

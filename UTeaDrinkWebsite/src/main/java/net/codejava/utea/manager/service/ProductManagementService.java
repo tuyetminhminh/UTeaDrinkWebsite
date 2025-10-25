@@ -31,24 +31,74 @@ public class ProductManagementService {
     private final ToppingRepository toppingRepo;
     private final ShopManagerRepository shopManagerRepo;
     private final CloudinaryService cloudinaryService;
+    private final net.codejava.utea.order.repository.OrderRepository orderRepo;
 
     // ==================== PRODUCT CRUD ====================
 
     /**
-     * Lấy tất cả sản phẩm của shop (phân trang)
+     * Lấy tất cả sản phẩm của shop (phân trang + filter)
      */
-    public Page<ProductManagementDTO> getAllProducts(Long managerId, Pageable pageable) {
-        // Get shop to verify manager has shop
-        getShopByManagerId(managerId);
+    @Transactional(readOnly = true)
+    public Page<ProductManagementDTO> getAllProducts(Long managerId, Pageable pageable, 
+                                                      String search, Long categoryId, String status) {
+        Shop shop = getShopByManagerId(managerId);
         
-        Page<Product> products = productRepo.findAll(pageable);
+        System.out.println("=== DEBUG: getAllProducts ===");
+        System.out.println("Manager ID: " + managerId);
+        System.out.println("Shop ID: " + shop.getId());
+        System.out.println("Search: " + search);
+        System.out.println("CategoryId: " + categoryId);
+        System.out.println("Status: " + status);
         
-        return products.map(this::convertToDTO);
+        // Lấy TẤT CẢ sản phẩm của shop này
+        List<Product> allShopProducts = productRepo.findAll().stream()
+                .filter(product -> product.getShop() != null && product.getShop().getId().equals(shop.getId()))
+                .collect(Collectors.toList());
+        
+        System.out.println("Total shop products before filter: " + allShopProducts.size());
+        
+        // Apply filters
+        if (search != null && !search.trim().isEmpty()) {
+            String searchLower = search.toLowerCase().trim();
+            allShopProducts = allShopProducts.stream()
+                    .filter(p -> p.getName().toLowerCase().contains(searchLower))
+                    .collect(Collectors.toList());
+            System.out.println("After search filter: " + allShopProducts.size());
+        }
+        
+        if (categoryId != null) {
+            allShopProducts = allShopProducts.stream()
+                    .filter(p -> p.getCategory() != null && p.getCategory().getId().equals(categoryId))
+                    .collect(Collectors.toList());
+            System.out.println("After category filter: " + allShopProducts.size());
+        }
+        
+        if (status != null && !status.trim().isEmpty()) {
+            allShopProducts = allShopProducts.stream()
+                    .filter(p -> status.equals(p.getStatus()))
+                    .collect(Collectors.toList());
+            System.out.println("After status filter: " + allShopProducts.size());
+        }
+        
+        // Áp dụng pagination TRÊN kết quả đã filter
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), allShopProducts.size());
+        List<Product> pageContent = start < allShopProducts.size() ? 
+                                     allShopProducts.subList(start, end) : 
+                                     List.of();
+        
+        // Convert to Page
+        return new org.springframework.data.domain.PageImpl<>(
+                pageContent.stream().map(this::convertToDTO).collect(Collectors.toList()),
+                pageable,
+                allShopProducts.size()
+        );
     }
 
     /**
      * Lấy chi tiết sản phẩm
      */
+    @Transactional(readOnly = true)
     public ProductManagementDTO getProductById(Long managerId, Long productId) {
         Shop shop = getShopByManagerId(managerId);
         
@@ -178,6 +228,36 @@ public class ProductManagementService {
     }
 
     /**
+     * Thêm ảnh từ URL
+     */
+    @Transactional
+    public ProductImageDTO addImageFromUrl(Long managerId, Long productId, String imageUrl) {
+        Shop shop = getShopByManagerId(managerId);
+
+        Product product = productRepo.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
+
+        // Kiểm tra sản phẩm có thuộc shop của manager không
+        if (!product.getShop().getId().equals(shop.getId())) {
+            throw new RuntimeException("Không có quyền chỉnh sửa sản phẩm này");
+        }
+
+        // Lấy sortOrder tiếp theo
+        int nextSortOrder = product.getImages() != null ? product.getImages().size() : 0;
+
+        ProductImage image = ProductImage.builder()
+                .product(product)
+                .url(imageUrl)
+                .publicId(null) // URL không có publicId
+                .sortOrder(nextSortOrder)
+                .build();
+
+        image = imageRepo.save(image);
+
+        return convertImageToDTO(image);
+    }
+
+    /**
      * Xóa ảnh sản phẩm
      */
     @Transactional
@@ -192,7 +272,7 @@ public class ProductManagementService {
             throw new RuntimeException("Không có quyền xóa ảnh này");
         }
 
-        // Xóa ảnh trên Cloudinary
+        // Xóa ảnh trên Cloudinary (nếu có publicId)
         if (image.getPublicId() != null) {
             try {
                 cloudinaryService.delete(image.getPublicId());
@@ -349,15 +429,149 @@ public class ProductManagementService {
         toppingRepo.delete(topping);
     }
 
+    /**
+     * Toggle topping status (ACTIVE <-> HIDDEN)
+     */
+    @Transactional
+    public ToppingDTO toggleToppingStatus(Long managerId, Long toppingId) {
+        Shop shop = getShopByManagerId(managerId);
+        
+        Topping topping = toppingRepo.findById(toppingId)
+                .orElseThrow(() -> new RuntimeException("Topping không tồn tại"));
+        
+        // Check if topping belongs to manager's shop
+        if (!topping.getShop().getId().equals(shop.getId())) {
+            throw new RuntimeException("Không có quyền thao tác topping này");
+        }
+        
+        // Toggle status
+        if ("ACTIVE".equals(topping.getStatus())) {
+            topping.setStatus("HIDDEN");
+        } else {
+            topping.setStatus("ACTIVE");
+        }
+        
+        topping = toppingRepo.save(topping);
+        
+        return convertToppingToDTO(topping);
+    }
+
+    // ==================== STATS & UTILITIES ====================
+
+    /**
+     * Lấy thống kê sản phẩm
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Object> getProductStats(Long managerId) {
+        Shop shop = getShopByManagerId(managerId);
+        
+        List<Product> allProducts = productRepo.findAll().stream()
+                .filter(p -> p.getShop() != null && p.getShop().getId().equals(shop.getId()))
+                .collect(Collectors.toList());
+        
+        long total = allProducts.size();
+        long available = allProducts.stream()
+                .filter(p -> "AVAILABLE".equals(p.getStatus()))
+                .count();
+        long hidden = allProducts.stream()
+                .filter(p -> "HIDDEN".equals(p.getStatus()))
+                .count();
+        
+        // Tìm sản phẩm bán chạy nhất
+        String bestSeller = allProducts.stream()
+                .max((p1, p2) -> Integer.compare(p1.getSoldCount(), p2.getSoldCount()))
+                .map(Product::getName)
+                .orElse("--");
+        
+        return Map.of(
+            "total", total,
+            "available", available,
+            "hidden", hidden,
+            "bestSeller", bestSeller
+        );
+    }
+
+    /**
+     * Lấy danh sách tất cả categories
+     */
+    public List<Map<String, Object>> getAllCategories() {
+        return categoryRepo.findAll().stream()
+                .map(cat -> {
+                    Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("id", cat.getId());
+                    map.put("name", cat.getName());
+                    return map;
+                })
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Chuyển đổi trạng thái sản phẩm (AVAILABLE <-> HIDDEN)
+     */
+    @Transactional
+    public ProductManagementDTO toggleProductStatus(Long managerId, Long productId) {
+        Shop shop = getShopByManagerId(managerId);
+
+        Product product = productRepo.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
+
+        // Kiểm tra sản phẩm có thuộc shop của manager không
+        if (!product.getShop().getId().equals(shop.getId())) {
+            throw new RuntimeException("Không có quyền thao tác sản phẩm này");
+        }
+
+        // Toggle status: AVAILABLE <-> HIDDEN
+        if ("AVAILABLE".equals(product.getStatus())) {
+            product.setStatus("HIDDEN");
+        } else {
+            product.setStatus("AVAILABLE");
+        }
+
+        product = productRepo.save(product);
+
+        return convertToDTO(product);
+    }
+
     // ==================== HELPER METHODS ====================
 
+    @Transactional(readOnly = true)
     private Shop getShopByManagerId(Long managerId) {
-        ShopManager shopManager = shopManagerRepo.findByManagerId(managerId)
+        ShopManager shopManager = shopManagerRepo.findByManager_Id(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager chưa đăng ký shop"));
         return shopManager.getShop();
     }
 
     private ProductManagementDTO convertToDTO(Product product) {
+        try {
+            // Tính số lượng đã bán thực tế từ các đơn hàng DELIVERED
+            int actualSoldCount = calculateActualSoldCount(product.getId());
+            
+            return ProductManagementDTO.builder()
+                    .id(product.getId())
+                    .shopId(product.getShop().getId())
+                    .shopName(product.getShop().getName())
+                    .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
+                    .categoryName(product.getCategory() != null ? product.getCategory().getName() : null)
+                    .name(product.getName())
+                    .description(product.getDescription())
+                    .basePrice(product.getBasePrice())
+                    .soldCount(actualSoldCount)  // Sử dụng số lượng thực tế
+                    .ratingAvg(product.getRatingAvg())
+                    .status(product.getStatus())
+                    .createdAt(product.getCreatedAt())
+                    .updatedAt(product.getUpdatedAt())
+                    .images(product.getImages() != null ? 
+                            product.getImages().stream().map(this::convertImageToDTO).collect(Collectors.toList()) : 
+                            List.of())
+                    .variants(product.getVariants() != null ? 
+                            product.getVariants().stream().map(this::convertVariantToDTO).collect(Collectors.toList()) : 
+                            List.of())
+                    .build();
+        } catch (Exception e) {
+            System.err.println("Error converting product to DTO: " + e.getMessage());
+            // Return basic DTO without images/variants if lazy loading fails
+            int actualSoldCount = calculateActualSoldCount(product.getId());
+            
         return ProductManagementDTO.builder()
                 .id(product.getId())
                 .shopId(product.getShop().getId())
@@ -367,14 +581,58 @@ public class ProductManagementService {
                 .name(product.getName())
                 .description(product.getDescription())
                 .basePrice(product.getBasePrice())
-                .soldCount(product.getSoldCount())
+                    .soldCount(actualSoldCount)  // Sử dụng số lượng thực tế
                 .ratingAvg(product.getRatingAvg())
                 .status(product.getStatus())
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
-                .images(product.getImages().stream().map(this::convertImageToDTO).collect(Collectors.toList()))
-                .variants(product.getVariants().stream().map(this::convertVariantToDTO).collect(Collectors.toList()))
+                    .images(List.of())
+                    .variants(List.of())
                 .build();
+        }
+    }
+
+    /**
+     * Tính số lượng sản phẩm đã bán thực tế từ các đơn hàng DELIVERED
+     */
+    @Transactional(readOnly = true)
+    private int calculateActualSoldCount(Long productId) {
+        try {
+            System.out.println("=== DEBUG: calculateActualSoldCount for product " + productId + " ===");
+            
+            // Lấy tất cả đơn hàng
+            List<net.codejava.utea.order.entity.Order> allOrders = orderRepo.findAll();
+            System.out.println("Total orders in DB: " + allOrders.size());
+            
+            // Lọc orders DELIVERED (sử dụng enum OrderStatus.DELIVERED)
+            List<net.codejava.utea.order.entity.Order> deliveredOrders = allOrders.stream()
+                    .filter(order -> net.codejava.utea.order.entity.enums.OrderStatus.DELIVERED.equals(order.getStatus()))
+                    .collect(Collectors.toList());
+            System.out.println("Delivered orders: " + deliveredOrders.size());
+            
+            // Tính tổng số lượng đã bán
+            int totalSold = 0;
+            for (net.codejava.utea.order.entity.Order order : deliveredOrders) {
+                List<net.codejava.utea.order.entity.OrderItem> items = order.getItems();
+                if (items != null) {
+                    for (net.codejava.utea.order.entity.OrderItem item : items) {
+                        if (item.getProduct() != null && item.getProduct().getId().equals(productId)) {
+                            totalSold += item.getQuantity();
+                            System.out.println("  Order #" + order.getId() + " - Item quantity: " + item.getQuantity());
+                        }
+                    }
+                }
+            }
+            
+            System.out.println("Total sold for product " + productId + ": " + totalSold);
+            System.out.println("=== END DEBUG ===");
+            
+            return totalSold;
+        } catch (Exception e) {
+            System.err.println("Error calculating sold count for product " + productId + ": " + e.getMessage());
+            e.printStackTrace();
+            return 0;
+        }
     }
 
     private ProductImageDTO convertImageToDTO(ProductImage image) {
@@ -400,11 +658,11 @@ public class ProductManagementService {
     private ToppingDTO convertToppingToDTO(Topping topping) {
         return ToppingDTO.builder()
                 .id(topping.getId())
-                .shopId(topping.getShop().getId())
                 .name(topping.getName())
                 .price(topping.getPrice())
                 .status(topping.getStatus())
                 .build();
     }
+
 }
 

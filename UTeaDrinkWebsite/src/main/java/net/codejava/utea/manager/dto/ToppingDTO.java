@@ -1,9 +1,6 @@
 package net.codejava.utea.manager.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -13,9 +10,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class ToppingDTO {
     private Long id;
-    private Long shopId;
     private String name;
     private BigDecimal price;
-    private String status; // ACTIVE, INACTIVE
+    private String status; // ACTIVE / HIDDEN
 }
-
