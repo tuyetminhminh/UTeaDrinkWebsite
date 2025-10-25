@@ -30,7 +30,7 @@ public class PromotionManagementService {
     public List<PromotionManagementDTO> getAllPromotions(Long managerId) {
         Shop shop = getShopByManagerId(managerId);
         
-        return promotionRepo.findByShopIdAndStatus(shop.getId(), "ACTIVE").stream()
+        return promotionRepo.findByShop_IdAndStatus(shop.getId(), "ACTIVE").stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }

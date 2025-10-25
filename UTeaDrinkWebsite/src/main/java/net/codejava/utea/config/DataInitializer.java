@@ -4,6 +4,11 @@ import lombok.RequiredArgsConstructor;
 import net.codejava.utea.catalog.entity.*;
 import net.codejava.utea.catalog.entity.enums.Size;
 import net.codejava.utea.catalog.repository.*;
+import net.codejava.utea.chat.entity.Conversation;
+import net.codejava.utea.chat.entity.Message;
+import net.codejava.utea.chat.entity.enums.ConversationScope;
+import net.codejava.utea.chat.repository.ConversationRepository;
+import net.codejava.utea.chat.repository.MessageRepository;
 import net.codejava.utea.common.entity.Address;
 import net.codejava.utea.common.entity.Role;
 import net.codejava.utea.common.entity.User;
@@ -122,6 +127,10 @@ public class DataInitializer implements CommandLineRunner {
 
         // 15. Ship Assignments (gán shipper vào đơn hàng)
         initShipAssignments(shop1);
+
+        // 16. Cuộc trò chuyện mẫu giữa Manager và Customer
+        initConversationsAndMessages();
+
 
         System.out.println("=== HOÀN THÀNH KHỞI TẠO DỮ LIỆU MẪU ===");
     }
@@ -604,24 +613,25 @@ public class DataInitializer implements CommandLineRunner {
         createVoucher("SHOP30", PromoScope.SHOP, shop, 30, 150000);
     }
 
-    private void createVoucher(String code, PromoScope scope, Shop shop, 
-                              int percentOff, long minTotal) {
-        voucherRepo.findByCode(code).orElseGet(() ->
-            voucherRepo.save(Voucher.builder()
-                    .code(code)
-                    .scope(scope)
-                    .shop(shop)
-                    .ruleJson(String.format("{\"percentOff\":%d,\"minTotal\":%d}", percentOff, minTotal))
-                    .forFirstOrder(false)
-                    .forBirthday(false)
-                    .activeFrom(LocalDateTime.now().minusDays(1))
-                    .activeTo(LocalDateTime.now().plusMonths(2))
-                    .status("ACTIVE")
-                    .usageLimit(100)
-                    .usedCount(0)
-                    .build())
+    private void createVoucher(String code, PromoScope scope, Shop shop,
+                               int percentOff, long minTotal) {
+        voucherRepo.findByCodeActiveNow(code, LocalDateTime.now()).orElseGet(() ->
+                voucherRepo.save(Voucher.builder()
+                        .code(code)
+                        .scope(scope)
+                        .shop(shop)
+                        .ruleJson(String.format("{\"percentOff\":%d,\"minTotal\":%d}", percentOff, minTotal))
+                        .forFirstOrder(false)
+                        .forBirthday(false)
+                        .activeFrom(LocalDateTime.now().minusDays(1))
+                        .activeTo(LocalDateTime.now().plusMonths(2))
+                        .status("ACTIVE")
+                        .usageLimit(100)
+                        .usedCount(0)
+                        .build())
         );
     }
+
 
     // ==================== 9. PROMOTIONS ====================
     private void initPromotions(Shop shop) {
@@ -805,14 +815,18 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     // ==================== 12. REVIEWS ====================
+    // ==================== 12. REVIEWS ====================
     private void initReviews() {
         System.out.println("→ Khởi tạo Reviews...");
-        
+
         User customer = userRepo.findByEmail("customer@utea.local").orElse(null);
         Product product = productRepo.findAll().stream().findFirst().orElse(null);
 
         if (customer != null && product != null) {
-            if (reviewRepo.findByUserIdOrderByCreatedAtDesc(customer.getId()).isEmpty()) {
+            boolean hasReview = reviewRepo.findAll().stream()
+                    .anyMatch(r -> r.getUser() != null && r.getUser().getId().equals(customer.getId()));
+
+            if (!hasReview) {
                 reviewRepo.save(Review.builder()
                         .user(customer)
                         .product(product)
@@ -826,7 +840,10 @@ public class DataInitializer implements CommandLineRunner {
 
         User customer2 = userRepo.findByEmail("customer2@utea.local").orElse(null);
         if (customer2 != null && product != null) {
-            if (reviewRepo.findByUserIdOrderByCreatedAtDesc(customer2.getId()).isEmpty()) {
+            boolean hasReview2 = reviewRepo.findAll().stream()
+                    .anyMatch(r -> r.getUser() != null && r.getUser().getId().equals(customer2.getId()));
+
+            if (!hasReview2) {
                 reviewRepo.save(Review.builder()
                         .user(customer2)
                         .product(product)
@@ -838,6 +855,7 @@ public class DataInitializer implements CommandLineRunner {
             }
         }
     }
+
 
     // ==================== 13. SHIPPING PROVIDERS ====================
     private void initShippingProviders() {
@@ -965,6 +983,81 @@ public class DataInitializer implements CommandLineRunner {
             
             shipAssignmentRepo.save(assignment);
             System.out.println("  → Đã gán shipper " + shipper.getFullName() + " cho đơn " + orderCode + " (" + status + ")");
+        }
+    }
+
+    // ==================== 16. CHAT ====================
+    private final ConversationRepository conversationRepo;
+    private final MessageRepository messageRepo;
+    // ==================== 16. CONVERSATIONS & MESSAGES ====================
+    // ==================== 16. CONVERSATIONS & MESSAGES ====================
+    private void initConversationsAndMessages() {
+        System.out.println("→ Khởi tạo Conversations & Messages...");
+
+        User manager = userRepo.findByEmail("manager@utea.local").orElse(null);
+        User customer = userRepo.findByEmail("customer@utea.local").orElse(null);
+        User customer2 = userRepo.findByEmail("customer2@utea.local").orElse(null);
+
+        if (manager == null || customer == null) {
+            System.out.println("⚠ Không tìm thấy user cần thiết để tạo cuộc trò chuyện mẫu.");
+            return;
+        }
+
+        // 1️⃣ Cuộc trò chuyện giữa Manager và Customer 1
+        createSampleConversation(manager, customer, ConversationScope.SYSTEM,
+                new String[]{
+                        "Chào bạn, mình cần hỗ trợ đặt hàng online!",
+                        "Chào bạn, mình là quản lý UTea, mình có thể giúp gì?",
+                        "Mình muốn hỏi về khuyến mãi cho khách hàng mới.",
+                        "Dạ, hiện tại bạn có thể dùng mã WELCOME10 để giảm 10% cho đơn đầu tiên nhé.",
+                        "Cảm ơn bạn nhiều, mình đặt thử nhé!"
+                });
+
+        // 2️⃣ Cuộc trò chuyện giữa Manager và Customer 2
+        createSampleConversation(manager, customer2, ConversationScope.SYSTEM,
+                new String[]{
+                        "Trà sữa matcha có còn hàng không bạn?",
+                        "Dạ có ạ, shop vẫn còn đủ size S, M, L nhé!",
+                        "Mình muốn order size L và thêm topping pudding.",
+                        "Ok ạ, mình xác nhận đơn giúp bạn ngay nhé!"
+                });
+    }
+
+    private void createSampleConversation(User manager, User customer, ConversationScope scope, String[] messages) {
+        Conversation conv = conversationRepo.findByCustomerAndAdminAndShopAndScope(customer, manager, null, scope)
+                .orElseGet(() -> {
+                    Conversation c = Conversation.builder()
+                            .admin(manager)
+                            .customer(customer)
+                            .scope(scope)
+                            .createdAt(LocalDateTime.now().minusDays(1))
+                            .lastMessageAt(LocalDateTime.now())
+                            .build();
+                    return conversationRepo.save(c);
+                });
+
+        // Nếu đã có tin nhắn, bỏ qua để tránh trùng
+        if (messageRepo.findTop50ByConversation_IdOrderBySentAtDesc(conv.getId()).isEmpty()) {
+            System.out.println("  → Tạo hội thoại giữa " + customer.getFullName() + " và " + manager.getFullName());
+
+            boolean fromCustomer = true;
+            for (String content : messages) {
+                Message msg = Message.builder()
+                        .conversation(conv)
+                        .sender(fromCustomer ? customer : manager)
+                        .content(content)
+                        .sentAt(LocalDateTime.now().minusMinutes((long) (Math.random() * 60)))
+                        .read(false)
+                        .build();
+                messageRepo.save(msg);
+                fromCustomer = !fromCustomer; // luân phiên
+            }
+
+            conv.setLastMessageAt(LocalDateTime.now());
+            conversationRepo.save(conv);
+            System.out.println("  ✓ Đã tạo " + messages.length + " tin nhắn cho cuộc trò chuyện mẫu");
+        } else {
+            System.out.println("  → Cuộc trò chuyện giữa " + customer.getFullName() + " và Manager đã có sẵn, bỏ qua.");
         }
     }
 }

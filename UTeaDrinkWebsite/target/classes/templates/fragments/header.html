@@ -154,7 +154,7 @@
                             <li><a class="dropdown-item" th:href="@{/admin/orders}">📦 Đơn hàng</a></li>
                         </ul>
                     </li>
-                	
+
                     <!-- CUSTOMER -->
                     <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">
                         <a class="nav-link mx-3 text-uppercase small fw-semibold" th:href="@{/customer/home}">TRANG CHỦ</a>
@@ -170,7 +170,28 @@
                     </li>
 
                     <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">
-                        <a class="nav-link mx-3 text-uppercase small fw-semibold" th:href="@{/customer/products}">SẢN PHẨM</a>
+                        <a class="nav-link mx-3 text-uppercase small fw-semibold" th:href="@{/customer/products}">TRANG CÁ NHÂN</a>
+                    </li>
+
+                    <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">
+                        <a class="nav-link mx-3 text-uppercase small fw-semibold" th:href="@{/customer/account}">Quản lý tài khoản</a>
+                    </li>
+                    <!-- Nút CHAT cho CUSTOMER -->
+                    <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">
+                        <a class="btn btn-warning ms-2 fw-semibold"
+                           th:href="@{/customer/chat}"
+                           style="border-radius: 25px; color: #000;">
+                            <i class="bi bi-chat-dots-fill me-1"></i> Chat
+                        </a>
+                    </li>
+
+                    <!-- Nút CHAT cho MANAGER -->
+                    <li class="nav-item" sec:authorize="hasAuthority('MANAGER')">
+                        <a class="btn btn-outline-warning ms-2 fw-semibold"
+                           th:href="@{/manager/chat}"
+                           style="border-radius: 25px;">
+                            <i class="bi bi-chat-text-fill me-1"></i> Chat khách hàng
+                        </a>
                     </li>
 
 

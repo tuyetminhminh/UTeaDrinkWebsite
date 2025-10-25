@@ -6,5 +6,5 @@ public record AddToCartRequest(
         User customer,
         Long productId,
         int quantity,
-        Long sizeId   // null nếu sp không có size
+        Long variantId // null nếu sp không có size
 ) {}

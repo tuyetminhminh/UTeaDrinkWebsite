@@ -1,3 +1,4 @@
+<!-- templates/customer/product.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
@@ -15,20 +16,17 @@
         .pd-wrap{max-width:1120px;margin:24px auto;padding:0 16px;}
         .pd-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:stretch}
 
-        .pd-img{
-            background:#faf7f4;border-radius:14px;padding:18px;
-            display:flex;align-items:center;justify-content:center;
-            height:520px;
-        }
+        .pd-img{ background:#faf7f4;border-radius:14px;padding:18px; display:flex;
+            align-items:center;justify-content:center; height:520px; }
         .pd-img img{max-width:100%;max-height:100%;object-fit:contain;height:auto}
 
         .pd-right{display:flex;flex-direction:column;min-height:100%}
-
         .pd-name{font-size:28px;font-weight:800;margin:0 0 8px}
         .pd-price{font-size:24px;font-weight:800;color:#d58500;margin:0 0 18px}
 
         .pill-group{display:flex;gap:10px;flex-wrap:wrap}
-        .pill{border:1.5px solid #ddd;border-radius:999px;padding:10px 14px;cursor:pointer;font-weight:600;background:#fff}
+        .pill{border:1.5px solid #ddd;border-radius:999px;padding:10px 14px;cursor:pointer;
+            font-weight:600;background:#fff}
         .pill input{display:none}
         .pill.active{border-color:#222;background:#222;color:#fff}
 
@@ -37,15 +35,18 @@
         .qty input{width:64px;text-align:center;border:1px solid #ddd;border-radius:8px;height:36px}
 
         .pd-desc{margin-top:22px;border-top:1px solid #eee;padding-top:16px;line-height:1.6}
-
         .pd-actions{margin-top:auto;display:flex;gap:12px;flex-wrap:wrap}
-        .btn-primary{background:var(--brand);color:#fff;border:none;border-radius:12px;padding:14px 24px;font-weight:800;cursor:pointer}
+        .btn-primary{background:var(--brand);color:#fff;border:none;border-radius:12px;
+            padding:14px 24px;font-weight:800;cursor:pointer}
         .btn-wide{width:100%;max-width:420px;font-size:1.05rem}
 
         .pd-related{margin-top:22px}
         .rel-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
         .rel-card{border:1px solid #eee;border-radius:12px;padding:10px;text-align:center;background:#fff}
         .rel-card img{width:100%;height:120px;object-fit:cover;border-radius:10px;background:#faf7f4}
+
+        .pag-wrap{ display:flex; gap:6px; margin-top:14px; flex-wrap:wrap }
+        .pag-wrap .btn{ border-radius:10px; }
 
         @media (max-width:900px){
             .pd-grid{grid-template-columns:1fr}
@@ -58,18 +59,24 @@
 <div th:replace="~{fragments/header :: header}"></div>
 <div style="height:40px"></div>
 
+<!-- Nút quay lại -->
+<div class="pd-wrap" style="margin-top:-8px">
+    <a class="btn btn-link px-0" th:href="${backUrl}">QUAY LẠI</a>
+</div>
+
 <main class="pd-wrap">
     <div class="pd-grid">
-
+        <!-- Ảnh -->
         <div class="pd-img">
-            <!-- Sử dụng phương thức getMainImageUrl() để lấy ảnh chính -->
-            <img th:src="@{${product.mainImageUrl}}" alt="Ảnh sản phẩm" loading="lazy"/>
+            <img th:src="${product.mainImageUrl}" alt="Ảnh sản phẩm" loading="lazy"/>
         </div>
 
+        <!-- Thông tin + size + add-to-cart -->
         <div class="pd-right">
             <h1 class="pd-name" th:text="${product.name}">Tên SP</h1>
+
             <div id="priceBox" class="pd-price"
-                 th:text="${#numbers.formatDecimal(product.basePrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</div>
+                 th:text="${#numbers.formatDecimal(defaultPrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</div>
 
             <div th:if="${variants != null and variants.size() > 0}">
                 <div style="font-weight:700;margin-bottom:8px">Chọn size (bắt buộc)</div>
@@ -80,9 +87,9 @@
                         <input type="radio" name="variantId"
                                th:value="${v.id}"
                                th:checked="${v.id == defaultVariantId}"/>
-                        <span th:text="${v.size.name}">Vừa</span>
+                        <span th:text="${v.size}">M</span>
                         <span style="opacity:.7;font-weight:600"
-                              th:text="' + ' + ${#numbers.formatDecimal(v.price - product.basePrice,0,'COMMA',0,'POINT')} + ' đ'"></span>
+                              th:text="' + ' + ${#numbers.formatDecimal(v.price.subtract(defaultPrice),0,'COMMA',0,'POINT')} + ' đ'"></span>
                     </label>
                 </div>
             </div>
@@ -92,7 +99,7 @@
                 <input type="hidden" name="variantId" id="variantInput"
                        th:if="${variants != null and !#lists.isEmpty(variants)}"
                        th:value="${defaultVariantId}"/>
-                <input type="hidden" name="redirect" value="/customer/menu"/>
+                <input type="hidden" name="redirect" th:value="${backUrl}"/>
 
                 <div class="qty">
                     <span style="font-weight:700">Số lượng</span>
@@ -113,6 +120,93 @@
         </div>
     </div>
 
+    <!-- Đánh giá -->
+    <section class="mt-4">
+        <h3 style="font-weight:800;margin:20px 0 12px">Đánh giá</h3>
+
+        <!-- bộ lọc -->
+        <div class="d-flex flex-wrap gap-2 mb-2">
+            <a class="btn btn-sm"
+               th:classappend="${selectedRating == null} ? ' btn-dark' : ' btn-outline-dark'"
+               th:href="@{/customer/product/{id}(id=${product.id}, rp=${rp}, back=${backUrl})}">
+                Tất cả
+            </a>
+
+            <a class="btn btn-sm"
+               th:each="s : ${stars}"
+               th:text="${s} + '★'"
+               th:classappend="${selectedRating != null and selectedRating == s} ? ' btn-dark' : ' btn-outline-dark'"
+               th:href="@{/customer/product/{id}(id=${product.id}, rating=${s}, rp=${rp}, back=${backUrl})}">
+                5★
+            </a>
+        </div>
+
+        <!-- thống kê -->
+        <div class="mb-2 small text-muted">
+            TB: <span th:text="${avgRating}">0.0</span> ★ ·
+            <span th:each="s : ${stars}">
+                <span th:text="${s} + '★:'"></span>
+                <!-- FIX: dùng #maps.containsKey + .get() -->
+                <strong th:text="${
+                    ratingCounts != null and #maps.containsKey(ratingCounts, s)
+                        ? ratingCounts.get(s)
+                        : 0
+                }">0</strong>
+                <span th:if="${s > 1}"> · </span>
+            </span>
+        </div>
+
+        <!-- danh sách -->
+        <div th:if="${reviews != null and reviews.totalElements > 0}">
+            <div class="mb-3 p-3 border rounded" th:each="r : ${reviews.content}">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <strong th:text="${r.userName}">Khách</strong>
+                        <span class="ms-2" th:text="${r.rating} + '★'">5★</span>
+                    </div>
+                    <small class="text-muted" th:text="${#temporals.format(r.createdAt,'dd/MM/yyyy HH:mm')}">--</small>
+                </div>
+                <div th:text="${r.content}" class="mt-2"></div>
+            </div>
+
+            <!-- phân trang review -->
+            <div class="pag-wrap" th:if="${totalRp > 1}">
+                <a class="btn btn-outline-dark btn-sm"
+                   th:classappend="${rp == 0} ? ' disabled' : ''"
+                   th:href="@{/customer/product/{id}(id=${product.id}, rating=${selectedRating}, rp=${prevRp}, back=${backUrl})}">
+                    « Trước
+                </a>
+
+                <a class="btn btn-outline-dark btn-sm"
+                   th:each="i : ${rpPages}"
+                   th:text="${i + 1}"
+                   th:classappend="${i == rp} ? ' active' : ''"
+                   th:href="@{/customer/product/{id}(id=${product.id}, rating=${selectedRating}, rp=${i}, back=${backUrl})}">
+                    1
+                </a>
+
+                <a class="btn btn-outline-dark btn-sm"
+                   th:classappend="${rp == (totalRp - 1)} ? ' disabled' : ''"
+                   th:href="@{/customer/product/{id}(id=${product.id}, rating=${selectedRating}, rp=${nextRp}, back=${backUrl})}">
+                    Sau »
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${reviews == null or reviews.totalElements == 0}" class="text-muted">Chưa có đánh giá.</div>
+    </section>
+
+    <!-- Sản phẩm liên quan -->
+    <div class="pd-related" th:if="${relatedProducts != null and !#lists.isEmpty(relatedProducts)}">
+        <h3 style="font-weight:800;margin:20px 0 12px">Sản phẩm liên quan</h3>
+        <div class="rel-list">
+            <a class="rel-card" th:each="rp : ${relatedProducts}"
+               th:href="@{/customer/product/{id}(id=${rp.id}, back=${backUrl})}">
+                <img th:src="${rp.mainImageUrl}" th:alt="${rp.name}">
+                <div style="font-weight:700;margin-top:6px" th:text="${rp.name}">Tên</div>
+            </a>
+        </div>
+    </div>
 </main>
 
 <div style="height:50px"></div>
@@ -122,12 +216,8 @@
 <script>
     (function(){
         const header=document.querySelector('.navbar')||document.querySelector('header');
-        function upd(){
-            if(header){
-                const h=header.getBoundingClientRect().height||80;
-                document.documentElement.style.setProperty('--header-h',h+'px');
-            }
-        }
+        function upd(){ if(header){ const h=header.getBoundingClientRect().height||80;
+            document.documentElement.style.setProperty('--header-h',h+'px'); } }
         upd(); window.addEventListener('resize',upd);
     })();
 
@@ -151,8 +241,7 @@
             label.classList.add('active');
             const id=label.querySelector('input').value;
             if(hidden) hidden.value=id;
-            const val=Number(prices[id]||0);
-            priceBox.textContent=formatVND(val);
+            priceBox.textContent=formatVND(Number(prices[id]||0));
         });
     })();
 </script>

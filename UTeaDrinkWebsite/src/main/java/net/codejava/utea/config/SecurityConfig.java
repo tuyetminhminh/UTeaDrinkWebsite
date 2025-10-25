@@ -91,6 +91,7 @@ public class SecurityConfig {
                         .requestMatchers("/manager/**").hasAuthority("MANAGER")
                         .requestMatchers("/customer/**").hasAuthority("CUSTOMER")
                         .requestMatchers("/shipper/**").hasAuthority("SHIPPER")
+                        .requestMatchers("/api/chat/**").hasAnyAuthority("CUSTOMER","MANAGER","ADMIN")
                         .requestMatchers("/chat/start", "/chat/customer/**")
                         .hasAnyAuthority("CUSTOMER","MANAGER","ADMIN")
                         .requestMatchers("/chat/inbox", "/chat/admin/**").hasAuthority("ADMIN")

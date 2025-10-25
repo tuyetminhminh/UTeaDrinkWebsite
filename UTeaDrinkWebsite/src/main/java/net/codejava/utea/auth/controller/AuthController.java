@@ -2,6 +2,7 @@ package net.codejava.utea.auth.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import net.codejava.utea.auth.dto.RegisterRequest;
 import net.codejava.utea.auth.service.JwtService;
 import net.codejava.utea.common.entity.User;
 import net.codejava.utea.common.repository.UserRepository;
@@ -85,12 +86,16 @@ public class AuthController {
 		response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 		return "redirect:/login?logout";
 	}
-
-	/* ======= REGISTER ======= */
-	@GetMapping("/register")
+    @GetMapping("/register")
+    public String registerPage(Model model) {
+        model.addAttribute("req", new RegisterRequest());
+        return "auth/register";
+    }
+	 //======= REGISTER =======
+	/*@GetMapping("/register")
 	public String registerPage() {
 		return "auth/register";
-	}
+	}*/
 
 	@PostMapping("/register")
 	public String doRegister(@RequestParam String email, @RequestParam String username, @RequestParam String fullName,

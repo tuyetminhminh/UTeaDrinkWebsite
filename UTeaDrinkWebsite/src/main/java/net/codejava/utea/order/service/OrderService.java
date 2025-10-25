@@ -10,11 +10,13 @@ import java.util.List;
 
 public interface OrderService {
 
-	Order createFromCart(User user, java.util.function.Consumer<Order.OrderBuilder> extra, CheckoutRequest req);
+    Order createFromCart(User user, java.util.function.Consumer<Order.OrderBuilder> extra, CheckoutRequest req);
 
-	List<Order> myOrders(User user);
+    List<Order> myOrders(User user);
 
-	Page<Order> searchForShop(Long shopId, String status, Pageable pageable);
+    Page<Order> searchForShop(Long shopId, String status, Pageable pageable);
 
-	void changeStatus(String orderCode, String newStatus, Long actorId);
+    void changeStatus(String orderCode, String newStatus, Long actorId);
+
+    void markPaid(String orderCode);
 }

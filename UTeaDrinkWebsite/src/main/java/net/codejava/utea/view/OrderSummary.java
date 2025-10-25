@@ -8,9 +8,9 @@ public class OrderSummary {
     private BigDecimal subtotal;
     private BigDecimal shippingFee;
     private BigDecimal discountAmount;
+    private BigDecimal shipDiscount;
     private BigDecimal total;
 
-    private String couponCode;
-    private String couponMessage;
-    private boolean couponApplied;
+    private boolean   couponApplied;
+    private String    couponMessage;
 }

@@ -2,221 +2,166 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8"/>
     <title>Thanh toán</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-    <!-- Bootstrap -->
-    <link th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}" rel="stylesheet"/>
-
-    <!-- Font có hỗ trợ tiếng Việt -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Noto+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+    <!-- Bootstrap & Icons (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+    <!-- Font đẹp, hỗ trợ TV -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet"/>
 
     <style>
-        :root{
-            --bg:#f6f7f9; --panel:#ffffff; --ink:#0f172a; --muted:#6b7280;
-            --line:#e9edf1; --ok:#0a7a07; --err:#b10000;
-            --radius:16px; --radius-pill:999px;
-        }
-        html,body{height:100%}
-        body{
-            background:var(--bg);
-            color:var(--ink);
-            font-family: "Noto Sans","Inter",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji";
-            -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-        }
-
-        .wrap{max-width:1180px; margin:28px auto; padding:0 12px}
-        .back-link{display:inline-flex; align-items:center; gap:8px; font-weight:800; color:var(--ink); text-decoration:none}
+        :root{--bg:#f6f7f9;--panel:#fff;--ink:#0f172a;--muted:#6b7280;--line:#e9edf1;--radius:16px}
+        body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial}
+        .wrap{max-width:1180px;margin:28px auto;padding:0 12px}
+        .panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 6px 16px rgba(15,23,42,.05)}
+        .section{padding:18px}
+        .section-title{font-weight:900;font-size:18px;margin-bottom:12px}
+        .back-link{display:inline-flex;align-items:center;gap:8px;font-weight:800;text-decoration:none;color:var(--ink)}
         .back-link:hover{opacity:.85}
 
-        .panel{
-            background:var(--panel); border:1px solid var(--line);
-            border-radius:var(--radius); box-shadow:0 6px 16px rgba(15,23,42,.05)
-        }
-        .section{padding:18px}
-        .section-title{font-weight:900; font-size:18px; margin-bottom:12px}
+        /* input full chiều ngang, gọn chiều cao */
+        .form-label{font-weight:700}
+        .form-control{height:44px;border-radius:14px}
 
-        /* Inputs: pill + label trên */
-        .control .form-label{font-weight:700; margin-bottom:8px}
-        .control .form-control{
-            height:52px; border-radius:var(--radius-pill);
-            border-color:#e5e7eb; padding-inline:16px; background:#fff;
-        }
-        .control .form-control:disabled{background:#f1f2f4; color:#8b9096}
-        .control .form-control:focus{border-color:#111; box-shadow:0 0 0 .25rem rgba(17,17,17,.08)}
-        .hint{color:var(--muted); font-size:.9rem}
+        /* nút “chip” mở modal */
+        .btn-chip{display:inline-flex;align-items:center;gap:8px;border:1px solid #dfe3e8;border-radius:999px;padding:8px 14px;background:#fff;font-weight:800}
+        .btn-chip:hover{background:#f8f9fb}
 
-        /* Payment tiles */
-        .pay-tile{
-            display:flex; align-items:center; gap:14px; cursor:pointer;
-            border:1px solid var(--line); background:#fff; padding:12px 14px;
-            border-radius:14px; transition:.15s
-        }
+        /* radio payment tiles */
+        .pay-tile{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;padding:12px}
         .pay-tile + .pay-tile{margin-top:10px}
-        .pay-tile:hover{border-color:#d8dbe0; box-shadow:0 4px 12px rgba(15,23,42,.06)}
-        .pay-tile input{width:18px; height:18px}
-        .pay-logo{
-            width:40px; height:40px; border-radius:10px; overflow:hidden;
-            display:flex; align-items:center; justify-content:center; background:#f1f5f9
-        }
-        .pay-logo img{width:100%; height:100%; object-fit:contain}
+        .pay-logo{width:40px;height:40px;border-radius:10px;overflow:hidden;background:#f1f5f9;display:flex;align-items:center;justify-content:center}
+        .pay-logo img{width:100%;height:100%;object-fit:contain}
 
-        /* Coupons: horizontal scroll chips */
-        .coupon-track{
-            display:flex; gap:12px; overflow-x:auto; padding-bottom:8px;
-            scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:thin
-        }
-        .coupon-chip{
-            min-width:260px; scroll-snap-align:start;
-            background:#fff; border:1px dashed #dce0e5; border-radius:14px;
-            padding:10px 12px; display:flex; justify-content:space-between; align-items:center
-        }
-        .coupon-code{
-            font-weight:900; letter-spacing:.3px; padding:4px 10px;
-            border-radius:var(--radius-pill); background:#111; color:#fff;
-            font-family:ui-monospace,monospace; font-size:12px
-        }
-        .coupon-meta{font-weight:700}
-        .coupon-note{color:var(--muted); font-size:.85rem}
-        .coupon-apply{white-space:nowrap}
+        /* chips coupon đã chọn */
+        .chip{display:inline-flex;align-items:center;gap:8px;border:1px dashed #ced2d8;border-radius:999px;padding:6px 10px;background:#fff}
+        .chip .x{cursor:pointer;font-weight:700}
 
-        /* Coupon input */
-        .coupon-box{display:flex; gap:10px}
-        .coupon-box .form-control{height:52px; border-radius:var(--radius-pill)}
-        .coupon-box .btn{
-            height:52px; border-radius:var(--radius-pill);
-            font-weight:800; letter-spacing:0; text-transform:none;  /* tránh lỗi font tiếng Việt */
-            font-family:inherit;
-        }
-
-        /* Summary */
-        .summary{position:sticky; top:16px}
-        .row-line{display:flex; justify-content:space-between; padding:8px 0}
-        .row-line .muted{color:var(--muted)}
-        .total{display:flex; justify-content:space-between; border-top:1px solid var(--line); margin-top:8px; padding-top:14px; font-weight:900; font-size:18px}
-
-        /* Order button – tiếng Việt không lỗi font */
-        .btn-order{
-            height:52px; border-radius:14px; font-weight:900; padding:0 22px;
-            letter-spacing:0; text-transform:none; font-family:inherit;
-        }
-
-        @media (max-width:992px){ .summary{position:static} }
+        .summary{position:sticky;top:16px}
+        @media (max-width:992px){.summary{position:static}}
+        .row-line{display:flex;justify-content:space-between;padding:8px 0}
+        .total{display:flex;justify-content:space-between;border-top:1px solid var(--line);margin-top:8px;padding-top:14px}
+        .total .price{font-size:20px;font-weight:900}
+        .btn-order{height:48px;border-radius:14px;font-weight:900;padding:0 22px}
     </style>
 </head>
 <body>
-
 <div class="wrap">
-    <a class="back-link mb-3 d-inline-block" th:href="@{/customer/cart}">← Quay lại giỏ hàng</a>
+    <a class="back-link mb-3" th:href="@{/customer/cart}">
+        <i class="bi bi-arrow-left"></i> Quay lại giỏ hàng
+    </a>
 
+    <!-- FORM CHÍNH -->
     <form th:action="@{/customer/checkout}" method="post" th:object="${req}">
         <div class="row g-3">
             <!-- LEFT -->
             <div class="col-lg-8">
-                <!-- Shipping -->
-                <div class="panel section control">
-                    <div class="section-title">Thông tin vận chuyển</div>
-                    <div class="row g-3">
-                        <div class="col-md-6">
+                <!-- ĐỊA CHỈ -->
+                <div class="panel section">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="section-title mb-0">Thông tin giao hàng</div>
+                        <button class="btn-chip" type="button" data-bs-toggle="modal" data-bs-target="#addressModal">
+                            <i class="bi bi-geo-alt"></i> Chọn địa chỉ đã lưu
+                        </button>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-12">
                             <label class="form-label">Họ tên</label>
-                            <input class="form-control" th:field="*{fullname}" placeholder="Nhập họ tên">
+                            <input class="form-control" th:field="*{fullname}" placeholder="VD: Nguyễn Văn A">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label class="form-label">Số điện thoại</label>
-                            <input class="form-control" th:field="*{phone}" inputmode="tel" placeholder="Số điện thoại liên hệ">
+                            <input class="form-control" th:field="*{phone}" inputmode="tel" placeholder="VD: 09xx xxx xxx">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Email <span class="hint">(tuỳ chọn)</span></label>
-                            <input class="form-control" th:field="*{email}" placeholder="Email để nhận hoá đơn" th:disabled="${req.email != null}">
+                            <label class="form-label">Địa chỉ</label>
+                            <input class="form-control" th:field="*{addressLine}" placeholder="Số nhà, đường">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Địa chỉ nhận hàng</label>
-                            <input class="form-control" th:field="*{addressLine}" placeholder="Số nhà, đường, phường/xã">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Tỉnh/Thành</label>
-                            <input class="form-control" th:field="*{province}" placeholder="VD: TP. Hồ Chí Minh">
-                        </div>
-                        <div class="col-md-6">
                             <label class="form-label">Quận/Huyện</label>
                             <input class="form-control" th:field="*{district}" placeholder="VD: Quận 1">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Ghi chú</label>
-                            <input class="form-control" th:field="*{note}" placeholder="Ghi chú cho shipper (nếu có)">
+                            <label class="form-label">Tỉnh/Thành</label>
+                            <input class="form-control" th:field="*{province}" placeholder="VD: TP. HCM">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Ghi chú (tuỳ chọn)</label>
+                            <input class="form-control" th:field="*{note}" placeholder="Ghi chú cho shipper">
                         </div>
                     </div>
                 </div>
 
-                <!-- Payments -->
+                <!-- THANH TOÁN -->
                 <div class="panel section mt-3">
                     <div class="section-title">Hình thức thanh toán</div>
 
                     <label class="pay-tile">
-                        <input type="radio" class="form-check-input me-1" th:field="*{paymentMethod}" value="COD">
-                        <span class="pay-logo">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M3 7h13a3 3 0 0 1 3 3v7H6a3 3 0 0 1-3-3V7z" stroke="#0f172a" stroke-width="1.6"/>
-                <path d="M16 10h3l2 3v4h-5" stroke="#0f172a" stroke-width="1.6"/>
-              </svg>
-            </span>
+                        <input class="form-check-input me-2" type="radio" th:field="*{paymentMethod}" value="COD">
+                        <span class="pay-logo d-none d-md-flex"><i class="bi bi-cash-coin"></i></span>
                         <div>
                             <div class="fw-bold">Thanh toán khi nhận hàng (COD)</div>
-                            <div class="text-muted small">Nhận hàng, kiểm tra và thanh toán cho shipper.</div>
+                            <div class="text-muted small">Nhận hàng rồi thanh toán cho shipper.</div>
                         </div>
                     </label>
 
                     <label class="pay-tile">
-                        <input type="radio" class="form-check-input me-1" th:field="*{paymentMethod}" value="MOMO">
+                        <input class="form-check-input me-2" type="radio" th:field="*{paymentMethod}" value="MOMO">
                         <span class="pay-logo"><img th:src="@{/img/momo.png}" alt="MoMo"></span>
                         <div>
-                            <div class="fw-bold">Ví MoMo</div>
-                            <div class="text-muted small">Thanh toán nhanh qua ứng dụng MoMo.</div>
+                            <div class="fw-bold">Ví MoMo (QR)</div>
+                            <div class="text-muted small">Quét mã QR để thanh toán.</div>
                         </div>
                     </label>
 
                     <label class="pay-tile">
-                        <input type="radio" class="form-check-input me-1" th:field="*{paymentMethod}" value="VNPAY">
+                        <input class="form-check-input me-2" type="radio" th:field="*{paymentMethod}" value="VNPAY">
                         <span class="pay-logo"><img th:src="@{/img/vnpay.png}" alt="VNPAY"></span>
                         <div>
-                            <div class="fw-bold">VNPAY</div>
+                            <div class="fw-bold">VNPAY (QR)</div>
                             <div class="text-muted small">Thẻ nội địa/QR VNPAY.</div>
                         </div>
                     </label>
                 </div>
 
-                <!-- Coupons -->
+                <!-- MÃ GIẢM GIÁ -->
                 <div class="panel section mt-3">
-                    <div class="section-title">Mã giảm giá đề xuất</div>
-
-                    <div class="coupon-track" th:if="${suggestions != null and !#lists.isEmpty(suggestions)}">
-                        <div class="coupon-chip" th:each="s : ${suggestions}">
-                            <div class="me-2">
-                                <div class="coupon-code" th:text="${s.code()}">CODE50</div>
-                                <div class="coupon-meta mt-1" th:text="${s.title()}">Tiêu đề mã</div>
-                                <div class="coupon-note" th:text="${s.note()}">Điều kiện áp dụng</div>
-                            </div>
-                            <form th:action="@{/customer/checkout/apply-coupon}" method="post" class="coupon-apply">
-                                <input type="hidden" name="couponCode" th:value="${s.code()}">
-                                <button class="btn btn-outline-dark btn-sm" type="submit">Áp dụng</button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div class="mt-3 section-title" style="margin-bottom:8px">Nhập mã giảm giá</div>
-                    <div class="coupon-box">
-                        <input class="form-control" th:field="*{couponCode}" placeholder="Nhập mã ví dụ: CMNTO50">
-                        <button class="btn btn-dark" type="submit"
-                                formaction="#" th:formaction="@{/customer/checkout/apply-coupon}" formmethod="post">
-                            ÁP DỤNG
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="section-title mb-0">Mã giảm giá</div>
+                        <button class="btn-chip" type="button" data-bs-toggle="modal" data-bs-target="#couponModal">
+                            <i class="bi bi-ticket-perforated"></i> Chọn mã giảm giá
                         </button>
                     </div>
 
-                    <div class="mt-2" th:if="${summary.couponMessage}">
-                        <div th:text="${summary.couponMessage}"
-                             th:class="${summary.couponApplied} ? 'text-success fw-bold' : 'text-danger fw-bold'"></div>
+                    <div class="mt-2">
+            <span class="chip me-2" th:if="*{couponCode}">
+              <span>Giảm tiền/%:</span><strong th:text="*{couponCode}">CODE</strong>
+              <span class="x" role="button" onclick="removeCoupon('coupon')">×</span>
+            </span>
+                        <span class="chip" th:if="*{shipCode}">
+              <span>Giảm ship:</span><strong th:text="*{shipCode}">SHIP</strong>
+              <span class="x" role="button" onclick="removeCoupon('ship')">×</span>
+            </span>
                     </div>
+
+                    <div class="mt-3 d-flex gap-2 align-items-center">
+                        <button class="btn btn-dark" type="submit"
+                                formaction="#" th:formaction="@{/customer/checkout/apply-coupons}" formmethod="post">
+                            ÁP DỤNG
+                        </button>
+                        <div class="fw-bold"
+                             th:if="${summary.couponMessage}"
+                             th:class="${summary.couponApplied} ? 'text-success' : 'text-danger'"
+                             th:text="${summary.couponMessage}">...</div>
+                    </div>
+
+                    <!-- giữ giá trị 2 mã -->
+                    <input type="hidden" th:field="*{couponCode}">
+                    <input type="hidden" th:field="*{shipCode}">
                 </div>
             </div>
 
@@ -226,26 +171,29 @@
                     <div class="section-title">Chi tiết thanh toán</div>
 
                     <div class="row-line">
-                        <span class="muted">Tạm tính</span>
+                        <span class="text-muted">Tạm tính</span>
                         <span th:text="${#numbers.formatDecimal(summary.subtotal,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
                     </div>
                     <div class="row-line">
-                        <span class="muted">Phí giao hàng</span>
-                        <span th:text="${summary.shippingFee.signum()==0 ? 'Miễn phí' : #numbers.formatDecimal(summary.shippingFee,0,'COMMA',0,'POINT') + 'đ'}">Miễn phí</span>
+                        <span class="text-muted">Phí giao hàng</span>
+                        <span th:text="${#numbers.formatDecimal(summary.shippingFee,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
                     </div>
                     <div class="row-line">
-                        <span class="muted">Voucher giảm giá</span>
+                        <span class="text-muted">Giảm giá</span>
                         <span th:text="${#numbers.formatDecimal(summary.discountAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
                     </div>
-
-                    <div class="total">
-                        <span>Thành tiền</span>
-                        <span th:text="${#numbers.formatDecimal(summary.total,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+                    <div class="row-line">
+                        <span class="text-muted">Giảm phí ship</span>
+                        <span th:text="${#numbers.formatDecimal(summary.shipDiscount,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
                     </div>
 
-                    <!-- nút bên phải -->
-                    <div class="d-flex justify-content-end mt-3">
-                        <button class="btn btn-dark btn-order" type="submit">ĐẶT HÀNG</button>
+                    <!-- nút nằm bên phải, dưới số tiền -->
+                    <div class="total">
+                        <div class="text-muted">Thành tiền</div>
+                        <div class="text-end">
+                            <div class="price" th:text="${#numbers.formatDecimal(summary.total,0,'COMMA',0,'POINT')} + 'đ'">0đ</div>
+                            <button class="btn btn-dark btn-order mt-2" type="submit">ĐẶT HÀNG</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -253,6 +201,128 @@
     </form>
 </div>
 
-<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+<!-- ===== MODALS đặt cuối body ===== -->
+
+<!-- Modal ĐỊA CHỈ -->
+<div class="modal fade" id="addressModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <strong class="modal-title"><i class="bi bi-geo-alt me-1"></i> Sổ địa chỉ</strong>
+                <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group">
+                    <button type="button" class="list-group-item list-group-item-action"
+                            th:each="a : ${addresses}"
+                            th:data-fullname="${a.receiverName}"
+                            th:data-phone="${a.phone}"
+                            th:data-line="${a.line}"
+                            th:data-district="${a.district}"
+                            th:data-province="${a.province}"
+                            onclick="pickAddress(this)">
+                        <div class="d-flex justify-content-between">
+                            <div><strong th:text="${a.receiverName}">Tên</strong> <span class="ms-2" th:text="${a.phone}">SĐT</span></div>
+                            <span class="badge text-bg-dark" th:if="${a.default}">Mặc định</span>
+                        </div>
+                        <div class="small text-muted" th:text="${a.line + ', ' + a.district + ', ' + a.province}">...</div>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a th:href="@{/customer/addresses}" class="btn btn-outline-secondary">Quản lý địa chỉ</a>
+                <button class="btn btn-dark" data-bs-dismiss="modal">Dùng địa chỉ đã chọn</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal VOUCHER -->
+<div class="modal fade" id="couponModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <strong class="modal-title"><i class="bi bi-ticket-perforated me-1"></i> Chọn mã giảm giá</strong>
+                <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-discount" type="button">Giảm tiền/%</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-ship" type="button">Miễn/giảm ship</button></li>
+                </ul>
+                <div class="tab-content p-2">
+                    <div class="tab-pane fade show active" id="tab-discount">
+                        <div class="list-group">
+                            <button type="button" class="list-group-item list-group-item-action"
+                                    th:each="s : ${suggestionsPair.discountVouchers}"
+                                    th:data-code="${s.code}"
+                                    onclick="pickCoupon(this,'coupon')">
+                                <div class="d-flex justify-content-between">
+                                    <strong th:text="${s.title}">CODE</strong>
+                                    <span class="text-muted" th:text="${s.note}">...</span>
+                                </div>
+                                <small class="text-muted" th:text="${s.code}">CODE</small>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="tab-ship">
+                        <div class="list-group">
+                            <button type="button" class="list-group-item list-group-item-action"
+                                    th:each="s : ${suggestionsPair.shipVouchers}"
+                                    th:data-code="${s.code}"
+                                    onclick="pickCoupon(this,'ship')">
+                                <div class="d-flex justify-content-between">
+                                    <strong th:text="${s.title}">SHIP</strong>
+                                    <span class="text-muted" th:text="${s.note}">...</span>
+                                </div>
+                                <small class="text-muted" th:text="${s.code}">CODE</small>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <!-- giữ lại dữ liệu form khi áp mã -->
+                <form th:action="@{/customer/checkout/apply-coupons}" method="post" class="ms-auto">
+                    <input type="hidden" name="fullname"    th:value="*{fullname}">
+                    <input type="hidden" name="phone"       th:value="*{phone}">
+                    <input type="hidden" name="email"       th:value="*{email}">
+                    <input type="hidden" name="addressLine" th:value="*{addressLine}">
+                    <input type="hidden" name="district"    th:value="*{district}">
+                    <input type="hidden" name="province"    th:value="*{province}">
+                    <input type="hidden" name="note"        th:value="*{note}">
+                    <input type="hidden" id="hidCoupon" name="couponCode" th:value="*{couponCode}">
+                    <input type="hidden" id="hidShip"   name="shipCode"   th:value="*{shipCode}">
+                    <button class="btn btn-dark" type="submit">Áp dụng</button>
+                </form>
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS bundle (bắt buộc để modal hoạt động) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function pickAddress(btn){
+        const f = document.querySelector('form'); if(!f) return;
+        f.querySelector('[name="fullname"]').value    = btn.dataset.fullname || '';
+        f.querySelector('[name="phone"]').value       = btn.dataset.phone || '';
+        f.querySelector('[name="addressLine"]').value = btn.dataset.line || '';
+        f.querySelector('[name="district"]').value    = btn.dataset.district || '';
+        f.querySelector('[name="province"]').value    = btn.dataset.province || '';
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('addressModal')).hide();
+    }
+    function pickCoupon(btn, kind){
+        const code = btn.dataset.code || '';
+        if(kind==='coupon') document.getElementById('hidCoupon').value = code;
+        if(kind==='ship')   document.getElementById('hidShip').value   = code;
+    }
+    function removeCoupon(kind){
+        const f = document.querySelector('form');
+        if(kind==='coupon') f.querySelector('[name="couponCode"]').value='';
+        if(kind==='ship')   f.querySelector('[name="shipCode"]').value='';
+    }
+</script>
 </body>
 </html>

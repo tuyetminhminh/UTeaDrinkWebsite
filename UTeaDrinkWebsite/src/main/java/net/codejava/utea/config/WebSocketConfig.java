@@ -31,5 +31,4 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
     // thêm vào WebSocketConfig:
 
-
 }

@@ -1,79 +1,218 @@
+<!-- templates/customer/menu.html -->
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Danh sách sản phẩm</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <title>Menu | UTeaDrink</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" th:href="@{/css/customer.css}" />
+
     <style>
-        body {
-            background-color: #f9fafb;
-            font-family: "Poppins", sans-serif;
+        :root{ --accent:#e53935; --text:#111; --card:#e9e9ea; --ring:#e5e7eb; --header-h:80px; --tab-h:56px; }
+        body.menu-page{ background:#fff; color:var(--text); padding-top:var(--header-h); }
+
+        /* HERO */
+        #heroCarousel{ margin-top:0; } /* dính sát header */
+        .hero-img{ width:100%; height:360px; object-fit:cover; display:block; } /* tránh gap 1px do inline-img */
+        @media (max-width:768px){ .hero-img{ height:240px } }
+
+        /* TABS */
+        .menu-tabs-wrap{ position:sticky; top:var(--header-h); z-index:1020; background:#fff; border-bottom:1px solid #eee; }
+        .menu-tabs{ height:var(--tab-h); display:flex; align-items:center; justify-content:center; gap:22px; max-width:980px; margin:0 auto; overflow:auto; scrollbar-width:none }
+        .menu-tab{ background:transparent!important; color:#6b7280!important; font-weight:700; text-decoration:none!important;
+            padding:10px 14px; border-bottom:3px solid transparent; transition:color .2s, border-color .2s; white-space:nowrap }
+        .menu-tab:hover{ color:#111!important; border-bottom-color:#111; }
+        .menu-tab.active{ color:#111!important; border-bottom-color:#111!important; }
+
+        /* GRID */
+        section.menu-section{ scroll-margin-top:calc(var(--header-h) + var(--tab-h) + 18px); padding-top:8px; }
+        section.menu-section + section.menu-section{ margin-top:34px; padding-top:24px; border-top:1px solid #eee; }
+        .section-title{ font-size:1.45rem; font-weight:800; margin:0 0 18px; }
+
+        .product-grid{ display:grid; gap:22px; grid-template-columns:1fr; }
+        @media (min-width:768px){ .product-grid{ grid-template-columns:repeat(2,1fr); } }
+        @media (min-width:992px){ .product-grid{ grid-template-columns:repeat(3,1fr); } }
+
+        .product-card{
+            --media:220px; background:var(--card); border:1px solid var(--ring); border-radius:14px; padding:16px 18px;
+            display:grid; grid-template-columns: 1.35fr var(--media); align-items:center; gap:16px; width:100%;
+            transition:transform .2s, box-shadow .2s, border-color .2s; cursor:pointer;
         }
-        .card {
-            border: none;
-            border-radius: 16px;
-            overflow: hidden;
-            transition: all 0.25s ease-in-out;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        }
-        .card-img-top {
-            height: 220px;
-            object-fit: cover;
-        }
-        .price {
-            color: #d0021b;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-        .btn-outline-dark {
-            border-radius: 50px;
-        }
-        .navbar-brand {
-            font-weight: 600;
-        }
+        .product-card:hover{ transform:translateY(-4px); box-shadow:0 10px 20px rgba(0,0,0,.08); border-color:#dcdfe3; }
+
+        .product-name{ font-weight:800; font-size:1rem; line-height:1.25; margin:0 0 4px; }
+        .product-price{ color:var(--accent); font-weight:800; font-size:1.08rem; margin:0 0 6px; }
+        .product-desc{ color:#222; font-size:.88rem; line-height:1.35; margin:0; max-width:48ch;
+            display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+        .product-thumb{ width:var(--media); height:var(--media); object-fit:contain; background:var(--card); border-radius:14px; justify-self:end; margin-right:-6px; }
+        @media (max-width:640px){ .product-card{ grid-template-columns:1fr; gap:14px; } .product-thumb{ width:200px; height:200px; justify-self:center; margin-right:0; } }
+
+        .container-narrow{ max-width:1200px; margin:0 auto; padding:0 12px; }
+        .pag-wrap{ display:flex; gap:6px; margin-top:14px; flex-wrap:wrap }
+        .pag-wrap .btn{ border-radius:10px; }
     </style>
 </head>
-<body>
 
-<!-- ✅ Header -->
-<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-    <div class="container">
-        <a class="navbar-brand text-dark" href="/">☕ UTeaDrink</a>
-        <div class="d-flex">
-            <a th:href="@{/customer/chat}" class="btn btn-outline-dark me-2">💬 Hộp thư</a>
-            <a th:href="@{/logout}" class="btn btn-danger">Đăng xuất</a>
+<body class="menu-page">
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<!-- Hero Slider -->
+<section id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <img src="https://res.cloudinary.com/dhmh2ekqy/image/upload/v1760047323/1-tuan-nen-uong-bao-nhieu-tra-sua-1000x690_slbfnn.jpg" class="d-block w-100 hero-img" alt="UTeaDrink">
+            <div class="carousel-caption d-flex flex-column justify-content-center align-items-center text-center"></div>
+        </div>
+        <div class="carousel-item">
+            <img src="https://res.cloudinary.com/dhmh2ekqy/image/upload/v1760047294/tra-sua-da-lat-topbanner_sdeac5.jpg" class="d-block w-100 hero-img" alt="UTeaDrink">
+            <div class="carousel-caption d-flex flex-column justify-content-center align-items-center text-center"></div>
         </div>
     </div>
-</nav>
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+    </button>
+</section>
 
-<!-- ✅ Danh sách sản phẩm -->
-<div class="container my-5">
-    <h3 class="text-center mb-4 fw-semibold">🌸 Thực đơn của quán 🌸</h3>
-
-    <div class="row g-4" th:if="${products != null}">
-        <div th:each="p : ${products}" class="col-md-3 col-sm-6">
-            <div class="card h-100">
-                <img th:src="${p.mainImageUrl}" class="card-img-top" alt="Ảnh sản phẩm">
-
-                <div class="card-body text-center">
-                    <h5 th:text="${p.name}" class="card-title fw-bold mb-2"></h5>
-                    <p th:text="${#numbers.formatDecimal(p.basePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'" class="price mb-2"></p>
-
-                    <a th:href="@{'/customer/product/' + ${p.id}}" class="btn btn-outline-dark btn-sm">
-                        Xem chi tiết
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div th:if="${#lists.isEmpty(products)}" class="text-center mt-5">
-        <p class="text-muted">Hiện chưa có sản phẩm nào được đăng.</p>
-    </div>
+<!-- Tabs -->
+<div class="menu-tabs-wrap">
+    <nav class="menu-tabs" id="menuTabs">
+        <a href="#best" class="menu-tab active">Best seller</a>
+        <!-- danh mục động -->
+        <a class="menu-tab"
+           th:each="c : ${categories}"
+           th:href="|#cat-${c.id}|"
+           th:text="${c.name}">Danh mục</a>
+    </nav>
 </div>
 
+<div class="container-narrow">
+    <!-- Best seller -->
+    <section id="best" class="menu-section">
+        <h2 class="section-title">Best seller</h2>
+
+        <!-- dùng isEmpty() thay vì .empty -->
+        <div class="product-grid" th:if="${bestSellers != null and !bestSellers.isEmpty()}">
+            <article class="product-card"
+                     th:each="p : ${bestSellers.content}"
+                     th:onclick="|location.href='@{/customer/product/{id}(id=${p.id})}'|">
+                <div>
+                    <div class="product-name" th:text="${p.name}">Tên SP</div>
+                    <div class="product-price" th:text="${#numbers.formatDecimal(p.basePrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</div>
+                    <p class="product-desc" th:text="${p.description}">Mô tả…</p>
+                </div>
+                <img class="product-thumb" th:src="${p.mainImageUrl}" th:alt="${p.name}">
+            </article>
+        </div>
+
+        <!-- pagination best: dùng isFirst()/isLast() -->
+        <div class="pag-wrap" th:if="${bestSellers != null and bestSellers.totalPages > 1}">
+            <a class="btn btn-outline-dark btn-sm"
+               th:classappend="${bestSellers.isFirst()} ? ' disabled'"
+               th:href="@{/customer/menu(page_best=${pageBest - 1 < 0 ? 0 : pageBest - 1})}">« Trước</a>
+
+            <a class="btn btn-outline-dark btn-sm"
+               th:each="i : ${#numbers.sequence(0, bestSellers.totalPages - 1)}"
+               th:text="${i + 1}"
+               th:classappend="${i == pageBest} ? ' active'"
+               th:href="@{/customer/menu(page_best=${i})}">1</a>
+
+            <a class="btn btn-outline-dark btn-sm"
+               th:classappend="${bestSellers.isLast()} ? ' disabled'"
+               th:href="@{/customer/menu(page_best=${pageBest + 1 >= bestSellers.totalPages ? bestSellers.totalPages - 1 : pageBest + 1})}">Sau »</a>
+        </div>
+    </section>
+
+    <!-- Sections theo danh mục -->
+    <section class="menu-section"
+             th:each="c : ${categories}"
+             th:with="page=${catPages[c.id]}, curr=${catPageNums[c.id]}"
+             th:id="|cat-${c.id}|">
+        <h2 class="section-title" th:text="${c.name}">Danh mục</h2>
+
+        <div class="product-grid" th:if="${page != null and !page.isEmpty()}">
+            <article class="product-card"
+                     th:each="p : ${page.content}"
+                     th:onclick="|location.href='@{/customer/product/{id}(id=${p.id})}'|">
+                <div>
+                    <div class="product-name" th:text="${p.name}">Tên SP</div>
+                    <div class="product-price" th:text="${#numbers.formatDecimal(p.basePrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</div>
+                    <p class="product-desc" th:text="${p.description}">Mô tả…</p>
+                </div>
+                <img class="product-thumb" th:src="${p.mainImageUrl}" th:alt="${p.name}">
+            </article>
+        </div>
+
+        <!-- pagination cho từng danh mục -->
+        <div class="pag-wrap" th:if="${page != null and page.totalPages > 1}">
+            <a class="btn btn-outline-dark btn-sm"
+               th:classappend="${page.isFirst()} ? ' disabled'"
+               th:href="|/customer/menu?page_c_${c.id}=${curr - 1 < 0 ? 0 : curr - 1}|">« Trước</a>
+
+            <a class="btn btn-outline-dark btn-sm"
+               th:each="i : ${#numbers.sequence(0, page.totalPages - 1)}"
+               th:text="${i + 1}"
+               th:classappend="${i == curr} ? ' active'"
+               th:href="|/customer/menu?page_c_${c.id}=${i}|">1</a>
+
+            <a class="btn btn-outline-dark btn-sm"
+               th:classappend="${page.isLast()} ? ' disabled'"
+               th:href="|/customer/menu?page_c_${c.id}=${curr + 1 >= page.totalPages ? page.totalPages - 1 : curr + 1}|">Sau »</a>
+        </div>
+    </section>
+</div>
+
+<div style="height:60px"></div>
+<div th:replace="~{fragments/footer-home :: siteFooter}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+<script>
+    // fit header height (dùng offsetHeight để chuẩn)
+    (function(){
+        const header = document.querySelector('.navbar') || document.querySelector('header');
+        function upd(){
+            if(!header) return;
+            const h = Math.round(header.offsetHeight || 80);
+            document.documentElement.style.setProperty('--header-h', h + 'px');
+        }
+        window.addEventListener('load', upd);
+        window.addEventListener('resize', upd);
+    })();
+
+    // smooth scroll tabs
+    document.querySelectorAll('.menu-tab').forEach(a=>{
+        a.addEventListener('click',e=>{
+            const id = a.getAttribute('href');
+            if(id && id.startsWith('#')){
+                e.preventDefault();
+                const el = document.querySelector(id);
+                if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); }
+            }
+        });
+    });
+
+    // active tab by section in view
+    const tabs=[...document.querySelectorAll('.menu-tab')];
+    const map={ best:0 };
+    document.querySelectorAll('.menu-tab').forEach((t,idx)=>{
+        const href=t.getAttribute('href')||'';
+        if(href.startsWith('#cat-')){ map[href.substring(1)] = idx; }
+    });
+    const io=new IntersectionObserver((entries)=>{
+        entries.forEach(en=>{
+            if(en.isIntersecting){
+                tabs.forEach(t=>t.classList.remove('active'));
+                const id=en.target.id;
+                const idx=id==='best' ? 0 : map[id];
+                if(idx!=null) tabs[idx].classList.add('active');
+            }
+        });
+    },{rootMargin:'-40% 0px -55% 0px',threshold:0.01});
+    document.querySelectorAll('section.menu-section').forEach(s=>io.observe(s));
+</script>
 </body>
 </html>

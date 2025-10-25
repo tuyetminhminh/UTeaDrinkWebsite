@@ -445,13 +445,15 @@ public class ManagerOrderController {
     private String getStatusTextVietnamese(OrderStatus status) {
         return switch (status) {
             case NEW -> "Mới";
+            case PAID -> "Đã thanh toán";       // ✅ thêm dòng này
             case CONFIRMED -> "Đã xác nhận";
             case PREPARING -> "Đang chuẩn bị";
             case DELIVERING -> "Đang giao";
             case DELIVERED -> "Đã giao";
-            case CANCELED -> "Đã hủy";
+            case CANCELED -> "Đã huỷ";
             case RETURNED -> "Đã trả hàng";
             case REFUNDED -> "Đã hoàn tiền";
         };
     }
+
 }
