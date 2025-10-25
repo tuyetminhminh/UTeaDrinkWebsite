@@ -109,7 +109,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public List<Order> myOrders(User user) {
         // TODO: implement theo repository của bạn (vd: orderRepo.findByUserOrderByCreatedAtDesc(user))
-        throw new UnsupportedOperationException("Not implemented yet");
+//        throw new UnsupportedOperationException("Not implemented yet");
+        return orderRepo.findByUserOrderByCreatedAtDesc(user);
     }
 
     @Override

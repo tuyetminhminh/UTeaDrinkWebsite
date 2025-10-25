@@ -155,7 +155,7 @@
                         </ul>
                     </li>
 
-                    <!-- CUSTOMER -->
+                    <!-- CUSTOMER NAV -->
                     <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">
                         <a class="nav-link mx-3 text-uppercase small fw-semibold" th:href="@{/customer/home}">TRANG CHỦ</a>
                     </li>
@@ -165,34 +165,22 @@
                     <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">
                         <a class="nav-link mx-3 text-uppercase small fw-semibold" th:href="@{/customer/cart}">GIỎ HÀNG</a>
                     </li>
-                    <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">
-                        <a class="nav-link mx-3 text-uppercase small fw-semibold" th:href="@{/customer/orders}">ĐƠN HÀNG</a>
-                    </li>
 
-                    <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">
-                        <a class="nav-link mx-3 text-uppercase small fw-semibold" th:href="@{/customer/products}">TRANG CÁ NHÂN</a>
-                    </li>
 
-                    <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">
-                        <a class="nav-link mx-3 text-uppercase small fw-semibold" th:href="@{/customer/account}">Quản lý tài khoản</a>
-                    </li>
-                    <!-- Nút CHAT cho CUSTOMER -->
-                    <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">
-                        <a class="btn btn-warning ms-2 fw-semibold"
-                           th:href="@{/customer/chat}"
-                           style="border-radius: 25px; color: #000;">
-                            <i class="bi bi-chat-dots-fill me-1"></i> Chat
+                    <!-- CUSTOMER DROPDOWN -->
+                    <li class="nav-item dropdown" sec:authorize="hasAuthority('CUSTOMER')">
+                        <a class="nav-link d-flex align-items-center gap-1 dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle fs-5"></i>
+                            <span class="text-uppercase small fw-semibold">Tài khoản</span>
                         </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" th:href="@{/customer/account}"><i class="bi bi-gear me-2"></i> Quản lý tài khoản</a></li>
+                            <li><a class="dropdown-item" th:href="@{/customer/orders}"><i class="bi bi-bag-check me-2"></i> Đơn hàng</a></li>
+                            <li><a class="dropdown-item" th:href="@{/customer/vouchers}"><i class="bi bi-ticket-perforated me-2"></i> Kho voucher</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                        </ul>
                     </li>
 
-                    <!-- Nút CHAT cho MANAGER -->
-                    <li class="nav-item" sec:authorize="hasAuthority('MANAGER')">
-                        <a class="btn btn-outline-warning ms-2 fw-semibold"
-                           th:href="@{/manager/chat}"
-                           style="border-radius: 25px;">
-                            <i class="bi bi-chat-text-fill me-1"></i> Chat khách hàng
-                        </a>
-                    </li>
 
 
                     <!-- SELLER -->
