@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:fragment="adminLayout (title, content)">
+<head>
+    <meta charset="UTF-8" />
+    <title>UTeaDrink Admin</title>
+
+    <!-- Title từ trang con -->
+    <th:block th:replace="${title}"></th:block>
+
+    <!-- Bootstrap + Icons -->
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+            rel="stylesheet">
+
+    <style>
+        /* ======= dùng chung token với header ======= */
+        :root {
+            --bg-body: #f7f8fb;
+            --text: #0b0b0b;
+            --muted: #6b7280;
+            --border: rgba(0, 0, 0, .08);
+            --card-bg: #ffffff;
+            --card-border: rgba(0, 0, 0, .08);
+            --sidebar-bg: #ffffff;
+            --sidebar-border: rgba(0, 0, 0, .08);
+            --sidebar-link: #1f2937;
+            --sidebar-link-active-bg: #111;
+            --sidebar-link-active-fg: #fff;
+        }
+
+        [data-bs-theme="dark"] {
+            --bg-body: #0b0b0b;
+            --text: #f5f7fa;
+            --muted: #bdbdbd;
+            --border: rgba(255, 255, 255, .12);
+            --card-bg: #121212;
+            --card-border: rgba(255, 255, 255, .12);
+            --sidebar-bg: #121212;
+            --sidebar-border: rgba(255, 255, 255, .12);
+            --sidebar-link: #e7e7e7;
+            --sidebar-link-active-bg: #facc15;
+            --sidebar-link-active-fg: #111;
+        }
+
+        html, body {
+            background: var(--bg-body);
+            color: var(--text);
+        }
+
+        /* ======= THÊM VIỀN CHO HEADER VÀ SỬA LỖI LÙI XUỐNG ======= */
+        /* Đảm bảo Header có viền và cố định */
+        .main-header {
+            border-bottom: 1px solid var(--border); /* Áp dụng viền cho header */
+            box-shadow: var(--header-shadow);
+        }
+
+        .page-offset {
+            height: 28px; /* ĐÃ SỬA: Giảm chiều cao đệm (offset) */
+        }
+        /* Sidebar */
+        .admin-sidebar {
+            position: sticky;
+            top: 64px; /* Tinh chỉnh top để nó nằm ngay dưới header cố định */
+            /* ... giữ nguyên các style khác của sidebar ... */
+        }
+
+        /* Kích thước Main Content: Dùng container-fluid để nội dung tràn lề, tránh bị lùi vào trong như .container */
+        main.admin-content {
+            padding: 0 16px;
+            /* Bỏ padding mặc định của col để dùng container-fluid bên trong */
+        }
+
+        /* Sidebar */
+        .admin-sidebar {
+            position: sticky;
+            top: 88px;
+            background: var(--sidebar-bg);
+            border: 1px solid var(--sidebar-border);
+            border-radius: 14px;
+            padding: 12px;
+        }
+
+        .admin-sidebar .section-title {
+            font-size: .85rem;
+            font-weight: 700;
+            color: var(--muted);
+            padding: 6px 10px;
+            text-transform: uppercase;
+        }
+
+        .admin-sidebar .nav-link {
+            color: var(--sidebar-link);
+            border-radius: 10px;
+            padding: .5rem .65rem;
+            font-weight: 600;
+        }
+
+        .admin-sidebar .nav-link:hover {
+            background: rgba(0, 0, 0, .04);
+        }
+
+        [data-bs-theme="dark"] .admin-sidebar .nav-link:hover {
+            background: rgba(255, 255, 255, .06);
+        }
+
+        .admin-sidebar .nav-link.active {
+            background: var(--sidebar-link-active-bg);
+            color: var(--sidebar-link-active-fg);
+        }
+
+        /* Card mặc định */
+        .card-lite {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header (đã có toggle theme & active tab theo route) -->
+<!--<div th:replace="~{fragments/header :: header}"></div>-->
+<div class="page-offset"></div>
+
+<div class="container-fluid">
+    <div class="row g-3">
+        <!-- Sidebar -->
+        <aside class="col-lg-3 col-xl-2 d-none d-lg-block">
+            <nav class="admin-sidebar">
+                <div class="section-title">Điều hướng</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link" href="#"
+                                            th:href="@{/admin/home}" data-route="/admin/home"> <i
+                            class="bi bi-speedometer2 me-2"></i> Trang chủ
+                    </a></li>
+                    <li class="nav-item"><a class="nav-link"
+                                            th:href="@{/admin/users}" data-route="/admin/users"> <i
+                            class="bi bi-people me-2"></i> Người dùng
+                    </a></li>
+                    <li class="nav-item"><a class="nav-link"
+                                            th:href="@{/admin/shops}" data-route="/admin/shops"> <i
+                            class="bi bi-shop me-2"></i> Cửa hàng
+                    </a></li>
+                    <li class="nav-item"><a class="nav-link"
+                                            th:href="@{/admin/products}" data-route="/admin/products"> <i
+                            class="bi bi-cup-straw me-2"></i> Sản phẩm
+                    </a></li>
+                    <li class="nav-item"><a class="nav-link"
+                                            th:href="@{/admin/categories}" data-route="/admin/categories">
+                        <i class="bi bi-folder2-open me-2"></i> Danh mục
+                    </a></li>
+
+                    <li class="nav-item"><a class="nav-link"
+                                            th:href="@{/admin/promotions}" data-route="/admin/promotions">
+                        <i class="bi bi-stars me-2"></i> Khuyến mãi
+                    </a></li>
+                    <li class="nav-item"><a class="nav-link"
+                                            th:href="@{/admin/shippers}" data-route="/admin/shippers"> <i
+                            class="bi bi-truck me-2"></i> Vận chuyển
+                    </a></li>
+                </ul>
+
+                <div class="section-title mt-2">Giám sát</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link"
+                                            th:href="@{/admin/moderation}" data-route="/admin/moderation">
+                        <i class="bi bi-flag me-2"></i> Duyệt nội dung
+                    </a></li>
+                    <li class="nav-item"><a class="nav-link"
+                                            th:href="@{/admin/reports}" data-route="/admin/reports"> <i
+                            class="bi bi-graph-up me-2"></i> Báo cáo
+                    </a></li>
+                </ul>
+
+                <div class="section-title mt-2">Hệ thống</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item"><a class="nav-link"
+                                            th:href="@{/admin/settings}" data-route="/admin/settings"> <i
+                            class="bi bi-gear me-2"></i> Cấu hình
+                    </a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Content -->
+        <main class="col-12 col-lg-9 col-xl-10 px-3">
+            <div class="container-fluid p-0">
+                <!-- nội dung trang con -->
+                <th:block th:replace="${content}"></th:block>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    // set active trên sidebar theo đường dẫn
+    (function(){
+        const path = location.pathname;
+        document.querySelectorAll('.admin-sidebar .nav-link[data-route]').forEach(a=>{
+            const r = a.getAttribute('data-route')||'';
+            if(path.startsWith(r)) a.classList.add('active');
+        });
+    })();
+</script>
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

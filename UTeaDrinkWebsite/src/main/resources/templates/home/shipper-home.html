@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>UTeaDrink 🍹 - Trang giao hàng</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #eaf1f8, #dde7f0);
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+
+        /* HEADER */
+        .navbar {
+            background-color: #0f172a; /* xanh navy */
+            padding: 0.8rem 2rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .navbar-brand {
+            color: #ffb347 !important;
+            font-weight: 700;
+            font-size: 1.6rem;
+            letter-spacing: -0.5px;
+        }
+        .navbar-brand span {
+            font-size: 1.3rem;
+        }
+        .nav-link {
+            color: #f1f5f9 !important;
+            font-weight: 500;
+            margin-right: 20px;
+            transition: 0.2s;
+        }
+        .nav-link:hover {
+            color: #ffb347 !important;
+        }
+
+        /* HERO */
+        .hero {
+            background: linear-gradient(to right, #1e293b, #0f172a);
+            color: white;
+            border-radius: 16px;
+            padding: 80px 0;
+            text-align: center;
+            margin: 40px 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+        .hero h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        .hero span {
+            color: #ffb347;
+        }
+        .hero p {
+            font-size: 1.1rem;
+            color: #dbeafe;
+            max-width: 700px;
+            margin: 0 auto 25px;
+        }
+        .btn-main {
+            background-color: #ffb347;
+            color: #111;
+            font-weight: 600;
+            border-radius: 30px;
+            padding: 12px 28px;
+            border: none;
+            transition: all 0.3s;
+        }
+        .btn-main:hover {
+            background-color: #ff9900;
+            color: #fff;
+            transform: translateY(-3px);
+        }
+
+        /* STATS */
+        .stats {
+            margin: 60px auto;
+            text-align: center;
+        }
+        .stats h2 {
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 40px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+            padding: 30px 20px;
+            transition: 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        .stat-icon {
+            font-size: 2.2rem;
+            color: #3b82f6;
+            margin-bottom: 10px;
+        }
+        .stat-title {
+            font-weight: 600;
+            color: #475569;
+        }
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* ACTIONS */
+        .actions {
+            text-align: center;
+            margin: 70px 0;
+        }
+        .actions .btn {
+            border-radius: 25px;
+            margin: 10px;
+            padding: 12px 26px;
+            font-weight: 600;
+        }
+        .btn-outline-primary {
+            border: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
+        .btn-outline-primary:hover {
+            background-color: #3b82f6;
+            color: #fff;
+        }
+        .btn-outline-warning {
+            border: 2px solid #ffb347;
+            color: #ffb347;
+        }
+        .btn-outline-warning:hover {
+            background-color: #ffb347;
+            color: #111;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div th:replace="fragments/header :: header"></div>
+<!-- HERO -->
+<section class="hero">
+    <h1>Xin chào <span>Shipper</span> của UTeaDrink 🚚</h1>
+    <p>Những chặng đường giao hàng của bạn giúp hương vị UTea đến với mọi khách hàng – hãy cùng lan tỏa niềm vui nhé!</p>
+    <a href="/shipper/orders" class="btn btn-main">📦 Xem đơn cần giao</a>
+</section>
+
+<!-- STATS -->
+<section class="stats container">
+    <h2>📊 Hoạt động hôm nay</h2>
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon">🚚</div>
+                <div class="stat-title">Đơn đang giao</div>
+                <div class="stat-value">5</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-title">Đã hoàn thành</div>
+                <div class="stat-value">14</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon">🛣️</div>
+                <div class="stat-title">Quãng đường</div>
+                <div class="stat-value">32 km</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-title">Thu nhập hôm nay</div>
+                <div class="stat-value">420.000₫</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ACTIONS -->
+<section class="actions">
+    <a href="/shipper/orders" class="btn btn-outline-primary">📦 Xem đơn hàng</a>
+    <a href="/shipper/history" class="btn btn-outline-warning">🕓 Lịch sử giao</a>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
