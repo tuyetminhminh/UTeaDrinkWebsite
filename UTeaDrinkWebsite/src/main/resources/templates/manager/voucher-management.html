@@ -19,14 +19,14 @@
         }
 
         /* Main Content */
-        .voucher-container {
+        .main-content {
             margin-left: 260px;
             padding: 20px;
             min-height: calc(100vh - 70px);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .voucher-container.expanded {
+        .main-content.expanded {
             margin-left: 70px;
         }
 
@@ -458,7 +458,7 @@
     <div th:replace="~{fragments/manager-sidebar :: sidebar('vouchers')}"></div>
 
     <!-- Main Content -->
-    <div class="voucher-container" id="voucherContainer">
+    <div class="main-content" id="voucherContainer">
         <!-- No Shop Warning -->
         <div th:if="${!hasShop}" class="alert alert-warning" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: none; border-radius: 12px; padding: 30px; box-shadow: 0 4px 20px rgba(251, 191, 36, 0.2);">
             <div class="d-flex align-items-center">

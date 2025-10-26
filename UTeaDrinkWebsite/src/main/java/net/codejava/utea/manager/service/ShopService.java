@@ -261,12 +261,49 @@ public class ShopService {
             case "FEATURED" -> productRepo.findFeaturedProducts(shopId, pageRequest);
             case "NEW_ARRIVALS" -> productRepo.findNewArrivals(shopId, pageRequest);
             case "TOP_SELLING" -> productRepo.findTopSelling(shopId, pageRequest);
-            case "PROMOTION" -> productRepo.findPromotionProducts(shopId, pageRequest);
+            case "PROMOTION" -> getPromotionProductsWithFallback(shopId, limit);
             default -> List.of();
         };
         
         // Convert to simple DTO to avoid lazy loading issues
         return products.stream().map(this::convertProductToSimpleDTO).collect(Collectors.toList());
+    }
+    
+    /**
+     * Lấy sản phẩm khuyến mãi với fallback:
+     * - Ưu tiên: Sản phẩm có rating >= 4.0 và bán chạy
+     * - Nếu không đủ: Bổ sung thêm sản phẩm bán chạy khác để đủ số lượng
+     */
+    private List<Product> getPromotionProductsWithFallback(Long shopId, int limit) {
+        // Bước 1: Lấy sản phẩm có rating >= 4.0
+        PageRequest pageRequest = PageRequest.of(0, limit);
+        List<Product> highRatingProducts = productRepo.findPromotionProducts(shopId, pageRequest);
+        
+        // Nếu đã đủ số lượng, return luôn
+        if (highRatingProducts.size() >= limit) {
+            return highRatingProducts;
+        }
+        
+        // Bước 2: Nếu chưa đủ, lấy thêm sản phẩm bán chạy để bù đủ
+        int remaining = limit - highRatingProducts.size();
+        PageRequest fallbackPageRequest = PageRequest.of(0, limit); // Lấy nhiều hơn để filter
+        List<Product> topSellingProducts = productRepo.findTopSelling(shopId, fallbackPageRequest);
+        
+        // Lọc bỏ các sản phẩm đã có trong highRatingProducts
+        java.util.Set<Long> existingIds = highRatingProducts.stream()
+                .map(Product::getId)
+                .collect(java.util.stream.Collectors.toSet());
+        
+        List<Product> additionalProducts = topSellingProducts.stream()
+                .filter(p -> !existingIds.contains(p.getId()))
+                .limit(remaining)
+                .collect(java.util.stream.Collectors.toList());
+        
+        // Kết hợp 2 danh sách
+        List<Product> result = new ArrayList<>(highRatingProducts);
+        result.addAll(additionalProducts);
+        
+        return result;
     }
     
     /**

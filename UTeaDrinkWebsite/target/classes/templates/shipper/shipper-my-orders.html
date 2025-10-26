@@ -338,6 +338,56 @@
             color: var(--text-secondary);
         }
 
+        /* Shop Map Styles */
+        .shop-map-container {
+            background: #F5F5F5;
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 12px;
+        }
+
+        .map-header {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .map-header i {
+            color: #E65100;
+            font-size: 16px;
+        }
+
+        .btn-directions {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #4285F4 0%, #0F9D58 100%);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            margin-top: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+        }
+
+        .btn-directions:hover {
+            background: linear-gradient(135deg, #3367D6 0%, #0D7D46 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
+        }
+
+        .btn-directions i {
+            font-size: 14px;
+        }
+
         .modal-content {
             border-radius: 16px;
             border: none;
@@ -518,9 +568,33 @@
                                     <div class="detail-label">Cửa hàng</div>
                                     <div class="detail-value">
                                         <i class="fas fa-store"></i> ${order.shopName || 'N/A'}<br>
-                                        <small>${order.shopPhone || 'N/A'}</small>
+                                        <small><i class="fas fa-phone"></i> ${order.shopPhone || 'N/A'}</small><br>
+                                        ${order.shopAddress ? `<small><i class="fas fa-map-marker-alt"></i> ${order.shopAddress}</small>` : ''}
                                     </div>
                                 </div>
+                                ${order.shopAddress ? `
+                                <div class="detail-group" style="grid-column: 1 / -1;">
+                                    <div class="shop-map-container">
+                                        <div class="map-header">
+                                            <i class="fas fa-map-marked-alt"></i> Vị trí lấy hàng
+                                        </div>
+                                        <iframe 
+                                            width="100%" 
+                                            height="200" 
+                                            frameborder="0" 
+                                            style="border:0; border-radius: 8px;" 
+                                            referrerpolicy="no-referrer-when-downgrade"
+                                            src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(order.shopAddress)}&zoom=15"
+                                            allowfullscreen>
+                                        </iframe>
+                                        <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.shopAddress)}" 
+                                           target="_blank" 
+                                           class="btn-directions">
+                                            <i class="fas fa-directions"></i> Chỉ đường đến cửa hàng
+                                        </a>
+                                    </div>
+                                </div>
+                                ` : ''}
                                 <div class="detail-group">
                                     <div class="detail-label">Khách hàng</div>
                                     <div class="detail-value">
