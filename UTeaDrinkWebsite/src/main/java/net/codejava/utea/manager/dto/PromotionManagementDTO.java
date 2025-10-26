@@ -23,5 +23,6 @@ public class PromotionManagementDTO {
     private LocalDateTime activeFrom;
     private LocalDateTime activeTo;
     private String status; // ACTIVE, INACTIVE
+    private Boolean isEditable; // Manager có thể edit/delete promotion này không (false nếu GLOBAL)
 }
 

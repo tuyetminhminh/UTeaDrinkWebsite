@@ -21,4 +21,9 @@ public interface ChatService {
     MessageView sendMessage(Long conversationId, Long senderId, String content, String imageUrl);
 
     void markRead(Long conversationId, Long viewerId);
+    
+    /**
+     * Lấy tổng số tin nhắn chưa đọc cho manager
+     */
+    int getTotalUnreadForManager(Long managerId);
 }

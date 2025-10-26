@@ -41,4 +41,23 @@ public class ChatRestController {
                                      @RequestParam(defaultValue = "50") int limit){
         return chatService.loadLatestMessages(conversationId, limit);
     }
+    
+    /**
+     * API lấy tổng số tin nhắn chưa đọc cho manager
+     */
+    @GetMapping("/manager/unread-count")
+    public Map<String, Integer> getUnreadCount(@AuthenticationPrincipal CustomUserDetails me){
+        int count = chatService.getTotalUnreadForManager(me.getId());
+        return Map.of("unreadCount", count);
+    }
+    
+    /**
+     * Đánh dấu tin nhắn đã đọc khi manager mở conversation
+     */
+    @PostMapping("/mark-read")
+    public Map<String, String> markAsRead(@RequestParam Long conversationId,
+                                          @AuthenticationPrincipal CustomUserDetails me){
+        chatService.markRead(conversationId, me.getId());
+        return Map.of("status", "ok");
+    }
 }

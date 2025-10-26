@@ -36,11 +36,11 @@ public class ProductManagementService {
     // ==================== PRODUCT CRUD ====================
 
     /**
-     * Lấy tất cả sản phẩm của shop (phân trang + filter)
+     * Lấy tất cả sản phẩm của shop (phân trang + filter + sort)
      */
     @Transactional(readOnly = true)
     public Page<ProductManagementDTO> getAllProducts(Long managerId, Pageable pageable, 
-                                                      String search, Long categoryId, String status) {
+                                                      String search, Long categoryId, String status, String sortBy) {
         Shop shop = getShopByManagerId(managerId);
         
         System.out.println("=== DEBUG: getAllProducts ===");
@@ -49,6 +49,7 @@ public class ProductManagementService {
         System.out.println("Search: " + search);
         System.out.println("CategoryId: " + categoryId);
         System.out.println("Status: " + status);
+        System.out.println("SortBy: " + sortBy);
         
         // Lấy TẤT CẢ sản phẩm của shop này
         List<Product> allShopProducts = productRepo.findAll().stream()
@@ -80,6 +81,12 @@ public class ProductManagementService {
             System.out.println("After status filter: " + allShopProducts.size());
         }
         
+        // Apply sorting
+        if (sortBy != null && !sortBy.trim().isEmpty()) {
+            allShopProducts = applySorting(allShopProducts, sortBy);
+            System.out.println("After sorting by: " + sortBy);
+        }
+        
         // Áp dụng pagination TRÊN kết quả đã filter
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), allShopProducts.size());
@@ -93,6 +100,52 @@ public class ProductManagementService {
                 pageable,
                 allShopProducts.size()
         );
+    }
+    
+    /**
+     * Áp dụng sắp xếp cho danh sách sản phẩm
+     */
+    private List<Product> applySorting(List<Product> products, String sortBy) {
+        switch (sortBy) {
+            case "newest":
+                // Sắp xếp theo mới nhất
+                return products.stream()
+                        .sorted((p1, p2) -> p2.getCreatedAt().compareTo(p1.getCreatedAt()))
+                        .collect(Collectors.toList());
+                
+            case "best_selling":
+                // Sắp xếp theo bán chạy nhất (từ orders DELIVERED)
+                // Lấy tất cả orders DELIVERED một lần
+                List<net.codejava.utea.order.entity.Order> deliveredOrders = orderRepo.findAll().stream()
+                        .filter(order -> net.codejava.utea.order.entity.enums.OrderStatus.DELIVERED.equals(order.getStatus()))
+                        .collect(Collectors.toList());
+                
+                // Tính sold count cho từng sản phẩm
+                java.util.Map<Long, Integer> soldCountMap = new java.util.HashMap<>();
+                for (net.codejava.utea.order.entity.Order order : deliveredOrders) {
+                    if (order.getItems() != null) {
+                        for (net.codejava.utea.order.entity.OrderItem item : order.getItems()) {
+                            if (item.getProduct() != null) {
+                                Long productId = item.getProduct().getId();
+                                soldCountMap.put(productId, 
+                                    soldCountMap.getOrDefault(productId, 0) + item.getQuantity());
+                            }
+                        }
+                    }
+                }
+                
+                // Sắp xếp theo sold count từ cao đến thấp
+                return products.stream()
+                        .sorted((p1, p2) -> Integer.compare(
+                            soldCountMap.getOrDefault(p2.getId(), 0),
+                            soldCountMap.getOrDefault(p1.getId(), 0)
+                        ))
+                        .collect(Collectors.toList());
+                
+            default:
+                // Mặc định: không sắp xếp hoặc giữ nguyên
+                return products;
+        }
     }
 
     /**
@@ -477,11 +530,37 @@ public class ProductManagementService {
                 .filter(p -> "HIDDEN".equals(p.getStatus()))
                 .count();
         
-        // Tìm sản phẩm bán chạy nhất
-        String bestSeller = allProducts.stream()
-                .max((p1, p2) -> Integer.compare(p1.getSoldCount(), p2.getSoldCount()))
-                .map(Product::getName)
-                .orElse("--");
+        // Tìm sản phẩm bán chạy nhất (tính từ orders DELIVERED)
+        String bestSeller = "--";
+        if (!allProducts.isEmpty()) {
+            // Lấy tất cả orders DELIVERED một lần
+            List<net.codejava.utea.order.entity.Order> deliveredOrders = orderRepo.findAll().stream()
+                    .filter(order -> net.codejava.utea.order.entity.enums.OrderStatus.DELIVERED.equals(order.getStatus()))
+                    .collect(Collectors.toList());
+            
+            // Tính sold count cho từng sản phẩm
+            java.util.Map<Long, Integer> soldCountMap = new java.util.HashMap<>();
+            for (net.codejava.utea.order.entity.Order order : deliveredOrders) {
+                if (order.getItems() != null) {
+                    for (net.codejava.utea.order.entity.OrderItem item : order.getItems()) {
+                        if (item.getProduct() != null) {
+                            Long productId = item.getProduct().getId();
+                            soldCountMap.put(productId, 
+                                soldCountMap.getOrDefault(productId, 0) + item.getQuantity());
+                        }
+                    }
+                }
+            }
+            
+            // Tìm sản phẩm có sold count cao nhất
+            bestSeller = allProducts.stream()
+                    .max((p1, p2) -> Integer.compare(
+                        soldCountMap.getOrDefault(p1.getId(), 0),
+                        soldCountMap.getOrDefault(p2.getId(), 0)
+                    ))
+                    .map(Product::getName)
+                    .orElse("--");
+        }
         
         return Map.of(
             "total", total,

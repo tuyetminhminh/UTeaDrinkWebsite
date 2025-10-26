@@ -62,19 +62,23 @@ public class ChatServiceImpl implements net.codejava.utea.chat.service.ChatServi
     @Transactional(readOnly = true)
     public List<ConversationView> listForManager(Long managerId) {
         return conversationRepo.findByAdmin_IdOrderByLastMessageAtDesc(managerId)
-                .stream().map(c -> ConversationView.builder()
-                        .id(c.getId())
-                        .customerId(c.getCustomer().getId())
-                        .customerName(c.getCustomer().getFullName())
-                        .managerId(c.getAdmin().getId())
-                        .managerName(c.getAdmin().getFullName())
-                        .scope(c.getScope().name())
-                        .shopId(c.getShop() == null ? null : c.getShop().getId())
-                        .lastMessageAt(c.getLastMessageAt())
-                        .lastSnippet(lastSnippet(c.getId()))
-                        .unread(false)
-                        .build()
-                ).toList();
+                .stream().map(c -> {
+                    // Đếm số tin nhắn chưa đọc từ customer (không phải từ manager)
+                    long unreadCount = messageRepo.countByConversation_IdAndReadFalseAndSender_IdNot(c.getId(), managerId);
+                    return ConversationView.builder()
+                            .id(c.getId())
+                            .customerId(c.getCustomer().getId())
+                            .customerName(c.getCustomer().getFullName())
+                            .managerId(c.getAdmin().getId())
+                            .managerName(c.getAdmin().getFullName())
+                            .scope(c.getScope().name())
+                            .shopId(c.getShop() == null ? null : c.getShop().getId())
+                            .lastMessageAt(c.getLastMessageAt())
+                            .lastSnippet(lastSnippet(c.getId()))
+                            .unread(unreadCount > 0)
+                            .unreadCount((int) unreadCount)
+                            .build();
+                }).toList();
     }
 
     @Override
@@ -109,13 +113,16 @@ public class ChatServiceImpl implements net.codejava.utea.chat.service.ChatServi
         var conv = conversationRepo.findById(conversationId).orElseThrow();
         var sender = userRepo.findById(senderId).orElseThrow();
 
+        // Nếu người gửi là admin/manager của conversation này, đánh dấu đã đọc ngay
+        boolean isAdmin = conv.getAdmin().getId().equals(senderId);
+
         var msg = Message.builder()
                 .conversation(conv)
                 .sender(sender)
                 .content(content)
                 .imageUrl(imageUrl)
                 .sentAt(LocalDateTime.now())
-                .read(false)
+                .read(isAdmin) // Manager gửi → read = true, Customer gửi → read = false
                 .build();
         messageRepo.save(msg);
 
@@ -125,8 +132,19 @@ public class ChatServiceImpl implements net.codejava.utea.chat.service.ChatServi
     }
 
     @Override
+    @Transactional
     public void markRead(Long conversationId, Long viewerId) {
-        // Có thể implement update read hàng loạt nếu muốn
+        // Đánh dấu tất cả tin nhắn trong conversation (không phải của viewerId) là đã đọc
+        var messages = messageRepo.findByConversation_IdAndSender_IdNotAndReadFalse(conversationId, viewerId);
+        messages.forEach(m -> m.setRead(true));
+        messageRepo.saveAll(messages);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public int getTotalUnreadForManager(Long managerId) {
+        long count = messageRepo.countByConversation_Admin_IdAndReadFalseAndSender_IdNot(managerId, managerId);
+        return (int) count;
     }
 
     private String lastSnippet(Long conversationId) {

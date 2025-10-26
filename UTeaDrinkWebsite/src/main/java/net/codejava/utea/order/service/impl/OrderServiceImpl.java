@@ -10,7 +10,6 @@ import net.codejava.utea.order.entity.OrderItem;
 import net.codejava.utea.order.entity.enums.OrderStatus;
 import net.codejava.utea.order.repository.OrderRepository;
 import net.codejava.utea.order.service.OrderService;
-import net.codejava.utea.promotion.service.PromotionResult;
 import net.codejava.utea.promotion.service.PromotionService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -51,17 +50,32 @@ public class OrderServiceImpl implements OrderService {
 
         BigDecimal shippingFee = cartService.estimateShippingFee(subtotal);
 
-        // 3) apply voucher/promo
-        PromotionResult pr = (req.getCouponCode() == null || req.getCouponCode().isBlank())
-                ? promotionService.empty(subtotal, shippingFee)
-                : promotionService.applyVoucher(req.getCouponCode().trim(), subtotal, shippingFee);
-
-        BigDecimal discount = pr.discount();
-        BigDecimal total    = pr.total(); // subtotal + shipping - discount
+        // 3a) Áp dụng voucher (mã phải nhập) - xử lý cả couponCode và shipCode
+        var voucherResult = promotionService.applyBoth(req.getCouponCode(), req.getShipCode(), subtotal, shippingFee, user);
+        
+        // 3b) Áp dụng chương trình khuyến mãi tự động
+        var autoPromos = promotionService.findBestAutoPromotions(subtotal, shippingFee, user);
+        
+        // 3c) Logic ưu tiên: MÃ GIẢM GIÁ trước, KHUYẾN MÃI sau (KHÔNG CỘNG DỒN)
+        // - Giảm giá sản phẩm: Dùng voucher HOẶC promotion (ưu tiên voucher)
+        // - Freeship: Dùng voucher HOẶC promotion (ưu tiên voucher)
+        BigDecimal productDiscount = voucherResult.okDiscount() 
+                ? voucherResult.discount()           // Có voucher giảm giá → dùng voucher
+                : autoPromos.discount().discount();  // Không có voucher → dùng promotion
+        
+        BigDecimal freeshipDiscount = voucherResult.okShip() 
+                ? voucherResult.shipDiscount()       // Có voucher freeship → dùng voucher
+                : autoPromos.freeship().discount();  // Không có voucher → dùng promotion freeship
+        
+        BigDecimal discount = productDiscount.add(freeshipDiscount);
+        BigDecimal total = subtotal.add(shippingFee).subtract(discount).max(BigDecimal.ZERO);
 
         // 4) build Order theo entity thực tế
         // LƯU Ý: Order bắt buộc có shop -> giả định giỏ hàng 1 shop; lấy từ item đầu tiên
         var firstShop = selected.get(0).getProduct().getShop();
+
+        // Gộp cả 2 mã voucher (nếu có) để lưu vào voucherCode
+        String voucherCodes = buildVoucherCodesString(req.getCouponCode(), req.getShipCode());
 
         Order.OrderBuilder ob = Order.builder()
                 .orderCode(genOrderCode())
@@ -74,7 +88,7 @@ public class OrderServiceImpl implements OrderService {
                 .shippingFee(shippingFee)
                 .discount(discount)
                 .total(total)
-                .voucherCode(req.getCouponCode());
+                .voucherCode(voucherCodes);
 
         if (extra != null) extra.accept(ob);
         Order order = ob.build();
@@ -97,7 +111,34 @@ public class OrderServiceImpl implements OrderService {
         // 6) lưu & dọn cart (chỉ xóa item đã chọn)
         Order saved = orderRepo.save(order);
         selected.forEach(i -> cartService.removeItem(user, i.getId()));
+
+        // 7) Cập nhật lượt sử dụng voucher nếu có sử dụng
+        if (req.getCouponCode() != null && !req.getCouponCode().isBlank() && voucherResult.okDiscount()) {
+            promotionService.incrementVoucherUsage(req.getCouponCode().trim());
+        }
+        if (req.getShipCode() != null && !req.getShipCode().isBlank() && voucherResult.okShip()) {
+            promotionService.incrementVoucherUsage(req.getShipCode().trim());
+        }
+
         return saved;
+    }
+
+    /**
+     * Gộp 2 mã voucher thành 1 chuỗi để lưu vào voucherCode
+     */
+    private String buildVoucherCodesString(String couponCode, String shipCode) {
+        boolean hasCoupon = couponCode != null && !couponCode.isBlank();
+        boolean hasShip = shipCode != null && !shipCode.isBlank();
+        
+        if (hasCoupon && hasShip) {
+            return couponCode.trim() + "," + shipCode.trim();
+        } else if (hasCoupon) {
+            return couponCode.trim();
+        } else if (hasShip) {
+            return shipCode.trim();
+        } else {
+            return null;
+        }
     }
 
     private String genOrderCode() {

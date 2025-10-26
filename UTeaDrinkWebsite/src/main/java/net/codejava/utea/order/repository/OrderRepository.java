@@ -13,4 +13,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByUserOrderByCreatedAtDesc(User user);
     List<Order> findByUser_Id(Long userId);
     List<Order> findByShop_Id(Long shopId);
+    
+    /**
+     * Đếm số đơn hàng của user (để kiểm tra first order)
+     */
+    long countByUser(User user);
 }

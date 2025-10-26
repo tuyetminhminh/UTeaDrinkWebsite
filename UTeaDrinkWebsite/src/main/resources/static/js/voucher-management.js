@@ -72,7 +72,10 @@ function renderVouchers(voucherList) {
         return `
             <tr>
                 <td>
-                    <div class="voucher-code">${voucher.code}</div>
+                    <div class="voucher-code">
+                        ${voucher.code}
+                        ${voucher.isEditable === false ? '<span class="badge bg-info text-white ms-2" style="font-size: 0.75rem;"><i class="fas fa-globe"></i> Toàn hệ thống</span>' : ''}
+                    </div>
                 </td>
                 <td>
                     <div class="voucher-meta">
@@ -80,9 +83,8 @@ function renderVouchers(voucherList) {
                         ${voucher.forBirthday ? '<span class="badge-flag birthday"><i class="fas fa-birthday-cake"></i> Sinh nhật</span>' : ''}
                     </div>
                     <div class="voucher-meta mt-2">
-                        <i class="fas fa-percentage"></i> Giảm ${rule.percentOff || 0}% 
+                        ${getVoucherTypeDisplay(rule)}
                         ${rule.minTotal ? `• Đơn tối thiểu ${formatCurrency(rule.minTotal)}` : ''}
-                        ${rule.amountCap ? `• Tối đa ${formatCurrency(rule.amountCap)}` : ''}
                     </div>
                     <div class="voucher-meta">
                         <i class="fas fa-calendar"></i> ${formatDateTime(voucher.activeFrom)} → ${formatDateTime(voucher.activeTo)}
@@ -104,20 +106,26 @@ function renderVouchers(voucherList) {
                     </span>
                 </td>
                 <td>
-                    ${voucher.status === 'ACTIVE' ? `
-                        <button class="btn btn-action btn-broadcast" onclick="broadcastVoucher(${voucher.id})" title="Gửi Email">
-                            <i class="fas fa-envelope"></i>
+                    ${voucher.isEditable === false ? `
+                        <span class="badge bg-secondary text-white" title="Voucher toàn hệ thống - Không thể chỉnh sửa">
+                            <i class="fas fa-lock"></i> Toàn hệ thống
+                        </span>
+                    ` : `
+                        ${voucher.status === 'ACTIVE' ? `
+                            <button class="btn btn-action btn-broadcast" onclick="broadcastVoucher(${voucher.id})" title="Gửi Email">
+                                <i class="fas fa-envelope"></i>
+                            </button>
+                        ` : ''}
+                        <button class="btn btn-action btn-edit" onclick="editVoucher(${voucher.id})" title="Sửa">
+                            <i class="fas fa-edit"></i>
                         </button>
-                    ` : ''}
-                    <button class="btn btn-action btn-edit" onclick="editVoucher(${voucher.id})" title="Sửa">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-action btn-toggle" onclick="toggleStatus(${voucher.id})" title="Bật/Tắt">
-                        <i class="fas fa-power-off"></i>
-                    </button>
-                    <button class="btn btn-action btn-delete" onclick="deleteVoucher(${voucher.id})" title="Xóa">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                        <button class="btn btn-action btn-toggle" onclick="toggleStatus(${voucher.id})" title="Bật/Tắt">
+                            <i class="fas fa-power-off"></i>
+                        </button>
+                        <button class="btn btn-action btn-delete" onclick="deleteVoucher(${voucher.id})" title="Xóa">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    `}
                 </td>
             </tr>
         `;
@@ -160,6 +168,29 @@ function resetFilters() {
 }
 
 /**
+ * Update voucher fields based on type
+ */
+function updateVoucherFields() {
+    const type = document.getElementById('voucherType').value;
+    
+    // Hide all fields first
+    document.getElementById('fieldPercentOff').style.display = 'none';
+    document.getElementById('fieldAmountCap').style.display = 'none';
+    document.getElementById('fieldAmountOff').style.display = 'none';
+    document.getElementById('fieldFreeShip').style.display = 'none';
+    
+    // Show fields based on type
+    if (type === 'PERCENT') {
+        document.getElementById('fieldPercentOff').style.display = 'block';
+        document.getElementById('fieldAmountCap').style.display = 'block';
+    } else if (type === 'AMOUNT') {
+        document.getElementById('fieldAmountOff').style.display = 'block';
+    } else if (type === 'FREESHIP') {
+        document.getElementById('fieldFreeShip').style.display = 'block';
+    }
+}
+
+/**
  * Open modal for creating new voucher
  */
 function openCreateModal() {
@@ -168,9 +199,11 @@ function openCreateModal() {
     document.getElementById('voucherForm').reset();
     
     // Set default values
+    document.getElementById('voucherType').value = 'PERCENT';
     document.getElementById('minTotal').value = 0;
     document.getElementById('percentOff').value = 10;
     document.getElementById('amountCap').value = 50000;
+    document.getElementById('amountOff').value = 50000;
     document.getElementById('usageLimit').value = 100;
     
     // Set default time (now to 1 month later)
@@ -180,6 +213,9 @@ function openCreateModal() {
     
     document.getElementById('activeFrom').value = formatDateTimeForInput(now);
     document.getElementById('activeTo').value = formatDateTimeForInput(later);
+    
+    // Update fields visibility
+    updateVoucherFields();
 }
 
 /**
@@ -200,12 +236,27 @@ function editVoucher(voucherId) {
             document.getElementById('minTotal').value = rule.minTotal || 0;
             document.getElementById('percentOff').value = rule.percentOff || 0;
             document.getElementById('amountCap').value = rule.amountCap || 0;
+            document.getElementById('amountOff').value = rule.amountOff || 0;
+            
+            // Detect voucher type from rule
+            let voucherType = 'PERCENT';
+            if (rule.freeShip === true) {
+                voucherType = 'FREESHIP';
+            } else if (rule.amountOff && rule.amountOff > 0) {
+                voucherType = 'AMOUNT';
+            } else if (rule.percentOff && rule.percentOff > 0) {
+                voucherType = 'PERCENT';
+            }
+            document.getElementById('voucherType').value = voucherType;
             
             document.getElementById('forFirstOrder').checked = voucher.forFirstOrder || false;
             document.getElementById('forBirthday').checked = voucher.forBirthday || false;
             document.getElementById('usageLimit').value = voucher.usageLimit || 100;
             document.getElementById('activeFrom').value = formatDateTimeForInput(new Date(voucher.activeFrom));
             document.getElementById('activeTo').value = formatDateTimeForInput(new Date(voucher.activeTo));
+            
+            // Update fields visibility
+            updateVoucherFields();
             
             // Open modal
             new bootstrap.Modal(document.getElementById('voucherModal')).show();
@@ -226,16 +277,27 @@ function saveVoucher() {
         return;
     }
     
-    // Build rule JSON
-    const ruleJson = JSON.stringify({
-        minTotal: parseInt(document.getElementById('minTotal').value) || 0,
-        percentOff: parseInt(document.getElementById('percentOff').value) || 0,
-        amountCap: parseInt(document.getElementById('amountCap').value) || 0
-    });
+    const voucherType = document.getElementById('voucherType').value;
+    
+    // Build rule JSON based on voucher type
+    let rule = {
+        minTotal: parseInt(document.getElementById('minTotal').value) || 0
+    };
+    
+    if (voucherType === 'PERCENT') {
+        rule.percentOff = parseInt(document.getElementById('percentOff').value) || 0;
+        rule.amountCap = parseInt(document.getElementById('amountCap').value) || 0;
+        rule.freeShip = false;
+    } else if (voucherType === 'AMOUNT') {
+        rule.amountOff = parseInt(document.getElementById('amountOff').value) || 0;
+        rule.freeShip = false;
+    } else if (voucherType === 'FREESHIP') {
+        rule.freeShip = true;
+    }
     
     const voucherData = {
         code: document.getElementById('voucherCode').value.toUpperCase(),
-        ruleJson: ruleJson,
+        ruleJson: JSON.stringify(rule),
         forFirstOrder: document.getElementById('forFirstOrder').checked,
         forBirthday: document.getElementById('forBirthday').checked,
         usageLimit: parseInt(document.getElementById('usageLimit').value),
@@ -412,6 +474,18 @@ function getStatusText(status) {
         'EXHAUSTED': 'Hết lượt'
     };
     return texts[status] || status;
+}
+
+function getVoucherTypeDisplay(rule) {
+    if (rule.freeShip === true) {
+        return '<i class="fas fa-shipping-fast text-success"></i> <strong>Miễn phí ship</strong>';
+    } else if (rule.amountOff && rule.amountOff > 0) {
+        return `<i class="fas fa-hand-holding-usd text-primary"></i> Giảm <strong>${formatCurrency(rule.amountOff)}</strong>`;
+    } else if (rule.percentOff && rule.percentOff > 0) {
+        const capText = rule.amountCap ? ` • Tối đa ${formatCurrency(rule.amountCap)}` : '';
+        return `<i class="fas fa-percentage text-warning"></i> Giảm <strong>${rule.percentOff}%</strong>${capText}`;
+    }
+    return '<i class="fas fa-tag"></i> Chưa cấu hình';
 }
 
 function showAlert(type, message) {

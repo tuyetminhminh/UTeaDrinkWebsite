@@ -151,9 +151,7 @@ public class CartServiceImpl implements CartService {
         if (subtotal == null || subtotal.compareTo(BigDecimal.ZERO) <= 0)
             return BigDecimal.ZERO;
 
-        // Ví dụ: miễn phí ship trên 200k, còn lại tính 20k
-        return subtotal.compareTo(BigDecimal.valueOf(200_000)) >= 0
-                ? BigDecimal.ZERO
-                : BigDecimal.valueOf(20000);
+        // Phí ship cố định 20,000đ (chỉ giảm qua voucher/promotion)
+        return BigDecimal.valueOf(20000);
     }
 }

@@ -215,12 +215,15 @@ public class VoucherManagementService {
     }
 
     private VoucherManagementDTO convertToDTO(Voucher voucher) {
+        // Voucher GLOBAL (toàn hệ thống) không cho manager edit
+        boolean isEditable = voucher.getScope() == PromoScope.SHOP && voucher.getShop() != null;
+        
         return VoucherManagementDTO.builder()
                 .id(voucher.getId())
                 .code(voucher.getCode())
                 .scope(voucher.getScope().name())
                 .shopId(voucher.getShop() != null ? voucher.getShop().getId() : null)
-                .shopName(voucher.getShop() != null ? voucher.getShop().getName() : "GLOBAL")
+                .shopName(voucher.getShop() != null ? voucher.getShop().getName() : "Toàn hệ thống")
                 .ruleJson(voucher.getRuleJson())
                 .forFirstOrder(voucher.getForFirstOrder())
                 .forBirthday(voucher.getForBirthday())
@@ -229,6 +232,7 @@ public class VoucherManagementService {
                 .status(voucher.getStatus())
                 .usageLimit(voucher.getUsageLimit())
                 .usedCount(voucher.getUsedCount())
+                .isEditable(isEditable)
                 .build();
     }
 }

@@ -163,3 +163,35 @@ body.bg-chat {
 .chat-input button:hover {
     background: #ff6699;
 }
+
+/* ========== CHIP VOUCHER ========== */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    font-size: 14px;
+}
+
+.chip-voucher {
+    background: #fff3cd;
+    border-color: #ffc107;
+    color: #856404;
+}
+
+.chip .x {
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    margin-left: 4px;
+    padding: 0 4px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.chip .x:hover {
+    background: rgba(0,0,0,0.1);
+}

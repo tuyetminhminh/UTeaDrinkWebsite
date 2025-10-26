@@ -25,5 +25,6 @@ public class VoucherManagementDTO {
     private String status; // ACTIVE, INACTIVE, EXHAUSTED
     private Integer usageLimit;
     private Integer usedCount;
+    private Boolean isEditable; // Manager có thể edit/delete voucher này không (false nếu GLOBAL)
 }
 

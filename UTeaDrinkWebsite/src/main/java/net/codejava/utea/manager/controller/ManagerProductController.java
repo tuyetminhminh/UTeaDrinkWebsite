@@ -52,7 +52,7 @@ public class ManagerProductController {
         try {
             User currentUser = getCurrentUser(authentication);
             Pageable pageable = PageRequest.of(page, size);
-            Page<ProductManagementDTO> products = productService.getAllProducts(currentUser.getId(), pageable, null, null, null);
+            Page<ProductManagementDTO> products = productService.getAllProducts(currentUser.getId(), pageable, null, null, null, null);
             
             model.addAttribute("products", products);
             model.addAttribute("currentPage", page);
@@ -111,7 +111,7 @@ public class ManagerProductController {
     // ==================== API ENDPOINTS - PRODUCT ====================
 
     /**
-     * API: Lấy tất cả sản phẩm (với filter)
+     * API: Lấy tất cả sản phẩm (với filter + sort)
      */
     @GetMapping("/api")
     @ResponseBody
@@ -121,12 +121,13 @@ public class ManagerProductController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) String status) {
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String sortBy) {
         try {
             User currentUser = getCurrentUser(authentication);
             Pageable pageable = PageRequest.of(page, size);
             Page<ProductManagementDTO> products = productService.getAllProducts(
-                currentUser.getId(), pageable, search, categoryId, status);
+                currentUser.getId(), pageable, search, categoryId, status, sortBy);
             return ResponseEntity.ok(products);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -383,7 +384,7 @@ public class ManagerProductController {
             System.out.println("Manager ID: " + currentUser.getId());
             
             Pageable pageable = PageRequest.of(0, 1);
-            Page<ProductManagementDTO> products = productService.getAllProducts(currentUser.getId(), pageable, null, null, null);
+            Page<ProductManagementDTO> products = productService.getAllProducts(currentUser.getId(), pageable, null, null, null, null);
             
             long totalProducts = products.getTotalElements();
             System.out.println("Total products: " + totalProducts);

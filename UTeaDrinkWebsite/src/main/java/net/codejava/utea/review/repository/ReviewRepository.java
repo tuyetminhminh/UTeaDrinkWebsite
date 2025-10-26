@@ -45,4 +45,58 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
                                       @Param("rating") Integer rating,
                                       @Param("st") ReviewStatus status,
                                       Pageable pageable);
+    
+    // ==================== MANAGER QUERIES ====================
+    
+    /**
+     * Lấy tất cả đánh giá của các sản phẩm thuộc shop
+     */
+    @Query("""
+        SELECT r FROM Review r
+        JOIN FETCH r.product p
+        JOIN FETCH r.user u
+        WHERE p.shop.id = :shopId
+        ORDER BY r.createdAt DESC
+    """)
+    Page<Review> findByShopId(@Param("shopId") Long shopId, Pageable pageable);
+    
+    /**
+     * Lọc đánh giá theo sản phẩm và rating
+     */
+    @Query("""
+        SELECT r FROM Review r
+        JOIN FETCH r.product p
+        JOIN FETCH r.user u
+        WHERE p.shop.id = :shopId
+        AND (:productId IS NULL OR p.id = :productId)
+        AND (:rating IS NULL OR r.rating = :rating)
+        ORDER BY r.createdAt DESC
+    """)
+    Page<Review> findByShopIdFiltered(@Param("shopId") Long shopId,
+                                       @Param("productId") Long productId,
+                                       @Param("rating") Integer rating,
+                                       Pageable pageable);
+    
+    /**
+     * Đếm tổng số đánh giá của shop
+     */
+    @Query("SELECT COUNT(r) FROM Review r WHERE r.product.shop.id = :shopId")
+    Long countByShopId(@Param("shopId") Long shopId);
+    
+    /**
+     * Tính rating trung bình của shop
+     */
+    @Query("SELECT AVG(r.rating) FROM Review r WHERE r.product.shop.id = :shopId")
+    Double avgRatingByShopId(@Param("shopId") Long shopId);
+    
+    /**
+     * Đếm số lượng đánh giá theo từng rating của shop
+     */
+    @Query("""
+        SELECT r.rating, COUNT(r) 
+        FROM Review r 
+        WHERE r.product.shop.id = :shopId 
+        GROUP BY r.rating
+    """)
+    java.util.List<Object[]> countByRatingForShop(@Param("shopId") Long shopId);
 }

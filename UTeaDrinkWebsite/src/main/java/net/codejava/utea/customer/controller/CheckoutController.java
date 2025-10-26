@@ -47,6 +47,29 @@ public class CheckoutController {
 
         var shippingFee = cartService.estimateShippingFee(subtotal);
 
+        // Áp dụng promotion tự động (không có voucher thì mới hiển thị promotion)
+        var autoPromos = promotionService.findBestAutoPromotions(subtotal, shippingFee, u);
+        
+        // Build message cho promotion tự động
+        String autoPromoMsg = null;
+        if (autoPromos.hasAny()) {
+            StringBuilder promoDetail = new StringBuilder();
+            if (autoPromos.discount().ok()) {
+                promoDetail.append(autoPromos.discount().message());
+            }
+            if (autoPromos.freeship().ok()) {
+                if (promoDetail.length() > 0) promoDetail.append(" + ");
+                promoDetail.append(autoPromos.freeship().message());
+            }
+            autoPromoMsg = "Áp dụng chương trình khuyến mãi: " + promoDetail.toString();
+        }
+        
+        // Tạo object chứa thông tin promotion để hiển thị riêng
+        var autoPromoInfo = new java.util.HashMap<String, Object>();
+        autoPromoInfo.put("hasAny", autoPromos.hasAny());
+        autoPromoInfo.put("discountMsg", autoPromos.discount().ok() ? autoPromos.discount().message() : null);
+        autoPromoInfo.put("freeshipMsg", autoPromos.freeship().ok() ? autoPromos.freeship().message() : null);
+        
         // Prefill địa chỉ mặc định
         var addresses = addressService.listOf(u);
         if ((reqIn.getFullname()==null || reqIn.getFullname().isBlank()) && !addresses.isEmpty()){
@@ -62,16 +85,18 @@ public class CheckoutController {
         var summary = OrderSummary.builder()
                 .subtotal(subtotal)
                 .shippingFee(shippingFee)
-                .discountAmount(BigDecimal.ZERO)
-                .shipDiscount(BigDecimal.ZERO)
-                .total(subtotal.add(shippingFee))
-                .couponApplied(false)
+                .discountAmount(autoPromos.discount().discount()) // Giảm giá sản phẩm
+                .shipDiscount(autoPromos.freeship().discount())   // Giảm phí ship
+                .total(subtotal.add(shippingFee).subtract(autoPromos.totalDiscount()))
+                .couponApplied(autoPromos.hasAny())
+                .couponMessage(autoPromoMsg)
                 .build();
 
         model.addAttribute("summary", summary);
         model.addAttribute("methods", PaymentMethod.values());
         model.addAttribute("req", reqIn);
         model.addAttribute("addresses", addresses);
+        model.addAttribute("autoPromoInfo", autoPromoInfo);
         model.addAttribute("suggestionsPair", promotionService.suggestPair(subtotal, shippingFee));
         return "customer/checkout";
     }
@@ -85,26 +110,116 @@ public class CheckoutController {
         if (subtotal.signum() <= 0) return "redirect:/customer/cart";
         var shippingFee = cartService.estimateShippingFee(subtotal);
 
-        TwoCouponsResult result = promotionService.applyBoth(req.getCouponCode(), req.getShipCode(), subtotal, shippingFee);
+        // Áp dụng voucher (mã nhập) - ƯU TIÊN TRƯỚC
+        TwoCouponsResult voucherResult = promotionService.applyBoth(req.getCouponCode(), req.getShipCode(), subtotal, shippingFee, u);
+        
+        // Áp dụng promotion tự động
+        var autoPromos = promotionService.findBestAutoPromotions(subtotal, shippingFee, u);
+
+        // Logic ưu tiên: MÃ GIẢM GIÁ trước, KHUYẾN MÃI sau (KHÔNG CỘNG DỒN)
+        // 1. Giảm giá sản phẩm: Voucher HOẶC Promotion (chọn 1)
+        BigDecimal productDiscount;
+        String productDiscountMsg = null;
+        String productDiscountSource = null; // "VOUCHER" hoặc "PROMOTION"
+        
+        if (voucherResult.okDiscount()) {
+            // Có voucher giảm giá → dùng voucher, bỏ promotion
+            productDiscount = voucherResult.discount();
+            productDiscountMsg = voucherResult.msgDiscount();
+            productDiscountSource = "VOUCHER";
+        } else if (autoPromos.discount().ok()) {
+            // Không có voucher → dùng promotion
+            productDiscount = autoPromos.discount().discount();
+            productDiscountMsg = autoPromos.discount().message();
+            productDiscountSource = "PROMOTION";
+        } else {
+            productDiscount = BigDecimal.ZERO;
+        }
+        
+        // 2. Freeship: Voucher HOẶC Promotion (chọn 1)
+        BigDecimal freeshipDiscount;
+        String freeshipMsg = null;
+        String freeshipSource = null; // "VOUCHER" hoặc "PROMOTION"
+        
+        if (voucherResult.okShip()) {
+            // Có voucher freeship → dùng voucher, bỏ promotion
+            freeshipDiscount = voucherResult.shipDiscount();
+            freeshipMsg = voucherResult.msgShip();
+            freeshipSource = "VOUCHER";
+        } else if (autoPromos.freeship().ok()) {
+            // Không có voucher → dùng promotion freeship
+            freeshipDiscount = autoPromos.freeship().discount();
+            freeshipMsg = autoPromos.freeship().message();
+            freeshipSource = "PROMOTION";
+        } else {
+            freeshipDiscount = BigDecimal.ZERO;
+        }
+        
+        BigDecimal finalTotal = subtotal.add(shippingFee)
+                .subtract(productDiscount)
+                .subtract(freeshipDiscount)
+                .max(BigDecimal.ZERO);
+        
+        // Build message đơn giản và rõ ràng
+        StringBuilder msgBuilder = new StringBuilder();
+        boolean hasVoucher = "VOUCHER".equals(productDiscountSource) || "VOUCHER".equals(freeshipSource);
+        boolean hasPromotion = "PROMOTION".equals(productDiscountSource) || "PROMOTION".equals(freeshipSource);
+        
+        if (hasVoucher) {
+            msgBuilder.append("✓ Áp dụng mã thành công.");
+        }
+        
+        if (hasPromotion) {
+            if (msgBuilder.length() > 0) msgBuilder.append(" | ");
+            
+            // Build chi tiết promotion
+            StringBuilder promoDetail = new StringBuilder();
+            if ("PROMOTION".equals(productDiscountSource) && productDiscountMsg != null) {
+                promoDetail.append(productDiscountMsg);
+            }
+            if ("PROMOTION".equals(freeshipSource) && freeshipMsg != null) {
+                if (promoDetail.length() > 0) promoDetail.append(" + ");
+                promoDetail.append(freeshipMsg);
+            }
+            
+            msgBuilder.append("Áp dụng chương trình khuyến mãi: ").append(promoDetail);
+        }
 
         var summary = OrderSummary.builder()
                 .subtotal(subtotal)
                 .shippingFee(shippingFee)
-                .discountAmount(result.discount())
-                .shipDiscount(result.shipDiscount())
-                .total(result.total())
-                .couponApplied(result.okDiscount() || result.okShip())
-                .couponMessage(
-                        (result.msgDiscount()==null?"":result.msgDiscount()) +
-                                ((result.msgDiscount()!=null && result.msgShip()!=null) ? " · " : "") +
-                                (result.msgShip()==null?"":result.msgShip())
-                )
+                .discountAmount(productDiscount)
+                .shipDiscount(freeshipDiscount)
+                .total(finalTotal)
+                .couponApplied(productDiscount.compareTo(BigDecimal.ZERO) > 0 || freeshipDiscount.compareTo(BigDecimal.ZERO) > 0)
+                .couponMessage(msgBuilder.length() > 0 ? msgBuilder.toString() : null)
                 .build();
+
+        // Tạo object chứa thông tin promotion để hiển thị riêng (nếu không dùng voucher)
+        var autoPromoInfo = new java.util.HashMap<String, Object>();
+        boolean hasAutoPromo = false;
+        String autoDiscountMsg = null;
+        String autoFreeshipMsg = null;
+        
+        // Chỉ hiển thị promotion nếu KHÔNG dùng voucher cho loại đó
+        if (!"VOUCHER".equals(productDiscountSource) && autoPromos.discount().ok()) {
+            hasAutoPromo = true;
+            autoDiscountMsg = autoPromos.discount().message();
+        }
+        if (!"VOUCHER".equals(freeshipSource) && autoPromos.freeship().ok()) {
+            hasAutoPromo = true;
+            autoFreeshipMsg = autoPromos.freeship().message();
+        }
+        
+        autoPromoInfo.put("hasAny", hasAutoPromo);
+        autoPromoInfo.put("discountMsg", autoDiscountMsg);
+        autoPromoInfo.put("freeshipMsg", autoFreeshipMsg);
 
         model.addAttribute("summary", summary);
         model.addAttribute("methods", PaymentMethod.values());
         model.addAttribute("req", req);
         model.addAttribute("addresses", addressService.listOf(u));
+        model.addAttribute("autoPromoInfo", autoPromoInfo);
         model.addAttribute("suggestionsPair", promotionService.suggestPair(subtotal, shippingFee));
         return "customer/checkout";
     }
@@ -117,8 +232,24 @@ public class CheckoutController {
         if (subtotal.signum() <= 0) return "redirect:/customer/cart";
         var shippingFee = cartService.estimateShippingFee(subtotal);
 
-        var both = promotionService.applyBoth(req.getCouponCode(), req.getShipCode(), subtotal, shippingFee);
-        var finalTotal = both.total();
+        // Tính tổng giá cuối cùng - Logic ưu tiên: Voucher trước, Promotion sau
+        var voucherResult = promotionService.applyBoth(req.getCouponCode(), req.getShipCode(), subtotal, shippingFee, u);
+        var autoPromos = promotionService.findBestAutoPromotions(subtotal, shippingFee, u);
+        
+        // Giảm giá sản phẩm: Voucher HOẶC Promotion (ưu tiên voucher)
+        BigDecimal productDiscount = voucherResult.okDiscount() 
+                ? voucherResult.discount() 
+                : autoPromos.discount().discount();
+        
+        // Freeship: Voucher HOẶC Promotion (ưu tiên voucher)
+        BigDecimal freeshipDiscount = voucherResult.okShip() 
+                ? voucherResult.shipDiscount() 
+                : autoPromos.freeship().discount();
+        
+        var finalTotal = subtotal.add(shippingFee)
+                .subtract(productDiscount)
+                .subtract(freeshipDiscount)
+                .max(BigDecimal.ZERO);
 
         var order = orderService.createFromCart(
                 u,

@@ -25,13 +25,20 @@ public class PromotionManagementService {
     // ==================== PROMOTION CRUD ====================
 
     /**
-     * Lấy tất cả khuyến mãi của shop
+     * Lấy tất cả khuyến mãi: của shop + toàn hệ thống (cả ACTIVE và INACTIVE)
+     * Promotion toàn hệ thống (GLOBAL) sẽ có isEditable = false
      */
     @Transactional(readOnly = true)
     public List<PromotionManagementDTO> getAllPromotions(Long managerId) {
         Shop shop = getShopByManagerId(managerId);
         
-        return promotionRepo.findByShop_IdAndStatus(shop.getId(), "ACTIVE").stream()
+        // Lấy cả promotion của shop và toàn hệ thống (GLOBAL scope)
+        List<Promotion> promotions = promotionRepo.findAll().stream()
+                .filter(p -> p.getScope() == PromoScope.GLOBAL || 
+                           (p.getShop() != null && p.getShop().getId().equals(shop.getId())))
+                .collect(Collectors.toList());
+        
+        return promotions.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -155,11 +162,14 @@ public class PromotionManagementService {
     }
 
     private PromotionManagementDTO convertToDTO(Promotion promotion) {
+        // Promotion GLOBAL (toàn hệ thống) không cho manager edit
+        boolean isEditable = promotion.getScope() == PromoScope.SHOP && promotion.getShop() != null;
+        
         return PromotionManagementDTO.builder()
                 .id(promotion.getId())
                 .scope(promotion.getScope().name())
                 .shopId(promotion.getShop() != null ? promotion.getShop().getId() : null)
-                .shopName(promotion.getShop() != null ? promotion.getShop().getName() : null)
+                .shopName(promotion.getShop() != null ? promotion.getShop().getName() : "Toàn hệ thống")
                 .type(promotion.getType().name())
                 .ruleJson(promotion.getRuleJson())
                 .title(promotion.getTitle())
@@ -167,6 +177,7 @@ public class PromotionManagementService {
                 .activeFrom(promotion.getActiveFrom())
                 .activeTo(promotion.getActiveTo())
                 .status(promotion.getStatus())
+                .isEditable(isEditable)
                 .build();
     }
 }

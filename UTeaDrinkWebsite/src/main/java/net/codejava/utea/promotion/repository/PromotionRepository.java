@@ -20,6 +20,9 @@ public interface PromotionRepository extends JpaRepository<Promotion, Long> {
 
     // ✅ XOÁ @Query — để JPA tự sinh
     List<Promotion> findByShop_IdAndStatus(Long shopId, String status);
+    
+    // ✅ Lấy tất cả promotion của shop (không filter status)
+    List<Promotion> findByShop_Id(Long shopId);
 
     // ✅ Thêm cho DataInitializer
     List<Promotion> findByScope(PromoScope scope);

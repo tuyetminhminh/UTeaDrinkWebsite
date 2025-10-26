@@ -79,7 +79,10 @@ function renderPromotions(data) {
         return `
             <tr>
                 <td>
-                    <div class="promo-title">${promo.title}</div>
+                    <div class="promo-title">
+                        ${promo.title}
+                        ${promo.isEditable === false ? '<span class="badge bg-info text-white ms-2" style="font-size: 0.75rem;"><i class="fas fa-globe"></i> Toàn hệ thống</span>' : ''}
+                    </div>
                     <div class="promo-desc">${promo.description || 'Không có mô tả'}</div>
                     <div class="promo-desc mt-1">
                         ${getRuleDescription(promo.type, rule)}
@@ -100,16 +103,22 @@ function renderPromotions(data) {
                     </span>
                 </td>
                 <td>
-                    <button class="btn-action btn-toggle" onclick="toggleStatus(${promo.id})" 
-                            title="${promo.status === 'ACTIVE' ? 'Tạm dừng' : 'Kích hoạt'}">
-                        <i class="fas fa-${promo.status === 'ACTIVE' ? 'pause' : 'play'}"></i>
-                    </button>
-                    <button class="btn-action btn-edit" onclick="editPromotion(${promo.id})" title="Sửa">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn-action btn-delete" onclick="deletePromotion(${promo.id})" title="Xóa">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    ${promo.isEditable === false ? `
+                        <span class="badge bg-secondary text-white" title="Khuyến mãi toàn hệ thống - Không thể chỉnh sửa">
+                            <i class="fas fa-lock"></i> Toàn hệ thống
+                        </span>
+                    ` : `
+                        <button class="btn-action btn-toggle" onclick="toggleStatus(${promo.id})" 
+                                title="${promo.status === 'ACTIVE' ? 'Tạm dừng' : 'Kích hoạt'}">
+                            <i class="fas fa-${promo.status === 'ACTIVE' ? 'pause' : 'play'}"></i>
+                        </button>
+                        <button class="btn-action btn-edit" onclick="editPromotion(${promo.id})" title="Sửa">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-action btn-delete" onclick="deletePromotion(${promo.id})" title="Xóa">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    `}
                 </td>
             </tr>
         `;

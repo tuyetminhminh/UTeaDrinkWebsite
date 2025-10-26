@@ -66,6 +66,14 @@
         .conv-name{font-weight:600; line-height:1.2;}
         .conv-snippet{color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
         .conv-time{color:var(--muted); font-size:12px;}
+        .unread-badge{
+            background:linear-gradient(135deg, #ef4444, #dc2626);
+            color:#fff; font-size:11px; font-weight:700;
+            padding:2px 7px; border-radius:12px; min-width:20px;
+            display:inline-block; text-align:center;
+            box-shadow:0 2px 8px rgba(239,68,68,.4);
+        }
+        .conv-item.unread{border-left:3px solid #ef4444;}
 
         /* ===== Right pane ===== */
         .right-pane{
@@ -199,6 +207,11 @@
 <!-- Thymeleaf: id user -->
 <script th:inline="javascript">window.CURRENT_USER_ID = [[${me.id}]];</script>
 
+<!-- Audio notification -->
+<audio id="notifSound" preload="auto">
+    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZUQ0PVa3m7q5aGAc+ltrywnUmBSh+zPDajzsIGWW59+qcTwwNU6zl8LJiFgo8kdjzxnksBSWAy/DblEAKE1y16OqlUxEKRp3f8r5rIAU1iti4xngvBymFzvPcizcIG2u/7+GXUQ0PVa3m7qxaFwg9l9ryw3UmBSh+zPDajzsJGWW59+qcTwwNU6zl8LJiFgo8kdjzxnksBSWAy/DbkEAKE1y16OqlUxEKRZzf8r1rIAU1iti4x3cvBymFzvPcizcIG2u/7+GXUQ0PVa3m7qxaFwg9l9ryw3UmBSh+zPDajzsJGWW59+qcTwwNU6zl8LJiFgo8kdjzxnksBSWAy/DbkEAKE1y16OqlUxEKRZzf8r1rIAU1iti4x3cvBymFzvPcizcIG2u/7+GXUQ0PVa3m7qxaFwg9l9ryw3UmBSh+zPDajzsJGWW59+qcTwwNU6zl8LJiFgo8kdjzxnksBSWAy/DbkEAKE1y16OqlUxEKRZzf8r1rIAU1iti4x3cvBymFzvPcizcIG2u/7+GXUQ0PVa3m7qxaFwg9l9ryw3UmBSh+zPDajzsJGWW59+qcTwwNU6zl8LJiFgo8kdjzxnksBSWAy/DbkEAKE1y16OqlUxEKRZzf8r1rIAU1iti4x3cvBymFzvPcizcIG2u/7+GXUQ0PVa3m7qxaFwg9l9ryw3UmBSh+zPDajzsJGWW59+qcTwwNU6zl8LJiFgo8kdjzxnksBSWAy/DbkEAKE1y16OqlUxEK" type="audio/wav">
+</audio>
+
 <script>
     (function(){
         let stomp = null, conversationId = null, connected = false;
@@ -209,7 +222,8 @@
         const $send  = document.getElementById('sendBtn');
         const $state = document.getElementById('connState');
         const $jump  = document.getElementById('jumpBottom');
-        let convSub = null;
+        const $audio = document.getElementById('notifSound');
+        let convSub = null, globalSub = null;
 
         function setState(text){ if($state) $state.textContent = text; }
         function escapeHtml(s){ return (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -270,18 +284,20 @@
                 $list.innerHTML = '';
                 data.forEach(c=>{
                     const el = document.createElement('div');
-                    el.className = 'conv-item';
+                    el.className = 'conv-item' + (c.unread ? ' unread' : '');
                     el.dataset.id = c.id;
 
                     const name = c.customerName || ('KH-' + c.customerId);
                     const snippet = c.lastSnippet || '';
                     const when = c.lastMessageAt ? timeHHmm(c.lastMessageAt) : '';
+                    const badge = c.unreadCount > 0 ? `<span class="unread-badge">${c.unreadCount}</span>` : '';
 
                     el.innerHTML = `
           <div class="avatar">${initials(name)}</div>
-          <div class="d-flex flex-column">
+          <div class="d-flex flex-column" style="flex:1; min-width:0;">
             <div class="d-flex align-items-center gap-2">
               <span class="conv-name">${escapeHtml(name)}</span>
+              ${badge}
             </div>
             <div class="conv-snippet">${escapeHtml(snippet)}</div>
           </div>
@@ -315,6 +331,16 @@
                 (list||[]).forEach(append);
                 // đảm bảo xuống đáy sau khi render lịch sử
                 scrollToBottom();
+                
+                // Đánh dấu đã đọc khi mở conversation
+                await markConversationAsRead(conversationId);
+                
+                // Xóa badge unread trên UI ngay lập tức
+                if(current){
+                    current.classList.remove('unread');
+                    const badge = current.querySelector('.unread-badge');
+                    if(badge) badge.remove();
+                }
             } catch(e){
                 console.error(e);
                 appendSystem('Không tải được lịch sử hội thoại.');
@@ -327,6 +353,11 @@
                     try{
                         const msg = JSON.parse(frame.body);
                         append(msg);
+                        
+                        // Nếu tin nhắn từ khách hàng và đang xem conversation này, mark as read ngay
+                        if(msg.senderId !== window.CURRENT_USER_ID){
+                            markConversationAsRead(conversationId);
+                        }
                     }catch(e){ console.error('Parse WS message error', e); }
                 });
             }
@@ -343,6 +374,9 @@
                 await loadConversations();
                 $send.onclick = send;
                 $input.addEventListener('keydown', e=>{ if(e.key==='Enter') send(); });
+                
+                // Subscribe to all manager's conversations for notifications
+                subscribeGlobalNotifications();
             }, err=>{
                 connected = false;
                 console.error('STOMP error', err);
@@ -359,8 +393,81 @@
             $input.value = '';
             $input.focus();
         }
+        
+        async function markConversationAsRead(convId){
+            try{
+                await fetch('/api/chat/mark-read?conversationId=' + convId, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+            }catch(e){
+                console.log('Cannot mark as read:', e);
+            }
+        }
+        
+        function subscribeGlobalNotifications(){
+            // Subscribe to a topic that broadcasts new messages to all manager conversations
+            // We'll subscribe to each conversation's topic individually
+            if(globalSub){ globalSub.unsubscribe(); globalSub = null; }
+            
+            // Alternative: poll for new conversations every 30s
+            let lastUnreadCount = 0;
+            setInterval(async () => {
+                const oldConvIds = Array.from($list.children).map(el => el.dataset.id);
+                await loadConversations();
+                const newConvIds = Array.from($list.children).map(el => el.dataset.id);
+                
+                // Check if there are new conversations or new unread messages
+                const added = newConvIds.filter(id => !oldConvIds.includes(id));
+                
+                // Count current unread
+                const currentUnread = Array.from($list.children).filter(el => el.classList.contains('unread')).length;
+                
+                // Notify if new conversations or more unread messages
+                if(added.length > 0 || (currentUnread > lastUnreadCount && lastUnreadCount >= 0)){
+                    playNotification();
+                    showBrowserNotification('Tin nhắn mới từ khách hàng!', 'Bạn có tin nhắn mới cần xem');
+                }
+                
+                lastUnreadCount = currentUnread;
+            }, 30000);
+        }
+        
+        function playNotification(){
+            try{
+                $audio.currentTime = 0;
+                $audio.play().catch(e => console.log('Cannot play audio:', e));
+            }catch(e){}
+        }
+        
+        function showBrowserNotification(title, body){
+            if(!('Notification' in window)) return;
+            
+            if(Notification.permission === 'granted'){
+                new Notification(title, {
+                    body: body,
+                    icon: '/images/logo.png',
+                    badge: '/images/logo.png',
+                    tag: 'chat-notification',
+                    requireInteraction: false
+                });
+            } else if(Notification.permission !== 'denied'){
+                Notification.requestPermission().then(permission => {
+                    if(permission === 'granted'){
+                        new Notification(title, {body: body, icon: '/images/logo.png'});
+                    }
+                });
+            }
+        }
 
         connect();
+        
+        // Request notification permission on load
+        if('Notification' in window && Notification.permission === 'default'){
+            setTimeout(() => {
+                Notification.requestPermission();
+            }, 2000);
+        }
     })();
 </script>
 </body>

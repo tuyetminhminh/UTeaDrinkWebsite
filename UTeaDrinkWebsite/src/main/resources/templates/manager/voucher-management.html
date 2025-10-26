@@ -18,140 +18,6 @@
             padding-top: 70px;
         }
 
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            top: 70px;
-            left: 0;
-            height: calc(100vh - 70px);
-            width: 260px;
-            background: linear-gradient(180deg, #1e3a8a 0%, #1e293b 100%);
-            padding: 20px 0;
-            box-shadow: 2px 0 15px rgba(0,0,0,0.2);
-            overflow-y: auto;
-            z-index: 99;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .sidebar.collapsed {
-            width: 70px;
-        }
-
-        .sidebar.collapsed .brand p,
-        .sidebar.collapsed .nav-link span {
-            opacity: 0;
-            width: 0;
-            display: none;
-        }
-
-        .sidebar.collapsed .brand h4 {
-            font-size: 0;
-        }
-
-        .sidebar.collapsed .brand h4 i {
-            font-size: 24px;
-        }
-
-        .sidebar.collapsed .nav-link {
-            justify-content: center;
-        }
-
-        .sidebar.collapsed .nav-link i {
-            margin-right: 0;
-        }
-
-        .sidebar .menu-toggle {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: #fff;
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-            z-index: 10;
-        }
-
-        .sidebar .menu-toggle:hover {
-            background: rgba(255,255,255,0.2);
-            transform: scale(1.05);
-        }
-
-        .sidebar.collapsed .menu-toggle {
-            right: 50%;
-            transform: translateX(50%);
-        }
-
-        .sidebar .brand {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .sidebar .brand h4 {
-            color: #fff;
-            font-weight: 600;
-            margin: 0;
-            font-size: 18px;
-            transition: all 0.3s;
-        }
-
-        .sidebar .brand p {
-            color: rgba(255,255,255,0.7);
-            margin: 5px 0 0;
-            font-size: 13px;
-            transition: all 0.3s;
-        }
-
-        .sidebar .nav-item {
-            margin: 5px 15px;
-        }
-
-        .sidebar .nav-link {
-            color: rgba(255,255,255,0.8);
-            padding: 12px 15px;
-            border-radius: 8px;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            white-space: nowrap;
-        }
-
-        .sidebar .nav-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-            transform: translateX(5px);
-        }
-
-        .sidebar.collapsed .nav-link:hover {
-            transform: none;
-        }
-
-        .sidebar .nav-link.active {
-            background: rgba(255,255,255,0.2);
-            color: #fff;
-            font-weight: 500;
-        }
-
-        .sidebar .nav-link i {
-            width: 20px;
-            margin-right: 12px;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        .sidebar .nav-link span {
-            transition: all 0.3s;
-        }
-
         /* Main Content */
         .voucher-container {
             margin-left: 260px;
@@ -589,66 +455,7 @@
     <div th:replace="~{fragments/header :: header}"></div>
 
     <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <button class="menu-toggle" onclick="toggleSidebar()">
-            <i class="fas fa-bars"></i>
-        </button>
-        <div class="brand">
-            <h4><i class="fas fa-store"></i> Manager Panel</h4>
-            <p>Quản lý cửa hàng</p>
-        </div>
-
-        <nav>
-            <div class="nav-item">
-                <a href="/manager/home" class="nav-link">
-                    <i class="fas fa-home"></i>
-                    <span>Trang chủ</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/manager/shop" class="nav-link">
-                    <i class="fas fa-store-alt"></i>
-                    <span>Quản lý Shop</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/manager/products" class="nav-link">
-                    <i class="fas fa-box-open"></i>
-                    <span>Sản phẩm</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/manager/orders" class="nav-link">
-                    <i class="fas fa-shopping-bag"></i>
-                    <span>Đơn hàng</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/manager/promotions" class="nav-link">
-                    <i class="fas fa-gift"></i>
-                    <span>Khuyến mãi</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/manager/vouchers" class="nav-link active">
-                    <i class="fas fa-ticket-alt"></i>
-                    <span>Mã giảm giá</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/manager/revenue" class="nav-link">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Báo cáo doanh thu</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/manager/settings" class="nav-link">
-                    <i class="fas fa-cog"></i>
-                    <span>Cài đặt</span>
-                </a>
-            </div>
-        </nav>
-    </div>
+    <div th:replace="~{fragments/manager-sidebar :: sidebar('vouchers')}"></div>
 
     <!-- Main Content -->
     <div class="voucher-container" id="voucherContainer">
@@ -796,10 +603,22 @@
                             <small class="text-muted">Chỉ sử dụng chữ cái, số và gạch nối. Tự động viết hoa.</small>
                         </div>
 
+                        <!-- Voucher Type Selection -->
+                        <div class="mb-4">
+                            <label for="voucherType" class="form-label">
+                                <i class="fas fa-tag text-primary"></i> Loại mã giảm giá <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" id="voucherType" onchange="updateVoucherFields()" required>
+                                <option value="PERCENT">Giảm theo % (VD: Giảm 20%)</option>
+                                <option value="AMOUNT">Giảm số tiền cố định (VD: Giảm 50,000đ)</option>
+                                <option value="FREESHIP">Miễn phí ship</option>
+                            </select>
+                        </div>
+
                         <!-- Rule Fields -->
                         <div class="card mb-4">
                             <div class="card-header bg-light">
-                                <h6 class="mb-0"><i class="fas fa-cog"></i> Giá trị giảm giá</h6>
+                                <h6 class="mb-0"><i class="fas fa-cog"></i> Cấu hình giảm giá</h6>
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -807,18 +626,36 @@
                                         <label for="minTotal" class="form-label">Giá trị đơn tối thiểu (₫)</label>
                                         <input type="number" class="form-control" id="minTotal" 
                                                placeholder="VD: 100000" min="0" step="1000" value="0">
+                                        <small class="text-muted">Đơn hàng phải đạt giá trị này mới áp dụng</small>
                                     </div>
 
-                                    <div class="col-md-6 mb-3">
-                                        <label for="percentOff" class="form-label">Giảm giá (%)</label>
+                                    <!-- For PERCENT type -->
+                                    <div class="col-md-6 mb-3" id="fieldPercentOff">
+                                        <label for="percentOff" class="form-label">Giảm giá (%) <span class="text-danger">*</span></label>
                                         <input type="number" class="form-control" id="percentOff" 
                                                placeholder="VD: 20" min="0" max="100" value="10">
                                     </div>
 
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-6 mb-3" id="fieldAmountCap">
                                         <label for="amountCap" class="form-label">Giảm tối đa (₫)</label>
                                         <input type="number" class="form-control" id="amountCap" 
                                                placeholder="VD: 50000" min="0" step="1000" value="50000">
+                                        <small class="text-muted">Giới hạn số tiền giảm tối đa</small>
+                                    </div>
+
+                                    <!-- For AMOUNT type -->
+                                    <div class="col-md-6 mb-3" id="fieldAmountOff" style="display: none;">
+                                        <label for="amountOff" class="form-label">Giảm số tiền (₫) <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="amountOff" 
+                                               placeholder="VD: 50000" min="0" step="1000" value="50000">
+                                        <small class="text-muted">Số tiền giảm cố định</small>
+                                    </div>
+
+                                    <!-- For FREESHIP type -->
+                                    <div class="col-12 mb-3" id="fieldFreeShip" style="display: none;">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-shipping-fast"></i> <strong>Miễn phí ship:</strong> Mã này sẽ miễn phí toàn bộ phí vận chuyển cho đơn hàng đủ điều kiện.
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -899,26 +736,6 @@
     </script>
     <!-- Sidebar Toggle Script -->
     <script>
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const container = document.getElementById('voucherContainer');
-            
-            sidebar.classList.toggle('collapsed');
-            container.classList.toggle('expanded');
-            
-            // Save state to localStorage
-            const isCollapsed = sidebar.classList.contains('collapsed');
-            localStorage.setItem('sidebarCollapsed', isCollapsed);
-        }
-        
-        // Restore sidebar state on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-            if (isCollapsed) {
-                document.getElementById('sidebar').classList.add('collapsed');
-                document.getElementById('voucherContainer').classList.add('expanded');
-            }
-        });
     </script>
     
     <script src="/js/voucher-management.js"></script>

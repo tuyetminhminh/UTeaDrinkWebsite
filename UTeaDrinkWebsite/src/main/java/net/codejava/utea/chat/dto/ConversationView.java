@@ -19,4 +19,6 @@ public class ConversationView {
     LocalDateTime lastMessageAt;
     String lastSnippet;
     boolean unread;
+    @Builder.Default
+    int unreadCount = 0;
 }

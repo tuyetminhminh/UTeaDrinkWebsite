@@ -18,106 +18,38 @@
             padding-top: 70px;
         }
 
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            top: 70px;
-            left: 0;
-            height: calc(100vh - 70px);
-            width: 260px;
-            background: linear-gradient(180deg, #1e3a8a 0%, #1e293b 100%);
-            padding: 20px 0;
-            box-shadow: 2px 0 15px rgba(0,0,0,0.2);
-            overflow-y: auto;
-            z-index: 99;
-        }
-
-        .sidebar .brand {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 20px;
-        }
-
-        .sidebar .brand h4 {
-            color: #fff;
-            font-weight: 600;
-            margin: 0;
-            font-size: 18px;
-        }
-
-        .sidebar .brand p {
-            color: rgba(255,255,255,0.7);
-            margin: 5px 0 0;
-            font-size: 13px;
-        }
-
-        .sidebar .nav-item {
-            margin: 5px 15px;
-        }
-
-        .sidebar .nav-link {
-            color: rgba(255,255,255,0.8);
-            padding: 12px 15px;
-            border-radius: 8px;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-        }
-
-        .sidebar .nav-link:hover {
-            background: rgba(255,255,255,0.1);
-            color: #fff;
-            transform: translateX(5px);
-        }
-
-        .sidebar .nav-link.active {
-            background: rgba(255,255,255,0.2);
-            color: #fff;
-            font-weight: 500;
-        }
-
-        .sidebar .nav-link i {
-            width: 20px;
-            margin-right: 12px;
-            font-size: 16px;
-        }
-
         .section-container {
-            max-width: 1200px;
-            margin-left: 280px;
+            margin-left: 260px;
             padding: 20px 30px;
+            min-height: calc(100vh - 70px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        .section-container.expanded {
+            margin-left: 70px;
+        }
+
+        /* Page Header */
         .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            animation: fadeInDown 0.6s ease-out;
+            background: white;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
         }
 
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .page-header h2 {
-            color: #2d3748;
+        .page-header h4 {
+            color: #0f172a;
+            margin: 0 0 4px 0;
+            font-size: 20px;
             font-weight: 700;
-            margin: 0;
         }
 
         .page-header p {
-            color: #718096;
-            margin: 5px 0 0 0;
-            font-size: 14px;
+            color: #64748b;
+            margin: 0;
+            font-size: 13px;
         }
 
         .btn-add-section {
@@ -416,71 +348,24 @@
     <div th:replace="~{fragments/header :: header}"></div>
 
     <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="brand">
-            <h4><i class="fas fa-store"></i> Manager Panel</h4>
-            <p>Quản lý cửa hàng của bạn</p>
-        </div>
-        <nav class="nav flex-column">
-            <div class="nav-item">
-                <a href="/manager/home" class="nav-link">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Dashboard</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/manager/shop" class="nav-link active">
-                    <i class="fas fa-store-alt"></i>
-                    <span>Quản lý Shop</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/manager/products" class="nav-link">
-                    <i class="fas fa-box-open"></i>
-                    <span>Sản phẩm</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/manager/orders" class="nav-link">
-                    <i class="fas fa-shopping-bag"></i>
-                    <span>Đơn hàng</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/manager/promotions" class="nav-link">
-                    <i class="fas fa-gift"></i>
-                    <span>Khuyến mãi</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/manager/revenue" class="nav-link">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Báo cáo doanh thu</span>
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="/manager/settings" class="nav-link">
-                    <i class="fas fa-cog"></i>
-                    <span>Cài đặt</span>
-                </a>
-            </div>
-        </nav>
-    </div>
+    <div th:replace="~{fragments/manager-sidebar :: sidebar('shop')}"></div>
 
     <div class="section-container">
         <!-- Page Header -->
         <div class="page-header">
-            <div>
-                <h2><i class="fas fa-th-large text-primary"></i> Quản lý Section</h2>
-                <p>Tùy chỉnh các phần hiển thị trên trang chủ cửa hàng</p>
-            </div>
-            <div>
-                <button class="btn btn-back" onclick="window.location.href='/manager/shop'">
-                    <i class="fas fa-arrow-left"></i> Quay lại
-                </button>
-                <button class="btn btn-add-section" data-bs-toggle="modal" data-bs-target="#sectionModal" onclick="openAddModal()">
-                    <i class="fas fa-plus-circle"></i> Thêm Section
-                </button>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4><i class="fas fa-th-large text-primary"></i> Quản lý Section</h4>
+                    <p>Tùy chỉnh các phần hiển thị trên trang chủ cửa hàng</p>
+                </div>
+                <div>
+                    <button class="btn btn-back" onclick="window.location.href='/manager/shop'">
+                        <i class="fas fa-arrow-left"></i> Quay lại
+                    </button>
+                    <button class="btn btn-add-section" data-bs-toggle="modal" data-bs-target="#sectionModal" onclick="openAddModal()">
+                        <i class="fas fa-plus-circle"></i> Thêm Section
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -565,30 +450,18 @@
                             <label for="sectionType" class="form-label">
                                 <i class="fas fa-layer-group text-success"></i> Loại Section <span class="text-danger">*</span>
                             </label>
-                            <select class="form-select" id="sectionType" required>
+                            <select class="form-select" id="sectionType" required onchange="updateSectionForm()">
                                 <option value="">-- Chọn loại section --</option>
                                 <option value="FEATURED">🌟 Sản phẩm nổi bật</option>
                                 <option value="TOP_SELLING">📈 Bán chạy nhất</option>
                                 <option value="NEW_ARRIVALS">🆕 Sản phẩm mới</option>
-                                <option value="BEST_DEALS">💰 Ưu đãi tốt nhất</option>
-                                <option value="SEASONAL">🎄 Theo mùa</option>
-                                <option value="CUSTOM">✨ Tùy chỉnh</option>
+                                <option value="PROMOTION">🎁 Sản phẩm khuyến mãi</option>
                             </select>
+                            <small class="form-text text-muted" id="sectionTypeHelp"></small>
                         </div>
 
-                        <div class="mb-4">
-                            <label for="sectionContent" class="form-label">
-                                <i class="fas fa-code text-info"></i> Nội dung JSON
-                            </label>
-                            <textarea class="form-control" 
-                                      id="sectionContent" 
-                                      rows="6"
-                                      placeholder='{"productIds": [1, 2, 3], "limit": 10}'></textarea>
-                            <small class="form-text text-muted">
-                                Định nghĩa nội dung section dưới dạng JSON. 
-                                Ví dụ: {"productIds": [1,2,3], "categoryId": 5, "limit": 8}
-                            </small>
-                        </div>
+                        <!-- Dynamic Section Config -->
+                        <div id="dynamicSectionConfig"></div>
 
                         <div class="row">
                             <div class="col-md-6 mb-4">
@@ -636,6 +509,77 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadSections();
         });
+
+        // Update form based on section type
+        function updateSectionForm() {
+            const sectionType = document.getElementById('sectionType').value;
+            const dynamicConfig = document.getElementById('dynamicSectionConfig');
+            const helpText = document.getElementById('sectionTypeHelp');
+            
+            if (!sectionType) {
+                dynamicConfig.innerHTML = '';
+                helpText.textContent = '';
+                return;
+            }
+
+            let formHTML = '';
+            
+            switch(sectionType) {
+                case 'FEATURED':
+                    helpText.textContent = '💡 Tự động hiển thị các sản phẩm nổi bật';
+                    formHTML = `
+                        <div class="mb-4">
+                            <label for="limitInput" class="form-label">
+                                <i class="fas fa-list-ol"></i> Số lượng sản phẩm hiển thị
+                            </label>
+                            <input type="number" class="form-control" id="limitInput" value="8" min="4" max="20">
+                            <small class="text-muted">Hiển thị các sản phẩm được đánh dấu nổi bật hoặc có rating cao</small>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'TOP_SELLING':
+                    helpText.textContent = '💡 Tự động hiển thị các sản phẩm bán chạy nhất';
+                    formHTML = `
+                        <div class="mb-4">
+                            <label for="limitInput" class="form-label">
+                                <i class="fas fa-list-ol"></i> Số lượng sản phẩm hiển thị
+                            </label>
+                            <input type="number" class="form-control" id="limitInput" value="8" min="4" max="20">
+                            <small class="text-muted">Hiển thị từ 4 đến 20 sản phẩm</small>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'NEW_ARRIVALS':
+                    helpText.textContent = '💡 Tự động hiển thị các sản phẩm mới nhất';
+                    formHTML = `
+                        <div class="mb-4">
+                            <label for="limitInput" class="form-label">
+                                <i class="fas fa-list-ol"></i> Số lượng sản phẩm hiển thị
+                            </label>
+                            <input type="number" class="form-control" id="limitInput" value="10" min="4" max="20">
+                            <small class="text-muted">Hiển thị từ 4 đến 20 sản phẩm mới nhất</small>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'PROMOTION':
+                    helpText.textContent = '💡 Tự động hiển thị các sản phẩm đang khuyến mãi';
+                    formHTML = `
+                        <div class="mb-4">
+                            <label for="limitInput" class="form-label">
+                                <i class="fas fa-list-ol"></i> Số lượng sản phẩm hiển thị
+                            </label>
+                            <input type="number" class="form-control" id="limitInput" value="8" min="4" max="20">
+                            <small class="text-muted">Hiển thị các sản phẩm đang giảm giá</small>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            dynamicConfig.innerHTML = formHTML;
+        }
 
         function loadSections() {
             fetch('/manager/shop/api/sections')
@@ -689,9 +633,7 @@
                 'FEATURED': '🌟 Nổi bật',
                 'TOP_SELLING': '📈 Bán chạy',
                 'NEW_ARRIVALS': '🆕 Mới',
-                'BEST_DEALS': '💰 Ưu đãi',
-                'SEASONAL': '🎄 Theo mùa',
-                'CUSTOM': '✨ Tùy chỉnh'
+                'PROMOTION': '🎁 Khuyến mãi'
             };
             return labels[type] || type;
         }
@@ -708,6 +650,8 @@
             document.getElementById('sectionForm').reset();
             document.getElementById('sectionId').value = '';
             document.getElementById('sectionStatus').value = 'true';
+            document.getElementById('dynamicSectionConfig').innerHTML = '';
+            document.getElementById('sectionTypeHelp').textContent = '';
         }
 
         function editSection(id) {
@@ -719,9 +663,30 @@
             document.getElementById('sectionId').value = section.id;
             document.getElementById('sectionTitle').value = section.title;
             document.getElementById('sectionType').value = section.sectionType;
-            document.getElementById('sectionContent').value = section.contentJson || '';
             document.getElementById('sectionOrder').value = section.sortOrder;
             document.getElementById('sectionStatus').value = section.isActive.toString();
+
+            // Parse existing JSON
+            let existingContent = {};
+            try {
+                existingContent = JSON.parse(section.contentJson || '{}');
+            } catch (e) {
+                console.error('Error parsing content JSON:', e);
+            }
+
+            // Update form based on type (must be called first to create dynamic fields)
+            updateSectionForm();
+            
+            // Populate dynamic fields based on section type
+            if (['FEATURED', 'TOP_SELLING', 'NEW_ARRIVALS', 'PROMOTION'].includes(section.sectionType)) {
+                // Set limit value for auto-generated sections
+                setTimeout(() => {
+                    const limitInput = document.getElementById('limitInput');
+                    if (limitInput && existingContent.limit) {
+                        limitInput.value = existingContent.limit;
+                    }
+                }, 100);
+            }
 
             // Open modal
             const modal = new bootstrap.Modal(document.getElementById('sectionModal'));
@@ -735,20 +700,32 @@
                 return;
             }
 
-            // Validate JSON if provided
-            const contentJson = document.getElementById('sectionContent').value.trim();
-            if (contentJson && !isValidJSON(contentJson)) {
-                showAlert('danger', '❌ Nội dung JSON không hợp lệ!');
-                return;
+            const sectionType = document.getElementById('sectionType').value;
+            
+            // Generate contentJson from UI
+            let contentJson = {};
+            
+            switch(sectionType) {
+                case 'FEATURED':
+                case 'TOP_SELLING':
+                case 'NEW_ARRIVALS':
+                case 'PROMOTION':
+                    const limitInput = document.getElementById('limitInput');
+                    const limit = parseInt(limitInput ? limitInput.value : 8);
+                    contentJson = { limit: limit };
+                    break;
             }
 
             const data = {
                 title: document.getElementById('sectionTitle').value.trim(),
-                sectionType: document.getElementById('sectionType').value,
-                contentJson: contentJson || null,
+                sectionType: sectionType,
+                contentJson: JSON.stringify(contentJson),
                 sortOrder: parseInt(document.getElementById('sectionOrder').value) || 0,
                 isActive: document.getElementById('sectionStatus').value === 'true'
             };
+
+            console.log('Saving section data:', data);
+            console.log('isActive value:', data.isActive, 'type:', typeof data.isActive);
 
             const url = editingSectionId 
                 ? `/manager/shop/api/sections/${editingSectionId}`
@@ -792,15 +769,6 @@
                 console.error('Error:', error);
                 showAlert('danger', '❌ ' + error.message);
             });
-        }
-
-        function isValidJSON(str) {
-            try {
-                JSON.parse(str);
-                return true;
-            } catch (e) {
-                return false;
-            }
         }
 
         function showAlert(type, message) {
