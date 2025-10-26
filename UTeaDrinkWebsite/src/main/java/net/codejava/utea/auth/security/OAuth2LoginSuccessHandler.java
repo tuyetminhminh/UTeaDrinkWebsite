@@ -1,80 +1,91 @@
 package net.codejava.utea.auth.security;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import net.codejava.utea.auth.service.JwtService;
-import net.codejava.utea.common.entity.User;
-import net.codejava.utea.common.repository.UserRepository;
+import net.codejava.utea.common.security.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriUtils;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
-public class OAuth2LoginSuccessHandler
-		implements org.springframework.security.web.authentication.AuthenticationSuccessHandler {
+public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
-	private final UserRepository userRepo;
-	private final JwtService jwtService;
+    private final JwtService jwtService;
+    private final UserDetailsService userDetailsService;
 
-	@Value("${app.jwt.cookie-name:UTEA_TOKEN}")
-	String cookieName;
-	@Value("${security.jwt.expiration-time:604800000}")
-	long expMs;
-	@Value("${app.jwt.cookie-secure:false}")
-	boolean cookieSecure;
-	@Value("${app.jwt.cookie-samesite:Lax}")
-	String sameSite;
+    @Value("${app.jwt.cookie-name:UTEA_TOKEN}")
+    private String cookieName;
 
-	@Override
-	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-			Authentication authentication) throws IOException, ServletException {
+    @Value("${app.jwt.cookie-secure:false}")
+    private boolean cookieSecure;
 
-		OAuth2User oauth = (OAuth2User) authentication.getPrincipal();
-		String email = (String) oauth.getAttributes().get("email");
-		if (email == null) {
-			// fallback FB (đã map ở service) -> id@fb.local
-			Object id = oauth.getAttributes().get("id");
-			email = "fb_" + id + "@fb.local";
-		}
+    @Value("${app.jwt.cookie-samesite:Lax}")
+    private String sameSite;
 
-		User user = userRepo.findByEmail(email).orElse(null);
-		if (user == null) {
-			response.sendRedirect(
-					"/login?error=" + UriUtils.encode("Không tìm thấy user sau khi đăng nhập", StandardCharsets.UTF_8));
-			return;
-		}
+    @Value("${security.jwt.expiration-time:604800000}") // 7 days
+    private long expMs;
 
-		// role chính để điều hướng (ưu tiên ADMIN/MANAGER/CUSTOMER/SHIPPER)
-		String topRole = user.getRoles().stream().map(r -> r.getCode()).findFirst().orElse("CUSTOMER");
+    @Override
+    public void onAuthenticationSuccess(HttpServletRequest request,
+                                        HttpServletResponse response,
+                                        Authentication authentication) throws IOException, ServletException {
 
-		// sinh JWT (tái sử dụng JwtService bạn đang có: nhận username/email + role)
-		String token = jwtService.generateTokenFromEmail(email, topRole);
+        // OAuth2User sau khi login
+        var principal = authentication.getPrincipal();
 
-		Cookie c = new Cookie(cookieName, token);
-		c.setHttpOnly(true);
-		c.setSecure(cookieSecure);
-		c.setPath("/");
-		c.setMaxAge((int) (expMs / 1000));
-		response.addCookie(c);
-		response.addHeader("Set-Cookie", "%s=%s; Max-Age=%d; Path=/; HttpOnly; %s".formatted(cookieName, token,
-				(int) (expMs / 1000), cookieSecure ? "Secure; SameSite=" + sameSite : "SameSite=" + sameSite));
+        // ⚠️ Phải lấy email từ attributes (KHÔNG dùng getName(), vì thường là "sub")
+        String email = null;
+        if (principal instanceof org.springframework.security.oauth2.core.user.OAuth2User oau) {
+            Object v = oau.getAttributes().get("email");
+            if (v instanceof String s && !s.isBlank()) {
+                email = s;
+            }
+        }
 
-		// điều hướng theo role
-		String redirect = switch (topRole) {
-		case "ADMIN" -> "/admin/home";
-		case "MANAGER" -> "/manager/home";
-		case "SHIPPER" -> "/shipper/home";
-		default -> "/customer/home";
-		};
-		response.sendRedirect(redirect);
-	}
+        if (email == null) {
+            response.sendError(500, "OAuth2 login không trả về email. Hãy bật scope 'email' & 'profile' trong Google Client.");
+            return;
+        }
+
+        // Load lại user từ DB bằng email để lấy quyền chuẩn
+        var userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(email);
+        String roleSummary = userDetails.getRoleSummary(); // ví dụ: "CUSTOMER" hoặc "CUSTOMER,MANAGER"
+
+        // Sinh JWT với SUBJECT = EMAIL (rất quan trọng để JwtAuthFilter tải lại đúng user)
+        String token = jwtService.generateToken(email, roleSummary, expMs);
+
+        // Set cookie JWT
+        ResponseCookie cookie = ResponseCookie.from(cookieName, token)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path("/")
+                .maxAge(expMs / 1000)
+                .sameSite(sameSite)
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        // Redirect theo role
+        Set<String> roles = AuthorityUtils.authorityListToSet(userDetails.getAuthorities());
+        String target = "/customer/home";
+        if (roles.contains("ADMIN")) {
+            target = "/admin/home";
+        } else if (roles.contains("MANAGER")) {
+            target = "/manager/home";
+        } else if (roles.contains("SHIPPER")) {
+            target = "/shipper/home";
+        }
+        response.sendRedirect(target);
+    }
 }

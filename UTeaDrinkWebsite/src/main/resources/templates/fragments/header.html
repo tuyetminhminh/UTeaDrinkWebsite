@@ -274,7 +274,7 @@
                     
                     <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                         <a class="nav-link d-flex align-items-center gap-2" href="#" id="userDropdown" data-bs-toggle="dropdown">
-                            <span class="user-name" sec:authentication="name"></span>
+                            <span th:text="${#authentication?.principal?.displayName}">user</span>
                             <i class="bi bi-caret-down-fill small"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">

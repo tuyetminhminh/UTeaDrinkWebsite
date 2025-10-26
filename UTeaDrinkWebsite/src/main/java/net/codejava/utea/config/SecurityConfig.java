@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import net.codejava.utea.auth.security.JwtAuthFilter;
 import net.codejava.utea.auth.security.JwtAuthenticationEntryPoint;
 import net.codejava.utea.auth.security.OAuth2LoginSuccessHandler;
-import net.codejava.utea.auth.service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,9 +11,9 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -22,8 +21,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-
 @Configuration
+@EnableMethodSecurity // để @PreAuthorize hoạt động
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -31,62 +30,53 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint entryPoint;
     private final UserDetailsService userDetailsService;
 
-    // Nếu bạn có CustomOAuth2UserService riêng thì giữ, còn không có thể bỏ
-    private final CustomOAuth2UserService customOAuth2UserService;
+    // Bean OAuth2UserService duy nhất (Impl của bạn)
+    private final OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService;
+
     private final OAuth2LoginSuccessHandler oAuth2SuccessHandler;
-    private final OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserServiceImpl;
+
+    // PasswordEncoder được tiêm từ PasswordConfig (hoặc bean hiện có của bạn)
+    private final PasswordEncoder passwordEncoder;
 
     /**
-     * ✅ Không mã hóa mật khẩu (so sánh chuỗi thuần)
+     * ✅ QUAN TRỌNG: bỏ prefix "ROLE_"
+     * Khi có bean này, mọi hasRole('MANAGER') sẽ khớp authority "MANAGER"
+     * (không cần đổi DB hay đổi CustomUserDetails).
      */
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        PasswordEncoder encoder = NoOpPasswordEncoder.getInstance();
-        System.out.println(">>> [DEBUG] PasswordEncoder đang được dùng: " + encoder.getClass().getName());
-        return encoder;
+    public GrantedAuthorityDefaults grantedAuthorityDefaults() {
+        return new GrantedAuthorityDefaults(""); // empty prefix
     }
 
-    /**
-     * ✅ Provider xử lý xác thực user/password
-     */
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        var provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
+        provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
 
-    /**
-     * ✅ Cung cấp AuthenticationManager cho controller
-     */
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
+        return cfg.getAuthenticationManager();
     }
 
-    /**
-     * ✅ Cấu hình Spring Security
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Tắt CSRF vì dùng JWT stateless
-                .csrf(csrf -> csrf.disable())
-                // Khi lỗi auth → dùng entryPoint
-                .exceptionHandling(eh -> eh.authenticationEntryPoint(entryPoint))
-                // Stateless session (JWT)
+                // OAuth2 Authorization Code cần session ngắn để giữ state / code-verifier
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Quyền truy cập
+
+                .csrf(csrf -> csrf.disable())
+                .exceptionHandling(eh -> eh.authenticationEntryPoint(entryPoint))
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/", "/home", "/main-home", "/error", "/error/**",
                                 "/api/auth/**", "/login", "/register", "/forgot", "/reset", "/otp/**",
-                                "/oauth2/**", "/login/oauth2/**", "/error", "/auth/**",
-                                "/css/**", "/js/**", "/images/**", "/webjars/**"
-                        ).permitAll()
-                        .requestMatchers(
-                                "/", "/main-home", "/home", "/index", "/about", "/contact",
+                                "/oauth2/**", "/login/oauth2/**", "/auth/**",
+                                "/css/**", "/js/**", "/images/**", "/webjars/**",
+                                "/index", "/about", "/contact",
                                 "/products/**", "/GuestProducts/**", "/fragments/**",
                                 "/uploads/**", "/assets/**", "/ws/**"
                         ).permitAll()
@@ -98,20 +88,22 @@ public class SecurityConfig {
                         .requestMatchers("/chat/customer").hasAnyAuthority("CUSTOMER","MANAGER")
                         .anyRequest().authenticated()
                 )
-                // Tắt form login & logout mặc định
+
+                // Không dùng formLogin/logout mặc định (bạn đã có /login POST + JWT)
                 .formLogin(form -> form.disable())
                 .logout(logout -> logout.disable())
-                // ✅ OAuth2 Login
+
+                // OAuth2 Login: dùng service Impl + success handler set JWT cookie + redirect
                 .oauth2Login(oauth -> oauth
                         .loginPage("/login")
-                        .userInfoEndpoint(ui -> ui.userService(oAuth2UserServiceImpl))
+                        .userInfoEndpoint(ui -> ui.userService(oAuth2UserService))
                         .successHandler(oAuth2SuccessHandler)
-                );
+                )
 
-        // ✅ Thêm JWT filter trước UsernamePasswordAuthenticationFilter
-        http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-        // ✅ Đăng ký Provider
-        http.authenticationProvider(authenticationProvider());
+                // JWT filter cho các request sau khi đã có cookie UTEA_TOKEN
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
+                .authenticationProvider(authenticationProvider());
 
         return http.build();
     }
