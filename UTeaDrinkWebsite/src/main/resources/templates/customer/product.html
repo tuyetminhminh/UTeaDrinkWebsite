@@ -56,8 +56,21 @@
 </head>
 <body class="page-with-header">
 
+<!-- Toast thông báo thêm giỏ thành công -->
+<div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index:2000">
+    <div id="addToast" class="toast align-items-center text-bg-dark border-0" role="alert"
+         aria-live="assertive" aria-atomic="true"
+         th:classappend="${msg != null} ? ' show' : ''">
+        <div class="d-flex">
+            <div class="toast-body" th:text="${msg != null ? msg : ''}">Đã thêm vào giỏ hàng.</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 <div th:replace="~{fragments/header :: header}"></div>
-<div style="height:40px"></div>
+<div style="height:20px"></div>
 
 <!-- Nút quay lại -->
 <div class="pd-wrap" style="margin-top:-8px">
@@ -78,7 +91,8 @@
             <div id="priceBox" class="pd-price"
                  th:text="${#numbers.formatDecimal(defaultPrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</div>
 
-            <div th:if="${variants != null and variants.size() > 0}">
+            <!-- CHỌN SIZE: chỉ hiển thị nếu KHÔNG phải Bánh -->
+            <div th:if="${!isBakery and variants != null and variants.size() > 0}">
                 <div style="font-weight:700;margin-bottom:8px">Chọn size (bắt buộc)</div>
                 <div id="sizePills" class="pill-group" th:data-prices='${priceMapJson}'>
                     <label class="pill"
@@ -96,10 +110,30 @@
 
             <form th:action="@{/customer/cart/add}" method="post" id="addForm">
                 <input type="hidden" name="productId" th:value="${product.id}"/>
+                <!-- chỉ tạo input variantId nếu KHÔNG phải Bánh -->
                 <input type="hidden" name="variantId" id="variantInput"
-                       th:if="${variants != null and !#lists.isEmpty(variants)}"
+                       th:if="${!isBakery and variants != null and !#lists.isEmpty(variants)}"
                        th:value="${defaultVariantId}"/>
-                <input type="hidden" name="redirect" th:value="${backUrl}"/>
+                <input type="hidden" name="redirect"
+                       th:value="@{/customer/product/{id}(id=${product.id})}" />
+                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                <!-- TOPPING: KHÔNG hiển thị cho Bánh -->
+                <div th:if="${!isBakery and toppings != null and !#lists.isEmpty(toppings)}" style="margin-top:14px">
+                    <div style="font-weight:700;margin-bottom:8px">Topping (chọn thêm)</div>
+
+                    <div id="topList"
+                         style="max-height:220px; overflow:auto; border:1px solid #eee; border-radius:12px; padding:10px;">
+                        <label class="pill" style="display:inline-flex;align-items:center;gap:8px;margin:6px"
+                               th:each="t : ${toppings}">
+                            <input type="checkbox" name="toppingIds"
+                                   th:value="${t.id}" th:attr="data-price=${t.price}"/>
+                            <span th:text="${t.name}">Trân châu</span>
+                            <span style="opacity:.7;font-weight:600"
+                                  th:text="' + ' + ${#numbers.formatDecimal(t.price,0,'COMMA',0,'POINT')} + ' đ'"></span>
+                        </label>
+                    </div>
+                </div>
 
                 <div class="qty">
                     <span style="font-weight:700">Số lượng</span>
@@ -124,7 +158,6 @@
     <section class="mt-4">
         <h3 style="font-weight:800;margin:20px 0 12px">Đánh giá</h3>
 
-        <!-- bộ lọc -->
         <div class="d-flex flex-wrap gap-2 mb-2">
             <a class="btn btn-sm"
                th:classappend="${selectedRating == null} ? ' btn-dark' : ' btn-outline-dark'"
@@ -141,12 +174,10 @@
             </a>
         </div>
 
-        <!-- thống kê -->
         <div class="mb-2 small text-muted">
             TB: <span th:text="${avgRating}">0.0</span> ★ ·
             <span th:each="s : ${stars}">
                 <span th:text="${s} + '★:'"></span>
-                <!-- FIX: dùng #maps.containsKey + .get() -->
                 <strong th:text="${
                     ratingCounts != null and #maps.containsKey(ratingCounts, s)
                         ? ratingCounts.get(s)
@@ -156,7 +187,6 @@
             </span>
         </div>
 
-        <!-- danh sách -->
         <div th:if="${reviews != null and reviews.totalElements > 0}">
             <div class="mb-3 p-3 border rounded" th:each="r : ${reviews.content}">
                 <div class="d-flex justify-content-between">
@@ -169,7 +199,6 @@
                 <div th:text="${r.content}" class="mt-2"></div>
             </div>
 
-            <!-- phân trang review -->
             <div class="pag-wrap" th:if="${totalRp > 1}">
                 <a class="btn btn-outline-dark btn-sm"
                    th:classappend="${rp == 0} ? ' disabled' : ''"
@@ -196,7 +225,6 @@
         <div th:if="${reviews == null or reviews.totalElements == 0}" class="text-muted">Chưa có đánh giá.</div>
     </section>
 
-    <!-- Sản phẩm liên quan -->
     <div class="pd-related" th:if="${relatedProducts != null and !#lists.isEmpty(relatedProducts)}">
         <h3 style="font-weight:800;margin:20px 0 12px">Sản phẩm liên quan</h3>
         <div class="rel-list">
@@ -214,35 +242,90 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
 <script>
-    (function(){
-        const header=document.querySelector('.navbar')||document.querySelector('header');
-        function upd(){ if(header){ const h=header.getBoundingClientRect().height||80;
-            document.documentElement.style.setProperty('--header-h',h+'px'); } }
-        upd(); window.addEventListener('resize',upd);
-    })();
+    // Hiện toast nếu có msg
+    document.addEventListener('DOMContentLoaded', function(){
+        var el = document.getElementById('addToast');
+        if(el && el.classList.contains('show')){
+            try { new bootstrap.Toast(el, {delay: 2200}).show(); } catch(e){}
+        }
+    });
 
-    function stepQty(n){
-        const el=document.getElementById('qty');
-        el.value=Math.max(1,parseInt(el.value||'1',10)+n);
-    }
+    (function () {
+        const priceBox = document.getElementById('priceBox');
+        const sizeBox  = document.getElementById('sizePills');
+        const qtyEl    = document.getElementById('qty');
+        const topList  = document.getElementById('topList');
+        const hiddenVariant = document.getElementById('variantInput');
 
-    // pills chọn size + cập nhật giá + hidden input
-    (function(){
-        const group=document.getElementById('sizePills');
-        if(!group) return;
-        const prices=JSON.parse(group.dataset.prices||"{}");
-        const priceBox=document.getElementById('priceBox');
-        const hidden=document.getElementById('variantInput');
-        const formatVND=v=>(v||0).toLocaleString('vi-VN')+' đ';
+        const fmt = v => (Number(v)||0).toLocaleString('vi-VN') + ' đ';
 
-        group.addEventListener('click',e=>{
-            const label=e.target.closest('.pill'); if(!label) return;
-            group.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
-            label.classList.add('active');
-            const id=label.querySelector('input').value;
-            if(hidden) hidden.value=id;
-            priceBox.textContent=formatVND(Number(prices[id]||0));
-        });
+        // ---- SIZE (variant) ----
+        let variantPrices = {};
+        let currentVariantPrice = 0;
+
+        if (sizeBox) {
+            try { variantPrices = JSON.parse(sizeBox.dataset.prices || "{}"); } catch(e){ variantPrices = {}; }
+            const checked = sizeBox.querySelector('input[name="variantId"]:checked');
+            if (checked) currentVariantPrice = Number(variantPrices[checked.value] || 0);
+
+            sizeBox.addEventListener('click', (e) => {
+                const label = e.target.closest('.pill');
+                if (!label) return;
+                sizeBox.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+                label.classList.add('active');
+
+                const input = label.querySelector('input[name="variantId"]');
+                if (hiddenVariant) hiddenVariant.value = input.value;
+
+                currentVariantPrice = Number(variantPrices[input.value] || 0);
+                updateTotal();
+            });
+        } else {
+            // Không có size: lấy giá đang hiển thị (đơn giá)
+            const num = (priceBox?.textContent || '').replace(/[^\d]/g, '') || '0';
+            currentVariantPrice = Number(num);
+        }
+
+        // ---- TOPPING ----
+        function toppingSum() {
+            let sum = 0;
+            if (!topList) return 0;
+            topList.querySelectorAll('input[type="checkbox"]:checked').forEach(ch => {
+                sum += Number(ch.getAttribute('data-price') || '0');
+            });
+            return sum;
+        }
+        // Đổi màu nhãn topping khi chọn/bỏ
+        function syncTopActive() {
+            if (!topList) return;
+            topList.querySelectorAll('label.pill').forEach(lb => {
+                const ck = lb.querySelector('input[type="checkbox"]');
+                lb.classList.toggle('active', ck.checked);
+            });
+        }
+        if (topList) {
+            topList.addEventListener('change', () => { syncTopActive(); updateTotal(); });
+            syncTopActive();
+        }
+
+        // ---- QTY ----
+        function getQty() {
+            return Math.max(1, parseInt(qtyEl.value || '1', 10));
+        }
+        window.stepQty = function(n){
+            qtyEl.value = Math.max(1, parseInt(qtyEl.value || '1', 10) + n);
+            updateTotal();
+        };
+        qtyEl.addEventListener('change', updateTotal);
+
+        // ---- TOTAL ----
+        function updateTotal() {
+            const total = (currentVariantPrice + toppingSum()) * getQty();
+            priceBox.textContent = fmt(total);
+        }
+
+        // init
+        updateTotal();
     })();
 </script>
 </body>

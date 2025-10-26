@@ -11,4 +11,5 @@ public interface ToppingRepository extends JpaRepository<Topping, Long> {
 
     // Truy vấn topping theo Shop ID
     List<Topping> findByShopId(Long shopId);
+    List<Topping> findByShopIdAndStatus(Long shopId, String status);
 }

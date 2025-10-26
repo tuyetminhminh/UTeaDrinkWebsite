@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Sort;
 
 @Service
 @RequiredArgsConstructor
@@ -309,6 +310,17 @@ public class ShopService {
                 .isActive(section.isActive())
                 .createdAt(section.getCreatedAt())
                 .build();
+    }
+
+    /** Lấy toàn bộ banner ACTIVE (web chung, không theo shop) */
+    @Transactional(readOnly = true)
+    public List<ShopBannerDTO> getActiveBannersAll() {
+        Sort sort = Sort.by(Sort.Direction.ASC, "sortOrder")
+                .and(Sort.by(Sort.Direction.DESC, "createdAt")); // tie-breaker đẹp
+        return bannerRepo.findByActiveTrue(sort)
+                .stream()
+                .map(this::convertBannerToDTO)
+                .collect(Collectors.toList());
     }
 }
 

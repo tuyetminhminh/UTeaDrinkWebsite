@@ -169,22 +169,20 @@
                         <a class="nav-link mx-3 text-uppercase small fw-semibold" th:href="@{/chat/customer}">LIÊN HỆ</a>
                     </li>
 
-
                     <!-- CUSTOMER DROPDOWN -->
                     <li class="nav-item dropdown" sec:authorize="hasAuthority('CUSTOMER')">
-                        <a class="nav-link d-flex align-items-center gap-1 dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle fs-5"></i>
-                            <span class="text-uppercase small fw-semibold">Tài khoản</span>
+                        <a class="nav-link d-flex align-items-center dropdown-toggle px-2 lh-1 text-white"
+                           href="#" data-bs-toggle="dropdown"
+                           aria-label="Tài khoản" title="Tài khoản">
+                            <span class="hamburger" aria-hidden="true">☰</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" th:href="@{/customer/account}"><i class="bi bi-gear me-2"></i> Quản lý tài khoản</a></li>
-                            <li><a class="dropdown-item" th:href="@{/customer/orders}"><i class="bi bi-bag-check me-2"></i> Đơn hàng</a></li>
-                            <li><a class="dropdown-item" th:href="@{/customer/vouchers}"><i class="bi bi-ticket-perforated me-2"></i> Kho voucher</a></li>
+                            <li><a class="dropdown-item" th:href="@{/customer/account}">⚙️ Quản lý tài khoản</a></li>
+                            <li><a class="dropdown-item" th:href="@{/customer/orders}">🛍️ Đơn hàng</a></li>
+                            <li><a class="dropdown-item" th:href="@{/customer/vouchers}">🎟️ Kho voucher</a></li>
                             <li><hr class="dropdown-divider"></li>
                         </ul>
                     </li>
-
-
 
                     <!-- SELLER -->
                     <li class="nav-item dropdown" sec:authorize="hasAuthority('SELLER')">

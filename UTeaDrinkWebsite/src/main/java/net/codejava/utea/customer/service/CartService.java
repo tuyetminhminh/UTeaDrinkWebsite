@@ -17,6 +17,10 @@ public interface CartService {
 
     CartItem addItem(User user, Long productId, Long variantId, int qty);
 
+    CartItem addItem(User user, Long productId, Long variantId, int qty, List<Long> toppingIds);
+
+    CartItem updateToppings(User user, Long itemId, List<Long> toppingIds);
+
     CartItem updateQty(User user, Long itemId, int qty);
 
     void toggleSelect(User user, Long itemId, boolean selected);
