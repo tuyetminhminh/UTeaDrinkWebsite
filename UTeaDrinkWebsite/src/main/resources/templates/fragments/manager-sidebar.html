@@ -40,6 +40,19 @@
                         <span>Đơn hàng</span>
                     </a>
                 </div>
+
+                <!-- 🔵 CHAT mới thêm -->
+                <div class="nav-item">
+                    <a href="/chat/manager/inbox" class="nav-link" th:classappend="${activePage == 'chat'} ? 'active' : ''">
+                        <i class="fas fa-comments"></i>
+                        <span>Chat</span>
+                        <!-- Badge chưa đọc (tuỳ chọn). Gán số vào data-unread hoặc innerText bằng JS -->
+                        <span id="chatUnreadBadge" class="badge" style="display:none;">0</span>
+                    </a>
+                </div>
+                <!-- 🔵 hết phần CHAT -->
+
+
                 <div class="nav-item">
                     <a href="/manager/promotions" class="nav-link" th:classappend="${activePage == 'promotions'} ? 'active' : ''">
                         <i class="fas fa-gift"></i>

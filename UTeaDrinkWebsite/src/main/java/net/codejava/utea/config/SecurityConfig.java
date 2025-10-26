@@ -94,9 +94,8 @@ public class SecurityConfig {
                         .requestMatchers("/manager/**").hasAuthority("MANAGER")
                         .requestMatchers("/customer/**").hasAuthority("CUSTOMER")
                         .requestMatchers("/shipper/**").hasAuthority("SHIPPER")
-                        .requestMatchers("/chat/start", "/chat/customer/**")
-                        .hasAnyAuthority("CUSTOMER","MANAGER","ADMIN")
-                        .requestMatchers("/chat/inbox", "/chat/admin/**").hasAuthority("ADMIN")
+                        .requestMatchers("/chat/manager/**").hasAuthority("MANAGER")
+                        .requestMatchers("/chat/customer").hasAnyAuthority("CUSTOMER","MANAGER")
                         .anyRequest().authenticated()
                 )
                 // Tắt form login & logout mặc định

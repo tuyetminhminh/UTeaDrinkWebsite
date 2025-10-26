@@ -1,3 +1,4 @@
+// net/codejava/utea/common/service/impl/CustomUserDetailsServiceImpl.java
 package net.codejava.utea.common.service.impl;
 
 import lombok.RequiredArgsConstructor;
@@ -16,23 +17,20 @@ public class CustomUserDetailsServiceImpl implements CustomUserDetailsService {
 
     private final UserRepository userRepository;
 
+    /** Nhận email hoặc username */
     @Override
     public CustomUserDetails loadUserByUsername(String principal) throws UsernameNotFoundException {
-        // ✅ Tìm user theo email hoặc username (tự động nhận diện)
         User user = userRepository.findByEmailOrUsername(principal)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user: " + principal));
 
-        // ✅ Tạo CustomUserDetails và set lại loginId để Spring dùng đúng chuỗi xác thực
         CustomUserDetails cud = new CustomUserDetails(user);
-        cud.setLoginId(principal);
-        System.out.println(">>> [DEBUG] Đăng nhập bằng: " + principal);
-        System.out.println(">>> [DEBUG] User trong DB: " + user.getUsername() + " / " + user.getEmail());
-        System.out.println(">>> [DEBUG] Password trong DB: " + user.getPasswordHash());
+        cud.setLoginId(principal); // để Spring hiển thị đúng "username" đã dùng khi đăng nhập
+        // (Đừng log mật khẩu ra console)
         return cud;
     }
 
     @Override
-    public CustomUserDetails loadUserByEmail(String email) {
+    public CustomUserDetails loadUserByEmail(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user với email: " + email));
         CustomUserDetails cud = new CustomUserDetails(user);
@@ -41,7 +39,7 @@ public class CustomUserDetailsServiceImpl implements CustomUserDetailsService {
     }
 
     @Override
-    public CustomUserDetails loadUserById(Long id) {
+    public CustomUserDetails loadUserById(Long id) throws UsernameNotFoundException {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy user id=" + id));
         CustomUserDetails cud = new CustomUserDetails(user);

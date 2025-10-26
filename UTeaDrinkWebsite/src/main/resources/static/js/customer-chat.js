@@ -1,81 +1,52 @@
-document.addEventListener("DOMContentLoaded", async () => {
-    const chatBox = document.querySelector("#chat-box");
-    const msgForm = document.querySelector("#msg-form");
-    const msgInput = document.querySelector("#msg-input");
-    const chatTitle = document.querySelector("#chat-title");
+// src/main/resources/static/js/chat/customer-chat.js
+(function(){
+    let stomp, conversationId = null;
+    const $msgs = document.getElementById('messages');
+    const $input = document.getElementById('messageInput');
+    const $send = document.getElementById('sendBtn');
 
-    let stompClient = null;
-    let convId = null;
-
-    // 1️⃣ Bắt đầu chat với manager đầu tiên
-    const startConversation = async () => {
-        const res = await fetch("/api/chat/customer/start", { method: "POST" });
-        convId = await res.json();
-        chatTitle.textContent = "Trò chuyện với Quản lý";
-    };
-
-    // 2️⃣ Hàm tiện ích lấy cookie
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(";").shift();
+    function escapeHtml(s){ return (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+    function append(msg){
+        const me = (msg.senderId === window.CURRENT_USER_ID);
+        const el = document.createElement('div');
+        el.className = 'msg' + (me ? ' me':'');
+        el.innerHTML = `<div class="bubble"><div>${escapeHtml(msg.content||'')}</div>
+      <small class="text-muted">${new Date(msg.sentAt).toLocaleTimeString()}</small></div>`;
+        $msgs.appendChild(el);
+        $msgs.scrollTop = $msgs.scrollHeight;
     }
 
-    // 3️⃣ Kết nối WebSocket (đã fix token + cookie)
-    const connectSocket = () => {
-        // ⚙️ Cho phép gửi cookie kèm handshake (bắt buộc cho JWT)
-        const socket = new SockJS("/ws", null, { withCredentials: true });
-        stompClient = Stomp.over(socket);
+    async function ensureConversation(){
+        const res = await fetch('/api/chat/customer/conversation');
+        const conv = await res.json();
+        conversationId = conv.id;
+        const hx = await fetch(`/api/chat/history?conversationId=${conversationId}`);
+        (await hx.json()).forEach(append);
+        subscribe();
+    }
 
-        // 🔐 Lấy token JWT trong cookie
-        const token = getCookie("UTEA_TOKEN");
-        console.log("🧩 WebSocket token (customer) =", token);
+    function subscribe(){
+        stomp.subscribe(`/topic/conversation.${conversationId}`, (frame)=>{
+            append(JSON.parse(frame.body));
+        });
+    }
 
-        // 🛰️ Gửi token qua header khi CONNECT
-        stompClient.connect(
-            { Authorization: token ? `Bearer ${token}` : "" },
-            (frame) => {
-                console.log("✅ WebSocket connected (customer):", frame);
+    function connect(){
+        const sock = new SockJS('/ws');
+        stomp = Stomp.over(sock);
+        stomp.connect({}, async ()=>{
+            await ensureConversation();
+            $send.onclick = send;
+            $input.addEventListener('keydown', e=>{ if(e.key==='Enter') send(); });
+        });
+    }
 
-                // Khi kết nối thành công -> subscribe topic chat riêng
-                stompClient.subscribe(`/topic/chat.${convId}`, msg => {
-                    const body = JSON.parse(msg.body);
-                    showMessage(body);
-                });
-            },
-            (error) => {
-                console.error("❌ WebSocket connect error (customer):", error);
-            }
-        );
-    };
+    function send(){
+        const text = $input.value.trim();
+        if(!text) return;
+        stomp.send('/app/chat.send', {}, JSON.stringify({ conversationId, content: text }));
+        $input.value = '';
+    }
 
-    // 4️⃣ Hiển thị tin nhắn trong khung chat
-    const showMessage = (m) => {
-        const div = document.createElement("div");
-        div.className = "mb-2";
-        div.innerHTML = `<b>${m.senderName}:</b> ${m.content}`;
-        chatBox.appendChild(div);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    };
-
-    // 5️⃣ Gửi tin nhắn qua WebSocket
-    msgForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const content = msgInput.value.trim();
-        if (!content || !convId || !stompClient || !stompClient.connected) return;
-
-        // Gửi nội dung chat
-        stompClient.send(
-            `/app/chat.send.${convId}`,
-            {},
-            JSON.stringify({ content })
-        );
-
-        // Xóa ô nhập
-        msgInput.value = "";
-    });
-
-    // 🚀 Khởi động luồng chat
-    await startConversation();
-    connectSocket();
-});
+    connect();
+})();

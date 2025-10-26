@@ -1,16 +1,27 @@
+// net/codejava/utea/common/service/CustomUserDetailsService.java
 package net.codejava.utea.common.service;
 
 import net.codejava.utea.common.security.CustomUserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 /**
  * Service tải thông tin người dùng cho Spring Security.
- * - loadUserByUsername(...) sẽ nhận email (vì hệ thống đăng nhập bằng email).
- * - Bổ sung tiện ích loadUserByEmail / loadUserById để chỗ khác dùng.
+ * - loadUserByUsername(..) nhận email hoặc username.
+ * - Bổ sung loadUserByEmail / loadUserById để chỗ khác dùng.
  */
 public interface CustomUserDetailsService extends UserDetailsService {
 
-    CustomUserDetails loadUserByEmail(String email);
+    /** Covariant return type: trả CustomUserDetails luôn cho tiện dùng */
+    @Override
+    CustomUserDetails loadUserByUsername(String principal) throws UsernameNotFoundException;
 
-    CustomUserDetails loadUserById(Long id);
+    CustomUserDetails loadUserByEmail(String email) throws UsernameNotFoundException;
+
+    CustomUserDetails loadUserById(Long id) throws UsernameNotFoundException;
+
+    /** Helper cho WS: principal.getName() có thể là email hoặc username */
+    default CustomUserDetails loadByPrincipalName(String name) throws UsernameNotFoundException {
+        return loadUserByUsername(name);
+    }
 }
