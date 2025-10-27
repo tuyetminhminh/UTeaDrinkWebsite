@@ -24,6 +24,19 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     List<BestSellerRow> topBestSellers(@Param("statuses") Collection<OrderStatus> statuses,
                                        Pageable pageable);
 
+    /**
+     * Tính tổng số lượng đã bán của nhiều sản phẩm theo trạng thái đơn hàng (batch query)
+     */
+    @Query("""
+        select oi.product.id, sum(oi.quantity)
+        from OrderItem oi
+        where oi.product.id in :productIds
+        and oi.order.status = :status
+        group by oi.product.id
+    """)
+    List<Object[]> sumQuantityByProductsAndStatus(@Param("productIds") Collection<Long> productIds,
+                                                   @Param("status") OrderStatus status);
+
     @Query("""
         select oi.product as product,
                sum(oi.quantity) as total

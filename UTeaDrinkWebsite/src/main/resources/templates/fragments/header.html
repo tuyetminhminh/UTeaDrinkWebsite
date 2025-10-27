@@ -209,7 +209,7 @@
                     <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                         <a class="nav-link d-flex align-items-center gap-2" href="#" id="userDropdown" data-bs-toggle="dropdown">
                             <div class="user-avatar"><i class="bi bi-person"></i></div>
-                            <span class="user-name" sec:authentication="name"></span>
+                            <span class="full-name" sec:authentication="name"></span>
                             <i class="bi bi-caret-down-fill small"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">

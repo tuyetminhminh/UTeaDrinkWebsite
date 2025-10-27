@@ -582,15 +582,25 @@
         }
 
         function loadSections() {
+            console.log('🔄 Loading sections...');
             fetch('/manager/shop/api/sections')
-                .then(response => response.json())
+                .then(response => {
+                    console.log('📥 Load sections response:', response.status);
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(text || 'Không thể tải danh sách section');
+                        });
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('✅ Sections loaded:', data);
                     sections = data;
                     renderSections();
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    showAlert('danger', 'Không thể tải danh sách section');
+                    console.error('💥 Error loading sections:', error);
+                    showAlert('danger', 'Không thể tải danh sách section: ' + error.message);
                 });
         }
 
@@ -608,13 +618,18 @@
             table.style.display = 'table';
             emptyState.style.display = 'none';
 
-            tbody.innerHTML = sections.map((section, index) => `
+            tbody.innerHTML = sections.map((section, index) => {
+                // Ensure isActive is boolean
+                const isActive = section.isActive === true || section.isActive === 1 || section.isActive === "true";
+                console.log(`Section ${section.id}: isActive raw = ${section.isActive} (${typeof section.isActive}), computed = ${isActive}`);
+                
+                return `
                 <tr>
                     <td><strong>${index + 1}</strong></td>
                     <td><strong>${section.title}</strong></td>
                     <td><span class="type-badge type-${section.sectionType.toLowerCase().replace('_', '-')}">${getSectionTypeLabel(section.sectionType)}</span></td>
                     <td>${section.sortOrder}</td>
-                    <td><span class="status-badge ${section.isActive ? 'status-active' : 'status-inactive'}">${section.isActive ? 'Hiển thị' : 'Ẩn'}</span></td>
+                    <td><span class="status-badge ${isActive ? 'status-active' : 'status-inactive'}">${isActive ? 'Hiển thị' : 'Ẩn'}</span></td>
                     <td><small>${formatDate(section.createdAt)}</small></td>
                     <td>
                         <button class="btn-action btn-edit" onclick="editSection(${section.id})">
@@ -625,7 +640,7 @@
                         </button>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
         function getSectionTypeLabel(type) {
@@ -693,13 +708,22 @@
             modal.show();
         }
 
+        let isSaving = false; // Prevent double submit
+        
         function saveSection() {
+            if (isSaving) {
+                console.log('⚠️ Đang lưu, vui lòng đợi...');
+                return;
+            }
+            
             const form = document.getElementById('sectionForm');
             if (!form.checkValidity()) {
                 form.classList.add('was-validated');
+                showAlert('warning', '⚠️ Vui lòng điền đầy đủ thông tin bắt buộc!');
                 return;
             }
 
+            isSaving = true; // Lock submit
             const sectionType = document.getElementById('sectionType').value;
             
             // Generate contentJson from UI
@@ -724,13 +748,15 @@
                 isActive: document.getElementById('sectionStatus').value === 'true'
             };
 
-            console.log('Saving section data:', data);
+            console.log('📤 Saving section data:', data);
             console.log('isActive value:', data.isActive, 'type:', typeof data.isActive);
 
             const url = editingSectionId 
                 ? `/manager/shop/api/sections/${editingSectionId}`
                 : '/manager/shop/api/sections';
             const method = editingSectionId ? 'PUT' : 'POST';
+
+            console.log(`🔄 Calling ${method} ${url}`);
 
             fetch(url, {
                 method: method,
@@ -740,33 +766,53 @@
                 body: JSON.stringify(data)
             })
             .then(response => {
-                if (!response.ok) throw new Error('Có lỗi xảy ra');
+                console.log('📥 Response status:', response.status, response.statusText);
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        console.error('❌ Error response:', text);
+                        throw new Error(text || 'Có lỗi xảy ra khi lưu section');
+                    });
+                }
                 return response.json();
             })
             .then(result => {
+                console.log('✅ Success result:', result);
                 showAlert('success', `✅ ${editingSectionId ? 'Cập nhật' : 'Thêm'} section thành công!`);
                 bootstrap.Modal.getInstance(document.getElementById('sectionModal')).hide();
                 loadSections();
             })
             .catch(error => {
-                console.error('Error:', error);
-                showAlert('danger', '❌ ' + error.message);
+                console.error('💥 Catch error:', error);
+                showAlert('danger', '❌ Lỗi: ' + error.message);
+            })
+            .finally(() => {
+                isSaving = false; // Unlock submit
             });
         }
 
         function deleteSection(id) {
             if (!confirm('Bạn có chắc muốn xóa section này?')) return;
 
+            console.log('🗑️ Deleting section:', id);
             fetch(`/manager/shop/api/sections/${id}`, {
                 method: 'DELETE'
             })
             .then(response => {
-                if (!response.ok) throw new Error('Có lỗi xảy ra');
+                console.log('📥 Delete response:', response.status);
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(text || 'Có lỗi xảy ra khi xóa');
+                    });
+                }
+                return response.text();
+            })
+            .then(result => {
+                console.log('✅ Delete success:', result);
                 showAlert('success', '✅ Xóa section thành công!');
                 loadSections();
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('💥 Error deleting:', error);
                 showAlert('danger', '❌ ' + error.message);
             });
         }

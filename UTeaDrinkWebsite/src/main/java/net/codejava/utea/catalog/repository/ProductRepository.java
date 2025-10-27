@@ -59,7 +59,19 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // ========== Queries phục vụ Home/Sections (Bước 3) ==========
 
     /**
-     * Lấy danh sách ID sản phẩm bán chạy theo shop (dựa trên cột soldCount hiện có để LIMIT)
+     * Lấy danh sách ID sản phẩm nổi bật theo shop (theo rating trung bình cao → thấp)
+     */
+    @Query("""
+        select p.id from Product p
+        where p.shop.id = :shopId
+          and p.status = 'AVAILABLE'
+          and p.ratingAvg is not null
+        order by p.ratingAvg desc, p.soldCount desc, p.id desc
+    """)
+    List<Long> findFeaturedIds(@Param("shopId") Long shopId, Pageable pageable);
+
+    /**
+     * Lấy danh sách ID sản phẩm bán chạy theo shop (dựa trên cột soldCount)
      * Thứ tự sẽ được giữ lại ở Service bằng orderByIds(...)
      */
     @Query("""

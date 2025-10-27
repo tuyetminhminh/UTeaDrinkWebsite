@@ -13,6 +13,19 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("select avg(r.rating) from Review r where r.product.id=:pid and r.status = :st")
     Double avgRating(@Param("pid") Long productId, @Param("st") ReviewStatus status);
 
+    /**
+     * Tính average rating cho nhiều products cùng lúc (batch query)
+     */
+    @Query("""
+        select r.product.id, avg(r.rating)
+        from Review r
+        where r.product.id in :productIds
+        and r.status = :status
+        group by r.product.id
+    """)
+    java.util.List<Object[]> avgRatingByProducts(@Param("productIds") java.util.Collection<Long> productIds,
+                                                  @Param("status") ReviewStatus status);
+
     @Query("select r.rating as star, count(r) as cnt from Review r where r.product.id=:pid and r.status=:st group by r.rating")
     java.util.List<Object[]> countByStarsRaw(@Param("pid") Long productId, @Param("st") ReviewStatus status);
 

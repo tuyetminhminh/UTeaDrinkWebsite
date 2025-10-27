@@ -10,13 +10,6 @@
     <style>
         * {
             font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        ul, ol {
-            list-style: none;
         }
 
         body {
@@ -40,7 +33,7 @@
         .page-header {
             background: white;
             border-radius: 10px;
-            padding: 16px 20px;
+            padding: 12px 20px;
             margin-bottom: 18px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.05);
             border: 1px solid #e2e8f0;
@@ -48,15 +41,17 @@
 
         .page-header h4 {
             color: #0f172a;
-            margin: 0 0 4px 0;
+            margin: 0 0 2px 0;
             font-size: 20px;
             font-weight: 700;
+            line-height: 1.3;
         }
 
         .page-header p {
             color: #64748b;
             margin: 0;
             font-size: 13px;
+            line-height: 1.4;
         }
 
         .stats-card {
@@ -143,19 +138,7 @@
         .user-info {
             display: flex;
             align-items: center;
-            gap: 12px;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-weight: 600;
+            gap: 8px;
         }
 
         .rating-stars {
@@ -210,11 +193,9 @@
     <div class="main-content" id="mainContent">
         <!-- Page Header -->
         <div class="page-header">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h4><i class="fas fa-star text-warning"></i> Quản lý Đánh giá</h4>
-                    <p>Xem và quản lý đánh giá từ khách hàng</p>
-                </div>
+            <div>
+                <h4><i class="fas fa-star text-warning"></i> Quản lý Đánh giá</h4>
+                <p>Xem và quản lý đánh giá từ khách hàng</p>
             </div>
         </div>
 
@@ -372,7 +353,6 @@
                         <div class="review-card">
                             <div class="review-header">
                                 <div class="user-info">
-                                    <div class="user-avatar">${review.userName.charAt(0).toUpperCase()}</div>
                                     <div>
                                         <div style="font-weight: 600;">${review.userName}</div>
                                         <div style="font-size: 13px; color: #718096;">${formatDate(review.createdAt)}</div>

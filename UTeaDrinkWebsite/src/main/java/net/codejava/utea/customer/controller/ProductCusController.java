@@ -11,6 +11,10 @@ import net.codejava.utea.catalog.repository.ProductRepository;
 import net.codejava.utea.catalog.repository.ProductVariantRepository;
 import net.codejava.utea.review.service.ReviewService;
 import net.codejava.utea.review.view.ReviewView;
+import net.codejava.utea.review.repository.ReviewRepository;
+import net.codejava.utea.review.entity.enums.ReviewStatus;
+import net.codejava.utea.order.repository.OrderItemRepository;
+import net.codejava.utea.order.entity.enums.OrderStatus;
 import net.codejava.utea.manager.entity.ShopBanner;
 import net.codejava.utea.manager.repository.ShopBannerRepository;
 import net.codejava.utea.catalog.entity.Topping;
@@ -34,6 +38,8 @@ public class ProductCusController {
     private final ProductVariantRepository variantRepo;
     private final ProductCategoryRepository categoryRepo;
     private final ReviewService reviewService;
+    private final ReviewRepository reviewRepo;
+    private final OrderItemRepository orderItemRepo;
     private final ObjectMapper om = new ObjectMapper();
     private final ShopBannerRepository bannerRepo;
     private final ToppingService toppingService;
@@ -45,19 +51,27 @@ public class ProductCusController {
                        @RequestParam(value = "page_best", defaultValue = "0") int pageBest,
                        @RequestParam Map<String, String> params) {
 
-        final int PAGE_SIZE = 6;
+        long startTime = System.currentTimeMillis();
+        System.out.println("🚀 [MENU] Starting menu page load...");
+
+        final int PAGE_SIZE = 8; // Tăng lên 8 cho 4 cột x 2 hàng
 
         // 1) Best seller theo soldCount desc (AVAILABLE)
+        long t1 = System.currentTimeMillis();
         Pageable bestPg = PageRequest.of(Math.max(0, pageBest), PAGE_SIZE,
                 Sort.by(Sort.Direction.DESC, "soldCount"));
         Page<Product> bestSellers = productRepo.findByStatus("AVAILABLE", bestPg);
+        System.out.println("⏱️ [MENU] Best sellers query: " + (System.currentTimeMillis() - t1) + "ms");
 
         // 2) Danh mục ACTIVE
+        long t2 = System.currentTimeMillis();
         List<ProductCategory> categories = categoryRepo.findAll().stream()
                 .filter(c -> "ACTIVE".equalsIgnoreCase(c.getStatus()))
                 .collect(Collectors.toList());
+        System.out.println("⏱️ [MENU] Categories query: " + (System.currentTimeMillis() - t2) + "ms");
 
-        // 3) Mỗi danh mục phân trang 6 sp/trang
+        // 3) Mỗi danh mục phân trang
+        long t3 = System.currentTimeMillis();
         Map<Long, Page<Product>> catPages = new LinkedHashMap<>();
         Map<Long, Integer> catPageNums = new LinkedHashMap<>();
 
@@ -73,20 +87,94 @@ public class ProductCusController {
             catPages.put(cat.getId(), page);
             catPageNums.put(cat.getId(), pageIdx);
         }
+        System.out.println("⏱️ [MENU] Category products query: " + (System.currentTimeMillis() - t3) + "ms (categories: " + categories.size() + ")");
+
+        // Collect all products để tính rating và soldCount
+        long t4 = System.currentTimeMillis();
+        List<Product> allProducts = new ArrayList<>();
+        allProducts.addAll(bestSellers.getContent());
+        catPages.values().forEach(page -> allProducts.addAll(page.getContent()));
+        System.out.println("⏱️ [MENU] Collected products: " + allProducts.size());
+
+        // Tính rating và soldCount thực
+        long t5 = System.currentTimeMillis();
+        Map<Long, BigDecimal> ratingMap = computeRatingMap(allProducts);
+        System.out.println("⏱️ [MENU] Rating map computation: " + (System.currentTimeMillis() - t5) + "ms");
+        
+        long t6 = System.currentTimeMillis();
+        Map<Long, Integer> soldMap = computeSoldCountMap(allProducts);
+        System.out.println("⏱️ [MENU] Sold map computation: " + (System.currentTimeMillis() - t6) + "ms");
 
         model.addAttribute("bestSellers", bestSellers);
         model.addAttribute("pageBest", pageBest);
         model.addAttribute("categories", categories);
         model.addAttribute("catPages", catPages);
         model.addAttribute("catPageNums", catPageNums);
+        model.addAttribute("ratingMap", ratingMap);
+        model.addAttribute("soldMap", soldMap);
 
+        long t7 = System.currentTimeMillis();
         Sort bannerSort = Sort.by(Sort.Direction.ASC, "sortOrder")
-                .and(Sort.by(Sort.Direction.DESC, "createdAt")); // tie-breaker
+                .and(Sort.by(Sort.Direction.DESC, "createdAt"));
         List<ShopBanner> banners = bannerRepo.findByActiveTrue(bannerSort);
+        System.out.println("⏱️ [MENU] Banners query: " + (System.currentTimeMillis() - t7) + "ms");
 
         model.addAttribute("banners", banners);
 
+        System.out.println("✅ [MENU] Total page load time: " + (System.currentTimeMillis() - startTime) + "ms\n");
         return "customer/menu";
+    }
+
+    /**
+     * Tính average rating thực từ reviews đã approved - Optimized batch query
+     */
+    private Map<Long, BigDecimal> computeRatingMap(List<Product> products) {
+        Map<Long, BigDecimal> map = new HashMap<>();
+        Set<Long> productIds = products.stream().map(Product::getId).collect(Collectors.toSet());
+        
+        if (productIds.isEmpty()) return map;
+
+        try {
+            // Dùng batch query để tính tất cả cùng lúc (tránh N+1 problem)
+            List<Object[]> results = reviewRepo.avgRatingByProducts(productIds, ReviewStatus.APPROVED);
+            
+            for (Object[] row : results) {
+                Long productId = (Long) row[0];
+                Double avgRating = (Double) row[1];
+                if (avgRating != null && avgRating > 0) {
+                    map.put(productId, BigDecimal.valueOf(avgRating));
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error computing rating map: " + e.getMessage());
+        }
+        return map;
+    }
+
+    /**
+     * Tính sold count thực từ order items DELIVERED - Optimized batch query
+     */
+    private Map<Long, Integer> computeSoldCountMap(List<Product> products) {
+        Map<Long, Integer> map = new HashMap<>();
+        Set<Long> productIds = products.stream().map(Product::getId).collect(Collectors.toSet());
+        
+        if (productIds.isEmpty()) return map;
+
+        try {
+            // Dùng batch query để tính tất cả cùng lúc (tránh N+1 problem)
+            List<Object[]> results = orderItemRepo.sumQuantityByProductsAndStatus(productIds, OrderStatus.DELIVERED);
+            
+            for (Object[] row : results) {
+                Long productId = (Long) row[0];
+                Long quantity = (Long) row[1];
+                if (quantity != null && quantity > 0) {
+                    map.put(productId, quantity.intValue());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error computing sold count map: " + e.getMessage());
+        }
+        return map;
     }
 
     // ------------------- PRODUCT DETAIL -------------------
