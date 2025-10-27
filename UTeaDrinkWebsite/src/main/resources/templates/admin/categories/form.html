@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{admin/layout :: adminLayout(~{::title}, ~{::content})}">
+      th:replace="~{fragments/admin-layout :: adminLayout(~{::title}, ~{::content})}">
 <head>
     <meta charset="UTF-8">
     <title th:text="${form.id==null? 'Thêm danh mục' : 'Sửa danh mục'}">Danh mục</title>
 </head>
 <body>
 <div th:fragment="content">
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a th:href="@{/admin/home}">Trang chủ</a></li>
-            <li class="breadcrumb-item"><a th:href="@{/admin/categories(page=${pageIndex},size=${size},q=${q})}">Danh mục</a></li>
-            <li class="breadcrumb-item active" aria-current="page" th:text="${form.id==null?'Thêm mới':'Chỉnh sửa'}"></li>
-        </ol>
-    </nav>
+<div th:replace="~{fragments/breadcrumbs ::
+  bc('Trang chủ', @{/admin/home},
+     'Danh mục', @{/admin/categories},
+     ${form.id} == null ? 'Thêm mới' : 'Chỉnh sửa')
+}"></div>
+
+
     <h3 class="mb-3" th:text="${form.id==null?'Thêm danh mục':'Sửa danh mục'}"></h3>
     <div th:if="${errors!=null && !#lists.isEmpty(errors)}" class="alert alert-danger">
         <ul class="m-0">

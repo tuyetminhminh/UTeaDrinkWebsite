@@ -3,14 +3,22 @@ package net.codejava.utea.common.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 @Entity
 @Table(
         name = "users",
-        indexes = @Index(name = "ix_user_email", columnList = "email")
+        indexes = {
+        @Index(name = "ix_user_email", columnList = "email"),
+        @Index(name = "ix_user_phone", columnList = "phone")
+        }
 )
 @Getter
 @Setter
@@ -34,6 +42,16 @@ public class User {
 
     @Column(name = "full_name", columnDefinition = "NVARCHAR(200)")
     private String fullName;
+
+    // ✅ SĐT (tuỳ chọn unique)
+    @Column(name = "phone", length = 20)
+    private String phone;
+
+    // ✅ Ngày sinh (LocalDate)
+    @Column(name = "birth_date")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")   // cho form Spring MVC
+    @JsonFormat(pattern = "yyyy-MM-dd")       // cho JSON REST (nếu có)
+    private LocalDate birthDate;
 
     @Column(length = 20)
     @Builder.Default

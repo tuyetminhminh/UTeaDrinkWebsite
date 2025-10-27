@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      th:replace="~{admin/layout :: adminLayout(~{::title}, ~{::content})}">
+      th:replace="~{fragments/admin-layout :: adminLayout(~{::title}, ~{::content})}">
 <head>
     <meta charset="UTF-8" />
     <title>Quản lý sản phẩm</title>
@@ -13,7 +13,16 @@
 
 <!-- Header dùng fragment -->
 <div th:fragment="content">
+
+<div th:replace="~{fragments/breadcrumbs ::
+  bc('Trang chủ', @{/admin/home},
+     null, null,
+     'Sản phẩm')
+}"></div>
+
+
     <div class="container-fluid p-0">
+ 
         <h3 class="mb-3">🧋 Quản lý sản phẩm</h3>
 
         <!-- Bộ lọc -->

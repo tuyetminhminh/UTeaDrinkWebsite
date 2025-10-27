@@ -12,5 +12,5 @@ public class Role {
     private Long id;
 
     @Column(nullable = false, length = 40)
-    private String code; // ADMIN | MANAGER | CUSTOMER | SHIPPER
+    private String code; // ADMIN 1| MANAGER 2 | CUSTOMER 4 | SHIPPER 5
 }

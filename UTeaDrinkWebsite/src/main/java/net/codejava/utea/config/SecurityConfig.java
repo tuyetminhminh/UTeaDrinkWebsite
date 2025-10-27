@@ -78,7 +78,7 @@ public class SecurityConfig {
                                 "/css/**", "/js/**", "/images/**", "/webjars/**",
                                 "/index", "/about", "/contact",
                                 "/products/**", "/GuestProducts/**", "/fragments/**",
-                                "/uploads/**", "/assets/**", "/ws/**"
+                                "/uploads/**", "/assets/**", "/ws/**", "/vendor/**"
                         ).permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/customer/cart/api/**").hasAnyRole("CUSTOMER","ADMIN","MANAGER") // ✅

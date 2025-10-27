@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin-layout :: adminLayout(~{::title}, ~{::content})}">
+
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${form!=null && form.id!=null? 'Chỉnh sửa cửa hàng' : 'Thêm cửa hàng'}">Cửa hàng</title>
+
+  <style>
+  /* ép Tom Select full width theo Bootstrap form-control */
+  #managerSelect, .ts-wrapper { width: 100% }
+</style>
+</head>
+<body>
+<div th:fragment="content">
+
+  <div th:replace="~{fragments/breadcrumbs ::
+    bc('Trang chủ', @{/admin/home},
+       'Cửa hàng', @{/admin/shops},
+       ${form!=null && form.id!=null? 'Chỉnh sửa' : 'Thêm mới'}) }"></div>
+
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+  <h3 class="mb-3" th:text="${form!=null && form.id!=null? 'Chỉnh sửa cửa hàng' : 'Thêm cửa hàng'}">Cửa hàng</h3>
+
+  <form th:object="${form}"
+        th:action="${form.id} == null
+                    ? @{/admin/shops(page=${pageIndex},size=${size})}
+                    : @{/admin/shops/{id}(id=${form.id},page=${pageIndex},size=${size})}"
+        method="post" class="row g-3">
+
+    <input type="hidden"
+       th:if="${_csrf != null}"
+       th:name="${_csrf.parameterName}"
+       th:value="${_csrf.token}">
+
+
+    <div class="col-md-6">
+      <label class="form-label">Tên cửa hàng <span class="text-danger">*</span></label>
+      <input class="form-control" th:field="*{name}" required maxlength="200" placeholder="VD: UTea Coffee & Tea">
+      <div class="text-danger small" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Điện thoại</label>
+      <input class="form-control" th:field="*{phone}" maxlength="20" placeholder="VD: 0901234567">
+      <div class="text-danger small" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
+    </div>
+
+    <div class="col-md-12">
+      <label class="form-label">Địa chỉ</label>
+      <input class="form-control" th:field="*{address}" maxlength="400">
+      <div class="text-danger small" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label">Trạng thái</label>
+      <select class="form-select" th:field="*{status}">
+        <option value="OPEN">OPEN</option>
+        <option value="CLOSED">CLOSED</option>
+        <option value="MAINTENANCE">MAINTENANCE</option>
+      </select>
+      <div class="text-danger small" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></div>
+    </div>
+
+    <!-- Manager combobox (có thể bỏ chọn = không gán) -->
+    <div class="col-md-8">
+  <label class="form-label">Quản lý cửa hàng</label>
+  <select id="managerSelect" class="form-control" th:field="*{managerId}" placeholder="Chọn quản lý">
+    <option value=""></option> <!-- để biểu thị trạng thái 'chưa gán' -->
+  </select>
+  <small class="text-muted d-block mt-1">Gõ để lọc theo tên/email/sđt. Để trống nếu chưa gán.</small>
+  <div class="text-danger small" th:if="${#fields.hasErrors('managerId')}" th:errors="*{managerId}"></div>
+</div>
+
+
+    <div class="col-12">
+      <button type="submit" class="btn btn-primary">Lưu</button>
+      <a class="btn btn-outline-secondary"
+         th:href="@{/admin/shops(page=${pageIndex},size=${size})}">Hủy</a>
+    </div>
+  </form>
+<link th:href="@{/vendor/tom-select/tom-select.css}" rel="stylesheet">
+<script th:src="@{/vendor/tom-select/tom-select.complete.min.js}"></script>
+
+<script th:inline="javascript">
+document.addEventListener('DOMContentLoaded', function () {
+  const sid    = /*[[${form != null ? form.id : null}]]*/ null;
+  const preId  = /*[[${form != null ? form.managerId : null}]]*/ null;
+  const preName= /*[[${form != null ? form.managerName : null}]]*/ null;
+
+  const el = document.getElementById('managerSelect');
+  if (preId != null && preName != null) {
+    el.appendChild(new Option(preName, preId, true, true));
+  }
+
+  new TomSelect('#managerSelect', {
+    valueField: 'id',
+    labelField: 'text',
+    searchField: ['text','desc'],
+    create: false,
+    allowEmptyOption: true,
+    preload: 'focus',        // <— mở dropdown khi focus
+    openOnFocus: true,
+    maxOptions: 20,
+    dropdownParent: 'body',
+    render: {
+      option: (item, escape) =>
+        `<div><div>${escape(item.text)}</div>${
+          item.desc ? `<small class="text-muted">${escape(item.desc)}</small>` : ''
+        }</div>`,
+      item: (item, escape) => `<div>${escape(item.text)}</div>`
+    },
+    load: (query, callback) => {
+      // Cho phép query rỗng để preload
+      const url = new URL(window.location.origin + '/admin/shops/managers/search');
+      url.searchParams.set('q', (query || '').trim());
+      if (sid) url.searchParams.set('currentShopId', sid);
+
+      fetch(url, { headers: { 'Accept': 'application/json' }})
+        .then(r => r.ok ? r.json() : [])
+        .then(callback)
+        .catch(() => callback());
+    }
+  });
+});
+</script>
+</div>
+
+
+</body>
+</html>

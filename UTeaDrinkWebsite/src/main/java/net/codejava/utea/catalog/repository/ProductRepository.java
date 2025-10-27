@@ -96,12 +96,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByIdsWithImages(@Param("ids") List<Long> ids);
 
     // (Nếu muốn thêm phiên bản lọc theo shop, có thể mở comment dưới)
-    // @Query("""
-    //     select distinct p from Product p
-    //     left join fetch p.images
-    //     left join fetch p.category
-    //     left join fetch p.shop
-    //     where p.id in :ids and p.shop.id = :shopId and p.status = 'AVAILABLE'
-    // """)
-    // List<Product> findByIdsWithImagesAndShop(@Param("shopId") Long shopId, @Param("ids") List<Long> ids);
+    @Query("""
+        select distinct p from Product p
+        left join fetch p.images
+        left join fetch p.category
+        left join fetch p.shop
+        where p.id in :ids and p.shop.id = :shopId and p.status = 'AVAILABLE'
+    """)
+    List<Product> findByIdsWithImagesAndShop(@Param("shopId") Long shopId, @Param("ids") List<Long> ids);
+
+    boolean existsByShop_Id(Long shopId);
 }

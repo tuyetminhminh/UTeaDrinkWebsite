@@ -3,17 +3,23 @@ package net.codejava.utea.admin.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import net.codejava.utea.common.dto.UserForm;
 import net.codejava.utea.common.entity.User;
 import net.codejava.utea.common.repository.RoleRepository;
 import net.codejava.utea.common.repository.UserRepository;
+import net.codejava.utea.common.service.UserAdminAppService;
 import net.codejava.utea.common.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import jakarta.validation.Valid;
 
 import java.util.*;
 
@@ -25,6 +31,7 @@ public class AdminUserController {
     private final UserService userService;
     private final UserRepository userRepo;
     private final RoleRepository roleRepo;
+     private final UserAdminAppService userApp;
 
     /*
      * ========================= LIST + SEARCH (phân trang)
@@ -44,37 +51,96 @@ public class AdminUserController {
     /*
      * ========================= TẠO MỚI USER (CREATE) =========================
      */
-    @PostMapping("/create")
-    public String create(@RequestParam String email, @RequestParam(required = false) String username,
-                         @RequestParam String fullName, @RequestParam String password,
-                         @RequestParam(name = "roles", required = false) String role, RedirectAttributes ra) {
-        // validate cơ bản
-        if (!StringUtils.hasText(email) || !StringUtils.hasText(password)) {
-            ra.addFlashAttribute("error", "Email và mật khẩu không được để trống.");
-            return "redirect:/admin/users";
-        }
-        if (userRepo.existsByEmailIgnoreCase(email)) {
-            ra.addFlashAttribute("error", "Email đã tồn tại.");
-            return "redirect:/admin/users";
-        }
-
-        User u = User.builder()
-                .email(email.trim())
-                .username((username != null && !username.isBlank()) ? username.trim() : null)
-                .fullName(fullName)
-                .passwordHash(password)
-                .status("ACTIVE")
-                .build();
-
-        // gán 1 role (mặc định CUSTOMER)
-        String code = (role == null || role.isBlank()) ? "CUSTOMER" : role.toUpperCase();
-        roleRepo.findByCode(code).ifPresent(r -> u.setRoles(Set.of(r)));
-
-        userService.save(u);
-        ra.addFlashAttribute("success", "Tạo người dùng thành công.");
-        return "redirect:/admin/users";
+     @GetMapping("/new")
+    public String createForm(Model model){
+        var form = new UserForm();
+        model.addAttribute("form", form);
+        model.addAttribute("rolesAll", roleRepo.findAll());
+        return "admin/users/form";
     }
 
+    // CREATE
+@PostMapping
+    public String create(@Valid @ModelAttribute("form") UserForm form,
+                        BindingResult br, Model model, RedirectAttributes ra) {
+        // bắt buộc nhập pass khi tạo mới
+        if (!StringUtils.hasText(form.getPassword())) {
+            br.rejectValue("password", "required", "Vui lòng nhập mật khẩu (tối thiểu 4 ký tự).");
+        } else if (form.getPassword().length() < 4) {
+            br.rejectValue("password", "size", "Mật khẩu phải có ít nhất 4 ký tự.");
+        }
+        if (br.hasErrors()) {
+            model.addAttribute("rolesAll", roleRepo.findAll());
+            return "admin/users/form";
+        }
+        try {
+            userApp.create(form);
+            ra.addFlashAttribute("success", "Tạo người dùng thành công.");
+            return "redirect:/admin/users";
+        } catch (IllegalArgumentException ex) {
+            br.reject("err", ex.getMessage());           // lỗi chung VN
+            model.addAttribute("rolesAll", roleRepo.findAll());
+            return "admin/users/form";
+        }
+    }
+
+
+    // ============ EDIT ============
+    @GetMapping("/{id}/edit")
+    public String editForm(@PathVariable Long id, Model model, RedirectAttributes ra){
+        return userRepo.findById(id).map(u -> {
+            var f = new UserForm();
+            f.setId(u.getId());
+            f.setEmail(u.getEmail());
+            f.setUsername(u.getUsername());
+            f.setFullName(u.getFullName());
+            f.setPhone(u.getPhone());
+            f.setBirthDate(u.getBirthDate());
+            f.setStatus(u.getStatus());
+            f.setRoleCode(u.getRoles().stream().findFirst().map(r -> r.getCode()).orElse("CUSTOMER"));
+
+            model.addAttribute("form", f);
+            model.addAttribute("rolesAll", roleRepo.findAll());
+            return "admin/users/form";
+        }).orElseGet(() -> {
+            ra.addFlashAttribute("error", "Không tìm thấy người dùng.");
+            return "redirect:/admin/users";
+        });
+    }
+
+    
+    @PostMapping("/{id}")
+    public String update(@PathVariable Long id,
+                         @Valid @ModelAttribute("form") UserForm form,
+                         BindingResult br, Model model, RedirectAttributes ra){
+        if (StringUtils.hasText(form.getPassword()) && form.getPassword().length() < 4) {
+        br.rejectValue("password", "size", "Mật khẩu phải có ít nhất 4 ký tự.");}
+                            if (br.hasErrors()){
+            model.addAttribute("rolesAll", roleRepo.findAll());
+            return "admin/users/form";
+        }
+        // xác định có phải tự sửa mình không
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        var principal = (auth != null) ? auth.getName() : null;
+        var u = userRepo.findById(id).orElse(null);
+        boolean isSelfAdmin = false;
+        if (u != null && principal != null){
+            boolean isSelf = principal.equalsIgnoreCase(u.getEmail()) ||
+                    (u.getUsername()!=null && principal.equalsIgnoreCase(u.getUsername()));
+            boolean wasAdmin = u.getRoles().stream().anyMatch(r -> "ADMIN".equalsIgnoreCase(r.getCode()));
+            isSelfAdmin = isSelf && wasAdmin;
+        }
+
+        try {
+            userApp.update(id, form, isSelfAdmin);
+            ra.addFlashAttribute("success", "Cập nhật người dùng thành công.");
+            return "redirect:/admin/users";
+        } catch (IllegalArgumentException ex){
+            br.reject("err", ex.getMessage());
+            model.addAttribute("rolesAll", roleRepo.findAll());
+            return "admin/users/form";
+        }
+    }
     /*
      * ========================= CẬP NHẬT THÔNG TIN (UPDATE)
      * =========================
