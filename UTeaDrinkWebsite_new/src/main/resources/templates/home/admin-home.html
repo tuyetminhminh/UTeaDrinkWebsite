@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	th:replace="~{fragments/admin-layout :: adminLayout(~{::title}, ~{::content})}">
+
+<head>
+<title>UTeaDrink 👑 - Bảng điều khiển</title>
+</head>
+
+<body>
+	<div class="container-fluid px-4" th:fragment="content">
+		<section class="dashboard-hero">
+			<div
+				class="headline d-flex flex-wrap justify-content-between align-items-end gap-3">
+				<div>
+					<h1 class="fw-bold mb-1">👑 Xin chào Quản trị viên UTeaDrink</h1>
+					<div class="text-muted">Chào mừng bạn đến bảng điều khiển
+						quản lý hệ thống.</div>
+				</div>
+
+				<!-- Quick actions: CHIPS -->
+				<div class="quick d-flex flex-wrap gap-2">
+					<a th:href="@{/admin/products/new}" class="action-chip"> <i
+						class="bi bi-plus-circle"></i> Thêm sản phẩm
+					</a> <a th:href="@{/admin/users}" class="action-chip"> <i
+						class="bi bi-people"></i> Quản lý người dùng
+					</a> <a th:href="@{/admin/shops}" class="action-chip"> <i
+						class="bi bi-shop"></i> Cửa hàng
+					</a> <a th:href="@{/admin/reports}" class="action-chip"> <i
+						class="bi bi-graph-up-arrow"></i> Thống kê
+					</a>
+				</div>
+			</div>
+		</section>
+
+
+		<div class="container-fluid px-4">
+			<div class="row g-3 mb-3">
+				<div class="col-12 col-sm-6 col-lg-3">
+					<div class="kpi">
+						<h6>Doanh thu (tháng)</h6>
+						<div class="val mt-1">₫ 128,5M</div>
+						<div class="spark mt-2"></div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-6 col-lg-3">
+					<div class="kpi">
+						<h6>Đơn hàng</h6>
+						<div class="val mt-1">1,284</div>
+						<div class="spark mt-2"></div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-6 col-lg-3">
+					<div class="kpi">
+						<h6>Người dùng mới</h6>
+						<div class="val mt-1">312</div>
+						<div class="spark mt-2"></div>
+					</div>
+				</div>
+				<div class="col-12 col-sm-6 col-lg-3">
+					<div class="kpi">
+						<h6>Sản phẩm đang bán</h6>
+						<div class="val mt-1">96</div>
+						<div class="spark mt-2"></div>
+					</div>
+				</div>
+			</div>
+
+			<div class="row g-3">
+				<div class="col-lg-7">
+					<div class="card-lite p-3">
+						<div class="d-flex justify-content-between align-items-center">
+							<h5 class="m-0">Đơn gần đây</h5>
+							<a class="btn btn-sm btn-ghost" th:href="@{/admin/orders}">Xem
+								tất cả</a>
+						</div>
+						<div class="table-responsive mt-2">
+							<table class="table table-sm align-middle">
+								<thead>
+									<tr>
+										<th>Mã</th>
+										<th>Khách</th>
+										<th>Thời gian</th>
+										<th class="text-end">Tổng</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td>#O-10293</td>
+										<td>Nguyễn A</td>
+										<td>10:21, hôm nay</td>
+										<td class="text-end">₫ 185,000</td>
+									</tr>
+									<tr>
+										<td>#O-10292</td>
+										<td>Trần B</td>
+										<td>09:55, hôm nay</td>
+										<td class="text-end">₫ 72,000</td>
+									</tr>
+									<tr>
+										<td>#O-10291</td>
+										<td>Lê C</td>
+										<td>Hôm qua</td>
+										<td class="text-end">₫ 241,000</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-lg-5">
+					<div class="card-lite p-3 h-100">
+						<h5 class="mb-3">Hoạt động hệ thống</h5>
+						<ul class="list-group list-group-flush">
+							<li class="list-group-item bg-transparent border-secondary"><i
+								class="bi bi-check2-circle text-success"></i> Đã đồng bộ ảnh
+								Cloudinary thành công.</li>
+							<li class="list-group-item bg-transparent border-secondary"><i
+								class="bi bi-person-plus"></i> Tạo mới nhân viên “manager01”.</li>
+							<li class="list-group-item bg-transparent border-secondary"><i
+								class="bi bi-sliders"></i> Cập nhật cấu hình thanh toán.</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

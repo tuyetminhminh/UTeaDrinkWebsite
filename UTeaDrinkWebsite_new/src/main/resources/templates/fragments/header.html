@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>UTeaDrink Header</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --tea-gold: #facc15;
+            --tea-dark: #000000;
+            --tea-light: #ffffff;
+            --tea-gray: #bdbdbd;
+        }
+
+        body {
+            font-family: "Poppins", "Segoe UI", sans-serif;
+            background-color: var(--tea-dark);
+            color: var(--tea-light);
+        }
+
+        /* 🔥 Header đen toàn phần */
+        .navbar {
+            background-color: var(--tea-dark) !important;
+            color: var(--tea-light) !important;
+            padding: 12px 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+        }
+
+        /* 🔥 Ghi đè mọi phần tử bên trong navbar */
+        .navbar * {
+            color: var(--tea-light) !important;
+        }
+
+        .navbar-brand {
+            color: var(--tea-gold) !important;
+            font-weight: 800;
+            font-size: 1.8rem;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-shadow: 0 0 8px rgba(250, 204, 21, 0.5);
+        }
+
+        .navbar-brand span {
+            font-size: 1.6rem;
+        }
+
+        .navbar-nav .nav-link {
+            color: var(--tea-light) !important;
+            font-weight: 500;
+            margin: 0 12px;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: var(--tea-gold) !important;
+        }
+
+        .dropdown-menu {
+            background-color: #111 !important;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.9);
+        }
+
+        .dropdown-item {
+            color: var(--tea-light) !important;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--tea-gold) !important;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--tea-gold);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            box-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--tea-light);
+        }
+
+        .btn-auth {
+            border-radius: 25px;
+            font-weight: 600;
+            padding: 7px 20px;
+            transition: all 0.3s;
+        }
+
+        .btn-login {
+            background: var(--tea-gold);
+            color: #000;
+            border: none;
+        }
+
+        .btn-login:hover {
+            background-color: #ffe55c;
+            color: #000;
+        }
+
+        .btn-register {
+            border: 2px solid var(--tea-gold);
+            color: var(--tea-gold);
+            background: transparent;
+        }
+
+        .btn-register:hover {
+            background-color: var(--tea-gold);
+            color: #000;
+        }
+    </style>
+</head>
+
+<body>
+<div th:fragment="header">
+    <!-- ✅ nền đen chắc chắn -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background-color: #000 !important;">
+        <div class="container-fluid">
+            <!-- BRAND -->
+            <a class="navbar-brand" th:href="@{/}">
+                UTeaDrink <span>🍹</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
+                <!-- MENU -->
+                <ul class="navbar-nav mb-2 mb-lg-0 ms-auto me-3">
+                	
+                	<!-- ADMIN -->
+                    <li class="nav-item dropdown" sec:authorize="hasAuthority('ADMIN')">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Quản trị</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" th:href="@{/admin/home}">🏠 Trang quản trị</a></li>
+                            <li><a class="dropdown-item" th:href="@{/admin/users}">👥 Người dùng</a></li>
+                            <li><a class="dropdown-item" th:href="@{/admin/orders}">📦 Đơn hàng</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- CUSTOMER NAV -->
+                    <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">
+                        <a class="nav-link mx-3 text-uppercase small fw-semibold" th:href="@{/customer/home}">TRANG CHỦ</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">
+                        <a class="nav-link mx-3 text-uppercase small fw-bold" th:href="@{/customer/menu}">MENU</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">
+                        <a class="nav-link mx-3 text-uppercase small fw-semibold" th:href="@{/customer/cart}">GIỎ HÀNG</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasAuthority('CUSTOMER')">
+                        <a class="nav-link mx-3 text-uppercase small fw-semibold" th:href="@{/chat/customer}">LIÊN HỆ</a>
+                    </li>
+
+
+                    <!-- CUSTOMER DROPDOWN -->
+                    <li class="nav-item dropdown" sec:authorize="hasAuthority('CUSTOMER')">
+                        <a class="nav-link d-flex align-items-center gap-1 dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle fs-5"></i>
+                            <span class="text-uppercase small fw-semibold">Tài khoản</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" th:href="@{/customer/account}"><i class="bi bi-gear me-2"></i> Quản lý tài khoản</a></li>
+                            <li><a class="dropdown-item" th:href="@{/customer/orders}"><i class="bi bi-bag-check me-2"></i> Đơn hàng</a></li>
+                            <li><a class="dropdown-item" th:href="@{/customer/vouchers}"><i class="bi bi-ticket-perforated me-2"></i> Kho voucher</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                        </ul>
+                    </li>
+
+
+
+                    <!-- SELLER -->
+                    <li class="nav-item dropdown" sec:authorize="hasAuthority('SELLER')">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-shop"></i> Cửa hàng</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" th:href="@{/seller/home}">🏠 Trang người bán</a></li>
+                            <li><a class="dropdown-item" th:href="@{/seller/products}">🧋 Sản phẩm</a></li>
+                            <li><a class="dropdown-item" th:href="@{/seller/orders}">📦 Đơn hàng</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- SHIPPER -->
+                    <li class="nav-item dropdown" sec:authorize="hasAuthority('SHIPPER')">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"><i class="bi bi-truck"></i> Giao hàng</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" th:href="@{/shipper/home}">🏠 Trang giao hàng</a></li>
+                            <li><a class="dropdown-item" th:href="@{/shipper/orders}">🚚 Đơn cần giao</a></li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <!-- USER SECTION -->
+                <ul class="navbar-nav user-menu">
+                    <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                        <a class="nav-link d-flex align-items-center gap-2" href="#" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="user-avatar"><i class="bi bi-person"></i></div>
+                            <span class="user-name" sec:authentication="name"></span>
+                            <i class="bi bi-caret-down-fill small"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><span class="dropdown-item-text small text-muted" sec:authentication="principal.authorities"></span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post">
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- GUEST -->
+                    <li class="nav-item" sec:authorize="isAnonymous()">
+                        <a class="btn btn-login btn-auth me-2" th:href="@{/login}">Đăng nhập</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAnonymous()">
+                        <a class="btn btn-register btn-auth" th:href="@{/register}">Đăng ký</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách sản phẩm</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f9fafb;
+            font-family: "Poppins", sans-serif;
+        }
+        .card {
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.25s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .card-img-top {
+            height: 220px;
+            object-fit: cover;
+        }
+        .price {
+            color: #d0021b;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .btn-outline-dark {
+            border-radius: 50px;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ✅ Header -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <div class="container">
+        <a class="navbar-brand text-dark" href="/">☕ UTeaDrink</a>
+        <div class="d-flex">
+            <a th:href="@{/customer/chat}" class="btn btn-outline-dark me-2">💬 Hộp thư</a>
+            <a th:href="@{/logout}" class="btn btn-danger">Đăng xuất</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ✅ Danh sách sản phẩm -->
+<div class="container my-5">
+    <h3 class="text-center mb-4 fw-semibold">🌸 Thực đơn của quán 🌸</h3>
+
+    <div class="row g-4" th:if="${products != null}">
+        <div th:each="p : ${products}" class="col-md-3 col-sm-6">
+            <div class="card h-100">
+                <img th:src="${p.mainImageUrl}" class="card-img-top" alt="Ảnh sản phẩm">
+
+                <div class="card-body text-center">
+                    <h5 th:text="${p.name}" class="card-title fw-bold mb-2"></h5>
+                    <p th:text="${#numbers.formatDecimal(p.basePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'" class="price mb-2"></p>
+
+                    <a th:href="@{'/customer/product/' + ${p.id}}" class="btn btn-outline-dark btn-sm">
+                        Xem chi tiết
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(products)}" class="text-center mt-5">
+        <p class="text-muted">Hiện chưa có sản phẩm nào được đăng.</p>
+    </div>
+</div>
+
+</body>
+</html>

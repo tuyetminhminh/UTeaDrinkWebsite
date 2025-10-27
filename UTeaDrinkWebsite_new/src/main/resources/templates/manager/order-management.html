@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Đơn hàng - UTea</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+            padding-top: 70px;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            height: calc(100vh - 70px);
+            width: 260px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e293b 100%);
+            padding: 20px 0;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.2);
+            overflow-y: auto;
+            z-index: 99;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar.collapsed .brand p,
+        .sidebar.collapsed .nav-link span {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+
+        .sidebar.collapsed .brand h4 {
+            font-size: 0;
+        }
+
+        .sidebar.collapsed .brand h4 i {
+            font-size: 24px;
+        }
+
+        .sidebar.collapsed .nav-link {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .nav-link i {
+            margin-right: 0;
+        }
+
+        .sidebar .menu-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .sidebar .menu-toggle:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.05);
+        }
+
+        .sidebar.collapsed .menu-toggle {
+            right: 50%;
+            transform: translateX(50%);
+        }
+
+        .sidebar .brand {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .sidebar .brand h4 {
+            color: #fff;
+            font-weight: 600;
+            margin: 0;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+
+        .sidebar .brand p {
+            color: rgba(255,255,255,0.7);
+            margin: 5px 0 0;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .sidebar .nav-item {
+            margin: 5px 15px;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .sidebar .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            transform: translateX(5px);
+        }
+
+        .sidebar.collapsed .nav-link:hover {
+            transform: none;
+        }
+
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .sidebar .nav-link i {
+            width: 20px;
+            margin-right: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .sidebar .nav-link span {
+            transition: all 0.3s;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+            min-height: calc(100vh - 70px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-content.expanded {
+            margin-left: 70px;
+        }
+
+        /* Filter Tabs */
+        .filter-tabs {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 25px;
+        }
+
+        .filter-tabs .btn {
+            border-radius: 8px;
+            padding: 10px 18px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .filter-tabs .btn:not(.active) {
+            background: #f7fafc;
+            border-color: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .filter-tabs .btn.active {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* Orders Table */
+        .orders-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .orders-card h5 {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .table {
+            margin: 0;
+        }
+
+        .table thead th {
+            background: #f7fafc;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            padding: 15px 12px;
+        }
+
+        .table thead th:nth-child(1) { width: 10%; } /* Mã đơn */
+        .table thead th:nth-child(2) { width: 12%; } /* Khách hàng */
+        .table thead th:nth-child(3) { width: 12%; } /* Tổng tiền */
+        .table thead th:nth-child(4) { width: 10%; } /* Trạng thái */
+        .table thead th:nth-child(5) { width: 12%; } /* Shipper */
+        .table thead th:nth-child(6) { width: 13%; } /* Ngày đặt */
+        .table thead th:nth-child(7) { width: 15%; } /* Địa chỉ */
+        .table thead th:nth-child(8) { width: 16%; } /* Thao tác */
+
+        .table tbody td {
+            padding: 12px;
+            vertical-align: middle;
+            color: #4a5568;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        .table tbody td:nth-child(7) { /* Địa chỉ */
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            font-weight: 500;
+            font-size: 11px;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        /* Filter Card */
+        .filter-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            border-radius: 12px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+        }
+
+        .filter-card .form-label {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 12px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-card .form-label i {
+            margin-right: 6px;
+            color: #1e3a8a;
+        }
+
+        .filter-card .form-control,
+        .filter-card .form-select {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #fff;
+        }
+
+        .filter-card .form-control:focus,
+        .filter-card .form-select:focus {
+            border-color: #1e3a8a;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+            outline: none;
+        }
+
+        .filter-card .form-select {
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .filter-card .form-select option {
+            padding: 10px;
+        }
+
+        .filter-card .btn {
+            font-weight: 600;
+            padding: 11px 20px;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .filter-card .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .filter-card .btn-primary {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            border: none;
+        }
+
+        .filter-card .btn-outline-danger {
+            border: 2px solid #feb2b2;
+            color: #e53e3e;
+            padding: 11px 16px;
+            width: auto;
+            min-width: 44px;
+        }
+
+        .filter-card .btn-outline-danger:hover {
+            background: #fff5f5;
+            border-color: #fc8181;
+            color: #c53030;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.2);
+        }
+
+        .filter-card .btn-outline-danger i {
+            font-size: 16px;
+        }
+
+        /* Pagination */
+        .pagination {
+            margin-top: 20px;
+        }
+
+        .pagination .page-link {
+            border-radius: 6px;
+            margin: 0 3px;
+            border: none;
+            color: #4a5568;
+            font-weight: 500;
+            padding: 8px 12px;
+        }
+
+        .pagination .page-item.active .page-link {
+            background: #1e3a8a;
+            color: #fff;
+        }
+
+        .pagination .page-link:hover {
+            background: #f7fafc;
+        }
+
+        .pagination-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .pagination-info .page-size-select {
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 14px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #a0aec0;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="brand">
+            <h4><i class="fas fa-store"></i> Manager Panel</h4>
+            <p>Quản lý cửa hàng của bạn</p>
+        </div>
+        <nav class="nav flex-column">
+            <div class="nav-item">
+                <a href="/manager/home" class="nav-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/shop" class="nav-link">
+                    <i class="fas fa-store-alt"></i>
+                    <span>Quản lý Shop</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/products" class="nav-link">
+                    <i class="fas fa-box-open"></i>
+                    <span>Sản phẩm</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/orders" class="nav-link active" onclick="announceOrders(event)">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span>Đơn hàng</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/promotions" class="nav-link">
+                    <i class="fas fa-gift"></i>
+                    <span>Khuyến mãi</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/vouchers" class="nav-link">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>Mã giảm giá</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/revenue" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Báo cáo doanh thu</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/settings" class="nav-link">
+                    <i class="fas fa-cog"></i>
+                    <span>Cài đặt</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1" style="font-weight: 700; color: #2d3748;">Quản lý Đơn hàng</h2>
+                <p class="text-muted mb-0">Xem và quản lý tất cả đơn hàng của cửa hàng</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button id="voiceToggleBtn" class="btn btn-outline-secondary btn-sm" onclick="toggleVoice()" title="Bật/tắt thông báo giọng nói">
+                    <i id="voiceIcon" class="fas fa-volume-up"></i>
+                    <span id="voiceText">Giọng nói</span>
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="window.location.reload()">
+                    <i class="fas fa-sync-alt"></i> Làm mới
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="exportToExcel()">
+                    <i class="fas fa-download"></i> Xuất Excel
+                </button>
+            </div>
+        </div>
+
+        <!-- Date Range Filter -->
+        <div class="filter-card mb-3">
+            <div class="row align-items-end g-3">
+                <div class="col-md-3">
+                    <label class="form-label"><i class="fas fa-filter"></i> Lọc nhanh</label>
+                    <select id="quickFilter" class="form-select" onchange="applyQuickFilter()">
+                        <option value="">Tất cả</option>
+                        <option value="today">Hôm nay</option>
+                        <option value="thisWeek">Tuần này</option>
+                        <option value="thisMonth">Tháng này</option>
+                        <option value="thisYear">Năm này</option>
+                        <option value="custom">Tùy chỉnh...</option>
+                    </select>
+                </div>
+                <div class="col-md-3" id="fromDateWrapper" style="display: none;">
+                    <label class="form-label"><i class="fas fa-calendar-alt"></i> Từ ngày</label>
+                    <input type="date" id="fromDate" class="form-control" th:value="${fromDate}">
+                </div>
+                <div class="col-md-3" id="toDateWrapper" style="display: none;">
+                    <label class="form-label"><i class="fas fa-calendar-alt"></i> Đến ngày</label>
+                    <input type="date" id="toDate" class="form-control" th:value="${toDate}">
+                </div>
+                <div class="col-md-2" id="applyButtonWrapper" style="display: none;">
+                    <button type="button" class="btn btn-primary w-100" onclick="applyCustomDateFilter()">
+                        <i class="fas fa-search"></i> Áp dụng
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter by Status (Quick Tabs) -->
+        <div class="filter-tabs">
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn" 
+                   th:classappend="${selectedStatus == null} ? 'active btn-primary' : 'btn-outline-primary'"
+                        onclick="filterByStatus('')">
+                    <i class="fas fa-list"></i> Tất cả
+                </button>
+                <button class="btn" 
+                   th:classappend="${selectedStatus == 'NEW'} ? 'active btn-warning text-white' : 'btn-outline-warning'"
+                        onclick="filterByStatus('NEW')">
+                    <i class="fas fa-clock"></i> Mới
+                </button>
+                <button class="btn" 
+                   th:classappend="${selectedStatus == 'CONFIRMED'} ? 'active btn-info text-white' : 'btn-outline-info'"
+                        onclick="filterByStatus('CONFIRMED')">
+                    <i class="fas fa-check-circle"></i> Đã xác nhận
+                </button>
+                <button class="btn" 
+                   th:classappend="${selectedStatus == 'PREPARING'} ? 'active btn-secondary text-white' : 'btn-outline-secondary'"
+                        onclick="filterByStatus('PREPARING')">
+                    <i class="fas fa-utensils"></i> Đang chuẩn bị
+                </button>
+                <button class="btn" 
+                   th:classappend="${selectedStatus == 'DELIVERING'} ? 'active btn-primary' : 'btn-outline-primary'"
+                        onclick="filterByStatus('DELIVERING')">
+                    <i class="fas fa-shipping-fast"></i> Đang giao
+                </button>
+                <button class="btn" 
+                   th:classappend="${selectedStatus == 'DELIVERED'} ? 'active btn-success text-white' : 'btn-outline-success'"
+                        onclick="filterByStatus('DELIVERED')">
+                    <i class="fas fa-check-double"></i> Đã giao
+                </button>
+                <button class="btn" 
+                   th:classappend="${selectedStatus == 'CANCELED'} ? 'active btn-danger text-white' : 'btn-outline-danger'"
+                        onclick="filterByStatus('CANCELED')">
+                    <i class="fas fa-times-circle"></i> Đã hủy
+                </button>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="orders-card">
+            <h5><i class="fas fa-shopping-cart"></i> Danh sách đơn hàng</h5>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th>SĐT</th>
+                            <th>Số món</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Shipper</th>
+                            <th>Thời gian</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody th:if="${orders != null and !orders.empty}">
+                        <tr th:each="order : ${orders.content}">
+                            <td>
+                                <strong th:text="${order.orderCode}" style="color: #1e3a8a;">ORD-001</strong>
+                            </td>
+                            <td>
+                                <div>
+                                    <strong th:text="${order.customerName}">Customer Name</strong>
+                                </div>
+                            </td>
+                            <td th:text="${order.customerPhone}">0123456789</td>
+                            <td>
+                                <span class="badge bg-light text-dark" th:text="${order.itemCount} + ' món'">2 món</span>
+                            </td>
+                            <td>
+                                <strong style="color: #48bb78;" 
+                                        th:text="${#numbers.formatDecimal(order.total, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                    100,000 đ
+                                </strong>
+                            </td>
+                            <td>
+                                <span class="badge" 
+                                      th:classappend="${order.status == 'NEW' ? 'bg-warning' : 
+                                                       order.status == 'CONFIRMED' ? 'bg-info' :
+                                                       order.status == 'PREPARING' ? 'bg-secondary' :
+                                                       order.status == 'DELIVERING' ? 'bg-primary' :
+                                                       order.status == 'DELIVERED' ? 'bg-success' : 
+                                                       'bg-danger'}"
+                                      th:text="${order.status == 'NEW' ? 'Mới' :
+                                                order.status == 'CONFIRMED' ? 'Đã xác nhận' :
+                                                order.status == 'PREPARING' ? 'Đang chuẩn bị' :
+                                                order.status == 'DELIVERING' ? 'Đang giao' :
+                                                order.status == 'DELIVERED' ? 'Đã giao' :
+                                                order.status == 'CANCELED' ? 'Đã hủy' : order.status}">
+                                    NEW
+                                </span>
+                            </td>
+                            <td>
+                                <div th:if="${order.shipperName != null}">
+                                    <i class="fas fa-user text-success"></i> 
+                                    <strong th:text="${order.shipperName}">Shipper Name</strong>
+                                </div>
+                                <div th:if="${order.shipperName == null}">
+                                    <small class="text-muted">
+                                        <i class="fas fa-user-slash"></i> Chưa phân công
+                                    </small>
+                                </div>
+                            </td>
+                            <td>
+                                <small th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy')}">01/01/2025</small><br>
+                                <small class="text-muted" th:text="${#temporals.format(order.createdAt, 'HH:mm')}">10:00</small>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a th:href="@{/manager/orders/{id}(id=${order.id})}" 
+                                       class="btn btn-primary btn-action" 
+                                       title="Xem chi tiết">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button th:if="${order.status == 'NEW'}" 
+                                            class="btn btn-success btn-action" 
+                                            th:onclick="'confirmOrder(' + ${order.id} + ')'"
+                                            title="Xác nhận">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button th:if="${order.status == 'CONFIRMED'}" 
+                                            class="btn btn-info btn-action" 
+                                            th:onclick="'prepareOrder(' + ${order.id} + ')'"
+                                            title="Chuẩn bị">
+                                        <i class="fas fa-utensils"></i>
+                                    </button>
+                                    <!-- OPTION 2: Không có nút giao - Shipper tự nhận -->
+                                    <button th:if="${order.status == 'NEW' or order.status == 'CONFIRMED'}" 
+                                            class="btn btn-danger btn-action" 
+                                            th:onclick="'cancelOrder(' + ${order.id} + ')'"
+                                            title="Hủy đơn">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody th:if="${orders == null or orders.empty}">
+                        <tr>
+                            <td colspan="9">
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <p class="mb-0">Chưa có đơn hàng nào</p>
+                                    <small class="text-muted">Đơn hàng mới sẽ hiển thị tại đây</small>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div th:if="${orders != null and !orders.empty}">
+                <!-- Pagination Info -->
+                <div class="pagination-info">
+                    <div>
+                        <span class="text-muted">
+                            Hiển thị <strong th:text="${orders.numberOfElements}">0</strong> 
+                            trong tổng số <strong th:text="${orders.totalElements}">0</strong> đơn hàng
+                        </span>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="text-muted mb-0" style="font-size: 14px;">Hiển thị:</label>
+                            <select class="page-size-select" id="pageSizeSelect" th:value="${pageSize}" onchange="changePageSize()">
+                                <option value="10" th:selected="${pageSize == 10}">10</option>
+                                <option value="20" th:selected="${pageSize == 20}">20</option>
+                                <option value="50" th:selected="${pageSize == 50}">50</option>
+                                <option value="100" th:selected="${pageSize == 100}">100</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination Controls -->
+                <nav th:if="${totalPages > 1}">
+                <ul class="pagination justify-content-center">
+                        <!-- First Page -->
+                    <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" href="javascript:void(0)" onclick="goToPage(0)" title="Trang đầu">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        
+                        <!-- Previous Page -->
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" href="javascript:void(0)" th:onclick="'goToPage(' + ${currentPage - 1} + ')'" title="Trang trước">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                        
+                        <!-- Page Numbers (Smart Pagination) -->
+                        <th:block th:with="startPage=${currentPage > 2 ? currentPage - 2 : 0}, 
+                                          endPage=${currentPage + 2 < totalPages - 1 ? currentPage + 2 : totalPages - 1}">
+                            
+                            <!-- First page if not in range -->
+                            <li class="page-item" th:if="${startPage > 0}">
+                                <a class="page-link" href="javascript:void(0)" onclick="goToPage(0)">1</a>
+                            </li>
+                            <li class="page-item disabled" th:if="${startPage > 1}">
+                                <span class="page-link">...</span>
+                            </li>
+                            
+                            <!-- Page range -->
+                    <li class="page-item" 
+                                th:each="i : ${#numbers.sequence(startPage, endPage)}"
+                        th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link" 
+                                   href="javascript:void(0)" 
+                                   th:onclick="'goToPage(' + ${i} + ')'" 
+                           th:text="${i + 1}">1</a>
+                    </li>
+                            
+                            <!-- Last page if not in range -->
+                            <li class="page-item disabled" th:if="${endPage < totalPages - 2}">
+                                <span class="page-link">...</span>
+                            </li>
+                            <li class="page-item" th:if="${endPage < totalPages - 1}">
+                                <a class="page-link" 
+                                   href="javascript:void(0)" 
+                                   th:onclick="'goToPage(' + ${totalPages - 1} + ')'" 
+                                   th:text="${totalPages}">10</a>
+                            </li>
+                        </th:block>
+                        
+                        <!-- Next Page -->
+                    <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                            <a class="page-link" href="javascript:void(0)" th:onclick="'goToPage(' + ${currentPage + 1} + ')'" title="Trang sau">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                        
+                        <!-- Last Page -->
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                            <a class="page-link" href="javascript:void(0)" th:onclick="'goToPage(' + ${totalPages - 1} + ')'" title="Trang cuối">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                </ul>
+            </nav>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ==================== FILTER FUNCTIONS ====================
+        
+        /**
+         * Build URL with all current filter parameters
+         * @param {number} page - Page number (0-indexed)
+         * @param {boolean} preserveStatus - Whether to preserve status from current URL
+         * @returns {string} Complete URL with all filter parameters
+         */
+        function buildUrl(page = 0, preserveStatus = true) {
+            const params = new URLSearchParams();
+            
+            // Get filter values from input fields
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const size = document.getElementById('pageSizeSelect') ? 
+                        document.getElementById('pageSizeSelect').value : 20;
+            
+            // Get status from current URL if needed
+            let currentStatus = null;
+            if (preserveStatus) {
+                const urlParams = new URLSearchParams(window.location.search);
+                currentStatus = urlParams.get('status');
+            }
+            
+            // Build parameter list
+            params.append('page', page);
+            params.append('size', size);
+            
+            if (fromDate) params.append('fromDate', fromDate);
+            if (toDate) params.append('toDate', toDate);
+            if (currentStatus) params.append('status', currentStatus);
+            
+            const url = `/manager/orders?${params.toString()}`;
+            
+            // Log for debugging
+            console.log('>>> buildUrl <<<');
+            console.log('  Page:', page, '| Size:', size);
+            console.log('  Date range:', fromDate || '(none)', 'to', toDate || '(none)');
+            console.log('  Status:', currentStatus || '(none)');
+            console.log('  Final URL:', url);
+            
+            return url;
+        }
+        
+        function applyQuickFilter() {
+            const quickFilter = document.getElementById('quickFilter').value;
+            const fromDateWrapper = document.getElementById('fromDateWrapper');
+            const toDateWrapper = document.getElementById('toDateWrapper');
+            const applyButtonWrapper = document.getElementById('applyButtonWrapper');
+            
+            console.log('=== APPLY QUICK FILTER ===');
+            console.log('Selected:', quickFilter);
+            
+            if (quickFilter === 'custom') {
+                // Show custom date inputs
+                fromDateWrapper.style.display = 'block';
+                toDateWrapper.style.display = 'block';
+                applyButtonWrapper.style.display = 'block';
+                console.log('Showing custom date inputs');
+            } else {
+                // Hide custom inputs
+                fromDateWrapper.style.display = 'none';
+                toDateWrapper.style.display = 'none';
+                applyButtonWrapper.style.display = 'none';
+                
+                // Apply predefined filter or clear
+                if (quickFilter === 'today') {
+                    setToday();
+                } else if (quickFilter === 'thisWeek') {
+                    setThisWeek();
+                } else if (quickFilter === 'thisMonth') {
+                    setThisMonth();
+                } else if (quickFilter === 'thisYear') {
+                    setThisYear();
+                } else if (quickFilter === '') {
+                    // Clear filter option selected
+                    console.log('Clearing date filters');
+                    clearDateFilters();
+                }
+            }
+        }
+        
+        function applyCustomDateFilter() {
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            
+            console.log('=== APPLY CUSTOM DATE FILTER ===');
+            console.log('From:', fromDate, '| To:', toDate);
+            
+            // Validation
+            if (!fromDate || !toDate) {
+                alert('Vui lòng chọn cả ngày bắt đầu và ngày kết thúc');
+                return;
+            }
+            
+            if (fromDate > toDate) {
+                alert('Ngày bắt đầu không thể sau ngày kết thúc');
+                return;
+            }
+            
+            // Navigate with filter
+            console.log('Valid date range, navigating...');
+            window.location.href = buildUrl(0);
+        }
+        
+        function filterByStatus(status) {
+            console.log('=== FILTER BY STATUS ===');
+            console.log('New status:', status || '(all)');
+            
+            const params = new URLSearchParams();
+            
+            // Keep date filters from input fields
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            const pageSize = document.getElementById('pageSizeSelect') ? 
+                           document.getElementById('pageSizeSelect').value : 20;
+            
+            // Build parameters
+            params.append('page', 0); // Reset to first page
+            params.append('size', pageSize);
+            
+            if (fromDate) params.append('fromDate', fromDate);
+            if (toDate) params.append('toDate', toDate);
+            if (status) params.append('status', status);
+            
+            const url = `/manager/orders?${params.toString()}`;
+            console.log('Preserving date filters:', fromDate || '(none)', 'to', toDate || '(none)');
+            console.log('Navigating to:', url);
+            
+            window.location.href = url;
+        }
+        
+        function clearDateFilters() {
+            console.log('=== CLEAR DATE FILTERS ===');
+            
+            // Clear input fields
+            document.getElementById('quickFilter').value = '';
+            document.getElementById('fromDate').value = '';
+            document.getElementById('toDate').value = '';
+            
+            // Hide custom date inputs
+            document.getElementById('fromDateWrapper').style.display = 'none';
+            document.getElementById('toDateWrapper').style.display = 'none';
+            document.getElementById('applyButtonWrapper').style.display = 'none';
+            
+            // Check if we have date filters in current URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const hasDateFilter = urlParams.has('fromDate') || urlParams.has('toDate');
+            
+            if (hasDateFilter) {
+                // Rebuild URL without date filters, preserving other params
+                const params = new URLSearchParams();
+                const currentStatus = urlParams.get('status');
+                const currentSize = urlParams.get('size') || 20;
+                
+                params.append('page', 0); // Reset to first page
+                params.append('size', currentSize);
+                if (currentStatus) params.append('status', currentStatus);
+                
+                const newUrl = `/manager/orders?${params.toString()}`;
+                console.log('Removing date filters, navigating to:', newUrl);
+                window.location.href = newUrl;
+            } else {
+                console.log('No date filters in URL to clear');
+            }
+        }
+        
+        // Alias for backward compatibility
+        function clearFilters() {
+            clearDateFilters();
+        }
+        
+        function setToday() {
+            const today = new Date();
+            const todayStr = formatDate(today);
+            
+            console.log('=== SET TODAY ===');
+            console.log('Date:', todayStr);
+            
+            // Set input values
+            document.getElementById('fromDate').value = todayStr;
+            document.getElementById('toDate').value = todayStr;
+            
+            // Navigate with explicit date parameters
+            navigateWithDateFilter(todayStr, todayStr);
+        }
+        
+        function setThisWeek() {
+            const today = new Date();
+            const dayOfWeek = today.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+            
+            // Calculate Monday of current week
+            const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+            const monday = new Date(today);
+            monday.setDate(today.getDate() + diff);
+            
+            // Calculate Sunday of current week
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            
+            const mondayStr = formatDate(monday);
+            const sundayStr = formatDate(sunday);
+            
+            console.log('=== SET THIS WEEK ===');
+            console.log('Week range:', mondayStr, 'to', sundayStr);
+            
+            // Set input values
+            document.getElementById('fromDate').value = mondayStr;
+            document.getElementById('toDate').value = sundayStr;
+            
+            // Navigate with explicit date parameters
+            navigateWithDateFilter(mondayStr, sundayStr);
+        }
+        
+        function setThisMonth() {
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            
+            const firstDayStr = formatDate(firstDay);
+            const lastDayStr = formatDate(lastDay);
+            
+            console.log('=== SET THIS MONTH ===');
+            console.log('Month range:', firstDayStr, 'to', lastDayStr);
+            
+            // Set input values
+            document.getElementById('fromDate').value = firstDayStr;
+            document.getElementById('toDate').value = lastDayStr;
+            
+            // Navigate with explicit date parameters
+            navigateWithDateFilter(firstDayStr, lastDayStr);
+        }
+        
+        function setThisYear() {
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), 0, 1);
+            const lastDay = new Date(today.getFullYear(), 11, 31);
+            
+            const firstDayStr = formatDate(firstDay);
+            const lastDayStr = formatDate(lastDay);
+            
+            console.log('=== SET THIS YEAR ===');
+            console.log('Year range:', firstDayStr, 'to', lastDayStr);
+            
+            // Set input values
+            document.getElementById('fromDate').value = firstDayStr;
+            document.getElementById('toDate').value = lastDayStr;
+            
+            // Navigate with explicit date parameters
+            navigateWithDateFilter(firstDayStr, lastDayStr);
+        }
+        
+        /**
+         * Navigate with explicit date filter parameters
+         */
+        function navigateWithDateFilter(fromDate, toDate) {
+            const params = new URLSearchParams();
+            const pageSize = document.getElementById('pageSizeSelect') ? 
+                           document.getElementById('pageSizeSelect').value : 20;
+            
+            // Get current status from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentStatus = urlParams.get('status');
+            
+            // Build URL with explicit parameters
+            params.append('page', 0);
+            params.append('size', pageSize);
+            params.append('fromDate', fromDate);
+            params.append('toDate', toDate);
+            if (currentStatus) params.append('status', currentStatus);
+            
+            const url = `/manager/orders?${params.toString()}`;
+            
+            console.log('>>> NAVIGATE WITH DATE FILTER <<<');
+            console.log('  From:', fromDate, '| To:', toDate);
+            console.log('  Status:', currentStatus || '(none)');
+            console.log('  URL:', url);
+            
+            window.location.href = url;
+        }
+        
+        /**
+         * Format a Date object to YYYY-MM-DD string
+         */
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const formatted = `${year}-${month}-${day}`;
+            return formatted;
+        }
+        
+        // ==================== PAGINATION FUNCTIONS ====================
+        
+        function goToPage(page) {
+            window.location.href = buildUrl(page);
+        }
+        
+        function changePageSize() {
+            window.location.href = buildUrl(0);
+        }
+        
+        // ==================== INITIALIZE ====================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded - initializing filters');
+            
+            // Check if we have date filters in URL and set quickFilter accordingly
+            const urlParams = new URLSearchParams(window.location.search);
+            const fromDate = urlParams.get('fromDate');
+            const toDate = urlParams.get('toDate');
+            
+            console.log('URL fromDate:', fromDate);
+            console.log('URL toDate:', toDate);
+            
+            if (fromDate || toDate) {
+                // Set the date inputs
+                if (fromDate) document.getElementById('fromDate').value = fromDate;
+                if (toDate) document.getElementById('toDate').value = toDate;
+                
+                // Show custom date inputs
+                document.getElementById('quickFilter').value = 'custom';
+                document.getElementById('fromDateWrapper').style.display = 'block';
+                document.getElementById('toDateWrapper').style.display = 'block';
+                document.getElementById('applyButtonWrapper').style.display = 'block';
+                
+                console.log('Custom date filter restored from URL');
+            }
+        });
+        
+        // ==================== ORDER MANAGEMENT FUNCTIONS ====================
+        
+        function confirmOrder(orderId) {
+            if (confirm('Xác nhận đơn hàng này?')) {
+                updateOrderStatus(orderId, 'confirm', 'Đơn hàng đã được xác nhận');
+            }
+        }
+
+        function prepareOrder(orderId) {
+            if (confirm('Bắt đầu chuẩn bị đơn hàng?\n\nLưu ý: Shipper sẽ tự nhận đơn sau khi chuẩn bị xong.')) {
+                updateOrderStatus(orderId, 'prepare', 'Bắt đầu chuẩn bị đơn hàng');
+            }
+        }
+
+        // OPTION 2: deliverOrder() đã bị xóa - Shipper tự nhận và giao
+
+        function cancelOrder(orderId) {
+            const reason = prompt('Lý do hủy đơn:');
+            if (reason && reason.trim() !== '') {
+                fetch(`/manager/orders/api/${orderId}/cancel?reason=${encodeURIComponent(reason)}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    alert('Đã hủy đơn hàng thành công');
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi hủy đơn hàng');
+                });
+            }
+        }
+
+        function updateOrderStatus(orderId, action, message) {
+            fetch(`/manager/orders/api/${orderId}/${action}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                alert(message);
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi cập nhật trạng thái đơn hàng');
+            });
+        }
+
+        // Export to Excel Function
+        function exportToExcel() {
+            const params = new URLSearchParams();
+            
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+            
+            // Get current status from URL (from status tabs)
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentStatus = urlParams.get('status');
+            
+            if (fromDate) params.append('fromDate', fromDate);
+            if (toDate) params.append('toDate', toDate);
+            if (currentStatus) params.append('status', currentStatus);
+            else params.append('status', 'ALL');
+            
+            // Build export URL with all filters
+            const exportUrl = `/manager/orders/export?${params.toString()}`;
+            
+            // Trigger download
+            window.location.href = exportUrl;
+        }
+
+        // Toggle Sidebar Function
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const toggleIcon = document.querySelector('#menuToggle i');
+            
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            // Change icon
+            if (sidebar.classList.contains('collapsed')) {
+                toggleIcon.classList.remove('fa-bars');
+                toggleIcon.classList.add('fa-chevron-right');
+            } else {
+                toggleIcon.classList.remove('fa-chevron-right');
+                toggleIcon.classList.add('fa-bars');
+            }
+            
+            // Save state to localStorage
+            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        }
+
+        // Restore sidebar state on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            if (sidebarCollapsed) {
+                const sidebar = document.getElementById('sidebar');
+                const mainContent = document.getElementById('mainContent');
+                const toggleIcon = document.querySelector('#menuToggle i');
+                
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+                toggleIcon.classList.remove('fa-bars');
+                toggleIcon.classList.add('fa-chevron-right');
+            }
+            
+            // Initialize voice notification
+            initVoiceNotification();
+        });
+
+        // ==================== VOICE NOTIFICATION SYSTEM ====================
+        
+        let voiceEnabled = localStorage.getItem('voiceEnabled') !== 'false'; // Default: true
+        let lastNewOrderCount = 0;
+        let voiceCheckInterval = null;
+        let hasSpoken = false; // Flag to prevent speaking on first load
+
+        function toggleVoice() {
+            voiceEnabled = !voiceEnabled;
+            localStorage.setItem('voiceEnabled', voiceEnabled);
+            updateVoiceButton();
+            
+            if (voiceEnabled) {
+                console.log('🔊 Voice notification enabled');
+                // Reset flag when enabling
+                hasSpoken = false;
+                // Start checking immediately
+                if (!voiceCheckInterval) {
+                    voiceCheckInterval = setInterval(checkNewOrders, 30000); // Check every 30s
+                }
+                // Phát voice test để user biết đã bật thành công
+                setTimeout(() => {
+                    fetch('/manager/orders/api/latest-new-order')
+                        .then(response => response.json())
+                        .then(data => {
+                            const count = data.count;
+                            const customerName = data.customerName || 'Khách hàng';
+                            
+                            if (count > 0) {
+                                const message = `Bạn có ${count} đơn từ khách hàng`;
+                                speakMessage(message);
+                            } else {
+                                speakMessage('Hiện tại không có đơn hàng mới');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('❌ Error:', error);
+                            // Fallback: speak without count
+                            speakTestMessage();
+                        });
+                }, 500); // Delay 0.5s để user thấy button thay đổi
+            } else {
+                console.log('🔇 Voice notification disabled');
+                // Stop checking
+                if (voiceCheckInterval) {
+                    clearInterval(voiceCheckInterval);
+                    voiceCheckInterval = null;
+                }
+                // Phát voice để confirm đã tắt
+                speakMessage('Đã tắt thông báo giọng nói');
+            }
+        }
+
+        function updateVoiceButton() {
+            const icon = document.getElementById('voiceIcon');
+            const text = document.getElementById('voiceText');
+            const btn = document.getElementById('voiceToggleBtn');
+            
+            if (voiceEnabled) {
+                icon.className = 'fas fa-volume-up';
+                text.textContent = 'Giọng nói';
+                btn.classList.remove('btn-outline-danger');
+                btn.classList.add('btn-outline-success');
+                btn.style.color = '#10b981';
+                btn.style.borderColor = '#10b981';
+            } else {
+                icon.className = 'fas fa-volume-mute';
+                text.textContent = 'Tắt tiếng';
+                btn.classList.remove('btn-outline-success');
+                btn.classList.add('btn-outline-danger');
+                btn.style.color = '#ef4444';
+                btn.style.borderColor = '#ef4444';
+            }
+        }
+
+        function initVoiceNotification() {
+            console.log('🎙️ Initializing voice notification system...');
+            
+            // Update button state
+            updateVoiceButton();
+            
+            // Check if should announce orders on page load (từ trang khác click vào)
+            const shouldAnnounce = sessionStorage.getItem('announceOrdersOnLoad');
+            if (shouldAnnounce === 'true') {
+                console.log('🔊 Auto-announce orders on page load');
+                sessionStorage.removeItem('announceOrdersOnLoad'); // Clear flag
+                
+                // Fetch and announce sau 1 giây (đợi page load xong)
+                setTimeout(() => {
+                    fetch('/manager/orders/api/count?status=NEW')
+                        .then(response => response.json())
+                        .then(count => {
+                            lastNewOrderCount = count;
+                            console.log('📊 Initial NEW orders:', count);
+                            hasSpoken = true;
+                            
+                            // Phát voice (không có "mới" và không có tên khách hàng)
+                            const message = `Bạn có ${count} đơn từ khách hàng`;
+                            speakMessage(message);
+                            
+                            if (count > 0) {
+                                showNotificationBadge(count);
+                            }
+                        })
+                        .catch(error => console.error('❌ Error:', error));
+                }, 1000);
+            } else {
+                // Get initial NEW order count (without speaking)
+                fetch('/manager/orders/api/count?status=NEW')
+                    .then(response => response.json())
+                    .then(count => {
+                        lastNewOrderCount = count;
+                        console.log('📊 Initial NEW orders:', count);
+                        hasSpoken = true; // Mark as initialized
+                    })
+                    .catch(error => console.error('❌ Error getting initial order count:', error));
+            }
+            
+            // Start checking if voice is enabled
+            if (voiceEnabled) {
+                voiceCheckInterval = setInterval(checkNewOrders, 30000); // Check every 30s
+                console.log('✅ Voice check interval started (30s)');
+            }
+        }
+
+        function checkNewOrders() {
+            if (!voiceEnabled) return;
+            
+            console.log('🔄 Checking for new orders...');
+            
+            fetch('/manager/orders/api/count?status=NEW')
+                .then(response => response.json())
+                .then(currentCount => {
+                    console.log(`📊 Current NEW orders: ${currentCount} | Last: ${lastNewOrderCount}`);
+                    
+                    // Only speak if we have new orders AND this is not the first load
+                    if (hasSpoken && currentCount > lastNewOrderCount) {
+                        const newOrdersCount = currentCount - lastNewOrderCount;
+                        console.log(`🎉 New orders detected: ${newOrdersCount}`);
+                        
+                        // Fetch thông tin đơn hàng mới nhất để lấy tên khách hàng
+                        fetch('/manager/orders/api/latest-new-order')
+                            .then(res => res.json())
+                            .then(data => {
+                                const customerName = data.customerName || 'Khách hàng';
+                                const message = `Bạn có 1 đơn hàng mới từ khách hàng ${customerName}`;
+                                speakMessage(message);
+                                showNotificationBadge(currentCount);
+                            })
+                            .catch(err => {
+                                console.error('❌ Error fetching latest order:', err);
+                                // Fallback: speak without customer name
+                                speakNewOrdersWithoutName(currentCount);
+                            });
+                    }
+                    
+                    lastNewOrderCount = currentCount;
+                })
+                .catch(error => console.error('❌ Error checking new orders:', error));
+        }
+
+        function speakNewOrders(count) {
+            if (!voiceEnabled) return;
+            
+            console.log(`🔊 Speaking: Bạn có ${count} đơn hàng mới từ khách hàng`);
+            
+            const message = `Bạn có ${count} đơn hàng mới từ khách hàng`;
+            speakMessage(message);
+            
+            // Show visual notification too
+            showNotificationBadge(count);
+        }
+
+        function speakNewOrdersWithoutName(count) {
+            if (!voiceEnabled) return;
+            
+            const message = `Bạn có ${count} đơn hàng mới từ khách hàng`;
+            speakMessage(message);
+            showNotificationBadge(count);
+        }
+
+        function speakMessage(message) {
+            console.log(`🔊 Speaking: ${message}`);
+            
+            // Check if browser supports Speech Synthesis
+            if ('speechSynthesis' in window) {
+                // Cancel any ongoing speech
+                window.speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(message);
+                utterance.lang = 'vi-VN'; // Vietnamese
+                utterance.rate = 0.9; // Slightly slower for clarity
+                utterance.pitch = 1.1; // Slightly higher pitch
+                utterance.volume = 1.0; // Full volume
+                
+                utterance.onstart = function() {
+                    console.log('🎤 Voice started');
+                };
+                
+                utterance.onend = function() {
+                    console.log('✅ Voice completed');
+                };
+                
+                utterance.onerror = function(event) {
+                    console.error('❌ Voice error:', event.error);
+                };
+                
+                // Speak
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.warn('⚠️ Speech Synthesis not supported');
+                alert(message);
+            }
+        }
+
+        function speakTestMessage() {
+            speakMessage('Thông báo giọng nói đã được bật');
+        }
+
+        // Function để phát voice khi click vào menu "Đơn hàng"
+        function announceOrders(event) {
+            console.log('📢 Click vào menu Đơn hàng - Phát voice...');
+            
+            // Check xem đang ở trang orders chưa
+            const isOnOrdersPage = window.location.pathname.includes('/manager/orders');
+            
+            if (isOnOrdersPage) {
+                // Đã ở trang orders rồi → Phát voice ngay lập tức
+                console.log('✅ Đang ở trang orders, phát voice ngay');
+                fetch('/manager/orders/api/count?status=NEW')
+                    .then(response => response.json())
+                    .then(count => {
+                        console.log(`📊 Số đơn hàng NEW: ${count}`);
+                        // Message không có "mới" và không có tên khách hàng cụ thể
+                        const message = `Bạn có ${count} đơn từ khách hàng`;
+                        speakMessage(message);
+                        
+                        // Hiển thị badge nếu có đơn mới
+                        if (count > 0) {
+                            showNotificationBadge(count);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('❌ Error fetching order count:', error);
+                        speakMessage('Đang tải thông tin đơn hàng');
+                    });
+                
+                // Prevent reload if already on page
+                if (event) {
+                    event.preventDefault();
+                }
+            } else {
+                // Đang ở trang khác → Set flag để phát voice khi load trang orders
+                console.log('📍 Đang ở trang khác, set flag để phát voice sau khi load');
+                sessionStorage.setItem('announceOrdersOnLoad', 'true');
+                // Để navigation tiếp tục
+            }
+        }
+
+        function showNotificationBadge(count) {
+            // Create a notification badge animation
+            const badge = document.createElement('div');
+            badge.style.cssText = `
+                position: fixed;
+                top: 90px;
+                right: 20px;
+                background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 50px;
+                font-weight: 700;
+                font-size: 14px;
+                box-shadow: 0 8px 30px rgba(239, 68, 68, 0.4);
+                z-index: 9999;
+                animation: slideIn 0.5s ease-out, pulse 1.5s infinite;
+            `;
+            badge.innerHTML = `<i class="fas fa-bell"></i> ${count} đơn hàng mới!`;
+            
+            // Add animation keyframes
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from {
+                        transform: translateX(400px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                @keyframes pulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.05); }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(badge);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                badge.style.animation = 'slideIn 0.5s ease-out reverse';
+                setTimeout(() => badge.remove(), 500);
+            }, 5000);
+        }
+
+        // Test voice function (for debugging)
+        function testVoice() {
+            speakNewOrders(3);
+        }
+    </script>
+</body>
+</html>

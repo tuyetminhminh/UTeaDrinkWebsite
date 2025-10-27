@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTea Shipper - Trang chủ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --pastel-yellow: #FFF9E6;
+            --pastel-green: #E8F5E9;
+            --pastel-blue: #E3F2FD;
+            --pastel-pink: #FCE4EC;
+            --accent-soft: #FFE082;
+            --text-primary: #5D4037;
+            --text-secondary: #8D6E63;
+            --border-soft: #E0E0E0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #FFF9E6 0%, #FFF3E0 50%, #FFECB3 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .shipper-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-soft);
+        }
+
+        .header-card h1 {
+            color: var(--text-primary);
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+
+        .header-card .subtitle {
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-soft);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card.today {
+            border-left: 4px solid #FFD54F;
+            background: linear-gradient(135deg, #FFFEF7 0%, #FFF9E6 100%);
+        }
+
+        .stat-card.delivering {
+            border-left: 4px solid #81C784;
+            background: linear-gradient(135deg, #FEFFFE 0%, #E8F5E9 100%);
+        }
+
+        .stat-card.available {
+            border-left: 4px solid #64B5F6;
+            background: linear-gradient(135deg, #FEFFFE 0%, #E3F2FD 100%);
+        }
+
+        .stat-card.total {
+            border-left: 4px solid #FFB74D;
+            background: linear-gradient(135deg, #FFFEF7 0%, #FFF3E0 100%);
+        }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 14px;
+        }
+
+        .stat-card.today .stat-icon {
+            background: #FFF9E6;
+            color: #F9A825;
+        }
+
+        .stat-card.delivering .stat-icon {
+            background: #E8F5E9;
+            color: #43A047;
+        }
+
+        .stat-card.available .stat-icon {
+            background: #E3F2FD;
+            color: #1E88E5;
+        }
+
+        .stat-card.total .stat-icon {
+            background: #FFF3E0;
+            color: #FB8C00;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-money {
+            display: block;
+            color: #4CAF50;
+            font-weight: 700;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .action-btn {
+            background: white;
+            color: var(--text-primary);
+            padding: 16px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-soft);
+        }
+
+        .action-btn:nth-child(1) {
+            border-left: 4px solid #64B5F6;
+        }
+
+        .action-btn:nth-child(2) {
+            border-left: 4px solid #81C784;
+        }
+
+        .action-btn:nth-child(3) {
+            border-left: 4px solid #FFB74D;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            color: var(--text-primary);
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border-soft);
+        }
+
+        .section-title {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #F5F5F5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: #81C784;
+        }
+
+        .order-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .order-table th {
+            background: #F5F5F5;
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 14px;
+            border: none;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .order-table td {
+            padding: 14px;
+            vertical-align: middle;
+            color: var(--text-secondary);
+            border-bottom: 1px solid #F5F5F5;
+        }
+
+        .order-table tbody tr {
+            transition: all 0.2s;
+        }
+
+        .order-table tbody tr:hover {
+            background: #FAFAFA;
+        }
+
+        .badge-status {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-delivering {
+            background: #E8F5E9;
+            color: #2E7D32;
+            border: 1px solid #A5D6A7;
+        }
+
+        .btn-complete {
+            background: #81C784;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-complete:hover {
+            background: #66BB6A;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(129, 199, 132, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            color: #E0E0E0;
+            margin-bottom: 16px;
+        }
+
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            background: #F5F5F5;
+            border-radius: 16px 16px 0 0;
+            padding: 18px 24px;
+            border: none;
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-label {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control, .form-select {
+            border: 1px solid var(--border-soft);
+            border-radius: 10px;
+            padding: 10px 14px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #81C784;
+            box-shadow: 0 0 0 0.2rem rgba(129, 199, 132, 0.15);
+        }
+
+        .btn-modal-submit {
+            background: #81C784;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-modal-submit:hover {
+            background: #66BB6A;
+            transform: translateY(-1px);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-card {
+            animation: fadeInUp 0.5s ease backwards;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <!-- Header Fragment -->
+    <div th:replace="~{fragments/header :: header}"></div>
+
+    <div class="shipper-container" style="margin-top: 80px;">
+        <!-- Welcome Card -->
+        <div class="header-card">
+            <h1><i class="fas fa-motorcycle me-2"></i> Xin chào, <span th:text="${shipperName}">Shipper</span>!</h1>
+            <p class="subtitle"><i class="fas fa-location-dot me-2"></i> Sẵn sàng giao hàng ngay hôm nay!</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card today">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+                <div class="stat-value" th:text="${stats.todayOrders ?: 0}">0</div>
+                <div class="stat-label">Đơn hôm nay</div>
+                <small class="stat-money" th:text="${#numbers.formatDecimal(stats.todayEarnings ?: 0, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</small>
+            </div>
+
+            <div class="stat-card delivering">
+                <div class="stat-icon">
+                    <i class="fas fa-truck-fast"></i>
+                </div>
+                <div class="stat-value" th:text="${stats.deliveringCount ?: 0}">0</div>
+                <div class="stat-label">Đang giao</div>
+                <small class="stat-money">Đơn hiện tại</small>
+            </div>
+
+            <div class="stat-card available">
+                <div class="stat-icon">
+                    <i class="fas fa-box-open"></i>
+                </div>
+                <div class="stat-value" th:text="${stats.availableCount ?: 0}">0</div>
+                <div class="stat-label">Đơn khả dụng</div>
+                <small class="stat-money">Chờ nhận</small>
+            </div>
+
+            <div class="stat-card total">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-value" th:text="${stats.completedOrders ?: 0}">0</div>
+                <div class="stat-label">Tổng đã giao</div>
+                <small class="stat-money" th:text="${#numbers.formatDecimal(stats.totalEarnings ?: 0, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</small>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="actions-grid">
+            <a href="/shipper/available-orders" class="action-btn">
+                <i class="fas fa-box-open"></i>
+                <span>Nhận đơn mới</span>
+            </a>
+            <a href="/shipper/my-orders" class="action-btn">
+                <i class="fas fa-list-check"></i>
+                <span>Đơn của tôi</span>
+            </a>
+            <a href="/shipper/history" class="action-btn">
+                <i class="fas fa-clock-rotate-left"></i>
+                <span>Lịch sử</span>
+            </a>
+        </div>
+
+        <!-- Đơn đã nhận (chờ lấy hàng) -->
+        <div class="main-content">
+            <h3 class="section-title">
+                <i class="fas fa-warehouse"></i>
+                Đơn đã nhận (chờ lấy hàng)
+            </h3>
+            <p class="text-muted mb-3" style="font-size: 13px;">
+                <i class="fas fa-info-circle me-1"></i>
+                Những đơn bạn đã nhận nhưng chưa lấy hàng từ cửa hàng
+            </p>
+            <div class="order-table">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Cửa hàng</th>
+                            <th>Khách hàng</th>
+                            <th>Địa chỉ giao</th>
+                            <th>Phí ship</th>
+                            <th>Nhận lúc</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assignedTableBody">
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <i class="fas fa-box-open"></i>
+                                <h5>Chưa có đơn hàng chờ lấy</h5>
+                                <p>Đơn bạn nhận sẽ hiển thị ở đây!</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Đơn đang giao -->
+        <div class="main-content">
+            <h3 class="section-title">
+                <i class="fas fa-truck-fast"></i>
+                Đơn đang giao
+            </h3>
+            <p class="text-muted mb-3" style="font-size: 13px;">
+                <i class="fas fa-info-circle me-1"></i>
+                Những đơn bạn đang trên đường giao cho khách hàng
+            </p>
+            <div class="order-table">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Địa chỉ giao</th>
+                            <th>SĐT</th>
+                            <th>Phí ship</th>
+                            <th>Lấy hàng lúc</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deliveringTableBody">
+                        <tr th:if="${deliveringOrders == null || deliveringOrders.isEmpty()}">
+                            <td colspan="7" class="empty-state">
+                                <i class="fas fa-truck-fast"></i>
+                                <h5>Chưa có đơn đang giao</h5>
+                                <p>Đơn bạn đang giao sẽ hiển thị ở đây!</p>
+                            </td>
+                        </tr>
+                        <tr th:each="order : ${deliveringOrders}">
+                            <td><strong th:text="${order.orderCode}">ORD-001</strong></td>
+                            <td>
+                                <div th:text="${order.customerName}">Khách hàng</div>
+                                <small class="text-muted" th:text="${order.shopName}">Cửa hàng</small>
+                            </td>
+                            <td th:text="${order.deliveryAddress}">Địa chỉ</td>
+                            <td th:text="${order.customerPhone}">0901234567</td>
+                            <td><strong class="text-warning" th:text="${#numbers.formatDecimal(order.shippingFee ?: 0, 0, 'COMMA', 0, 'POINT')} + '₫'">15,000₫</strong></td>
+                            <td>
+                                <small th:text="${order.pickedUpAt != null ? #temporals.format(order.pickedUpAt, 'dd/MM/yyyy HH:mm') : 'N/A'}">24/10/2025 10:00</small>
+                            </td>
+                            <td>
+                                <a th:href="@{/shipper/my-orders}" class="btn btn-sm" 
+                                   style="background: linear-gradient(135deg, #66BB6A, #43A047); color: white; border: none; font-weight: 600; padding: 8px 16px; border-radius: 8px;">
+                                    <i class="fas fa-eye me-1"></i> Chi tiết
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        const shipperId = /*[[${shipperId}]]*/ 0;
+
+        // Stats đã được load từ server-side qua Thymeleaf
+
+        // Load assigned orders (chờ lấy hàng)
+        async function loadAssignedOrders() {
+            try {
+                const response = await fetch(`/shipper/api/assigned-orders`);
+                const orders = await response.json();
+                
+                const tbody = document.getElementById('assignedTableBody');
+                
+                if (orders.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <i class="fas fa-box-open"></i>
+                                <h5>Chưa có đơn hàng chờ lấy</h5>
+                                <p>Đơn bạn nhận sẽ hiển thị ở đây!</p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                tbody.innerHTML = orders.map(order => `
+                    <tr>
+                        <td><strong>${order.orderCode}</strong></td>
+                        <td>
+                            <div>${order.shopName}</div>
+                            <small class="text-muted">${order.shopAddress || order.shopPhone || ''}</small>
+                        </td>
+                        <td>
+                            <div>${order.customerName}</div>
+                            <small class="text-muted">${order.customerPhone || ''}</small>
+                        </td>
+                        <td>${order.deliveryAddress || 'N/A'}</td>
+                        <td><strong class="text-warning">${(order.shippingFee || 0).toLocaleString()}₫</strong></td>
+                        <td>
+                            <small>${order.assignedAt ? new Date(order.assignedAt).toLocaleString('vi-VN') : 'N/A'}</small>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm" 
+                                    style="background: linear-gradient(135deg, #FFB74D, #FF9800); color: white; border: none; font-weight: 600; padding: 8px 16px; border-radius: 8px;"
+                                    onclick="confirmPickup(${order.orderId})">
+                                <i class="fas fa-box-check me-1"></i> Đã lấy hàng
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading assigned orders:', error);
+            }
+        }
+
+        // Confirm pickup (Đã lấy hàng)
+        async function confirmPickup(orderId) {
+            if (!confirm('Xác nhận bạn đã lấy hàng từ cửa hàng?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/shipper/api/confirm-pickup?orderId=${orderId}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    alert('✅ Đã xác nhận lấy hàng! Đơn chuyển sang "Đang giao"');
+                    location.reload(); // Reload page to update all data
+                } else {
+                    const error = await response.text();
+                    alert('❌ Lỗi: ' + error);
+                }
+            } catch (error) {
+                console.error('Error confirming pickup:', error);
+                alert('❌ Có lỗi xảy ra');
+            }
+        }
+
+        // Load all data on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAssignedOrders(); // Load đơn chờ lấy hàng
+            
+            // Auto refresh assigned orders every 30 seconds
+            setInterval(() => {
+                loadAssignedOrders();
+            }, 30000);
+        });
+    </script>
+</body>
+</html>

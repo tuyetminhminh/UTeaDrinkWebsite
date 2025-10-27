@@ -1,0 +1,270 @@
+<!-- src/main/resources/templates/chat/customer-chat.html -->
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Hỗ trợ khách hàng</title>
+
+    <!-- Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+    <style>
+        :root{
+            --bg:#f5f7fb;
+            --grad1:#e9efff;
+            --grad2:#f7fbff;
+            --card:#ffffff;
+            --muted:#6b7280;
+            --text:#0f172a;
+            --primary:#4f46e5;      /* indigo-600 */
+            --primary-soft:#eef2ff;
+            --me:#dbeafe;           /* blue-100 */
+            --other:#f3f4f6;        /* gray-100 */
+            --border:rgba(15, 23, 42, .08);
+            --shadow:0 10px 30px rgba(2,6,23,.08);
+        }
+
+        html,body{height:100%;}
+        body{
+            margin:0;
+            background:
+                    radial-gradient(1200px 1200px at 90% -300px, var(--grad1), transparent 50%),
+                    radial-gradient(900px 900px at -150px 40%, var(--grad2), transparent 50%),
+                    var(--bg);
+            color:var(--text);
+        }
+
+        .chat-shell{
+            max-width: 980px; margin: 24px auto; padding: 0;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px; box-shadow: var(--shadow);
+            display: grid; grid-template-rows: auto 1fr auto;
+            height: calc(100vh - 48px);
+            overflow: hidden;
+            min-height: 0;   /* cho phép phần messages cuộn */
+        }
+
+        .head{
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 12px;
+            background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.7));
+            backdrop-filter: blur(6px);
+        }
+        .title{font-weight:700; margin:0;}
+        .state{color: var(--muted);}
+
+        .messages{
+            padding: 18px 18px 8px;
+            overflow: auto;
+            display: flex; flex-direction: column; gap: 10px;
+            background: linear-gradient(180deg, #fff, #fafbff);
+            min-height: 0;
+            position: relative;
+        }
+
+        .msg{ display:flex; gap:10px; }
+        .msg.me{ justify-content: flex-end; }
+        .bubble{
+            max-width: 72%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--other);
+            box-shadow: 0 6px 18px rgba(2,6,23,.06);
+            animation: pop .2s ease;
+        }
+        .msg.me .bubble{
+            background: var(--me);
+            border-color: rgba(99,102,241,.25);
+        }
+        .bubble small{ display:block; color: var(--muted); margin-top: 6px; }
+
+        .status{
+            align-self:center; font-size: 12px; color: var(--muted);
+            padding: 6px 10px; border-radius: 999px;
+            background: #fff; border: 1px dashed var(--border);
+            margin: 6px 0 10px;
+        }
+
+        @keyframes pop{ from{ transform:scale(.98); opacity:.7 } to{ transform:scale(1); opacity:1 } }
+
+        .composer{
+            padding: 14px; border-top: 1px solid var(--border);
+            background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.7));
+            backdrop-filter: blur(6px);
+            display: grid; grid-template-columns: 1fr auto; gap: 10px;
+        }
+        .input-wrap{
+            display:flex; align-items:center; gap:10px;
+            background:#fff; border:1px solid var(--border); border-radius:12px; padding: 8px 12px;
+        }
+        .form-input{
+            border: none; outline: none; width:100%;
+            font-size: 15px; background: transparent;
+        }
+        .btn-send{
+            border: 1px solid rgba(79,70,229,.25);
+            background: linear-gradient(135deg, var(--primary), #6d5cff);
+            color:#fff; font-weight:600;
+            border-radius:12px; padding:10px 16px;
+            box-shadow: 0 8px 20px rgba(79,70,229,.25);
+        }
+        .btn-send:disabled{ opacity:.65; filter: grayscale(.4); box-shadow:none; }
+
+        /* nút xuống cuối */
+        .jump-bottom{
+            position: absolute;
+            right: 16px; bottom: 78px;
+            display: none;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            border: 1px solid rgba(79,70,229,.25);
+            box-shadow: 0 4px 14px rgba(99,102,241,.18);
+        }
+
+        /* đẹp hơn chút cho thanh cuộn */
+        .messages::-webkit-scrollbar{ width: 8px; height: 8px; }
+        .messages::-webkit-scrollbar-thumb{ background: rgba(15,23,42,.15); border-radius: 999px; }
+    </style>
+</head>
+<body>
+
+<div class="chat-shell">
+    <!-- Header -->
+    <div class="head">
+        <h4 class="title flex-grow-1 m-0">Chat với Quản lý</h4>
+        <small id="connState" class="state">Đang kết nối…</small>
+    </div>
+
+    <!-- Messages -->
+    <div id="messages" class="messages"></div>
+    <button id="jumpBottom" class="btn btn-sm jump-bottom">
+        Xuống cuối <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-arrow-down-short" viewBox="0 0 16 16">
+        <path fill-rule="evenodd"
+              d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.147 2.147a.5.5 0 0 0 .707-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5A.5.5 0 0 0 8 12"/>
+    </svg>
+    </button>
+
+    <!-- Composer -->
+    <div class="composer">
+        <div class="input-wrap">
+            <input id="messageInput" class="form-input" placeholder="Nhập tin nhắn…"/>
+        </div>
+        <button id="sendBtn" class="btn btn-send" disabled>Gửi</button>
+    </div>
+</div>
+
+<!-- SockJS + STOMP -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+<!-- Thymeleaf inline -->
+<script th:inline="javascript">
+    window.CURRENT_USER_ID = [[${me.id}]];
+</script>
+
+<script>
+    (function(){
+        let stomp = null, conversationId = null, connected = false;
+        const $msgs  = document.getElementById('messages');
+        const $input = document.getElementById('messageInput');
+        const $send  = document.getElementById('sendBtn');
+        const $state = document.getElementById('connState');
+        const $jump  = document.getElementById('jumpBottom');
+
+        function setState(t){ $state.textContent = t; }
+        function escapeHtml(s){ return (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+        function timeHHmm(d){ try{ return new Date(d).toLocaleTimeString(); } catch(e){ return ''; } }
+
+        function isAtBottom(){ return Math.abs($msgs.scrollHeight - $msgs.scrollTop - $msgs.clientHeight) < 8; }
+        function scrollToBottom(){ $msgs.scrollTop = $msgs.scrollHeight; }
+
+        $msgs.addEventListener('scroll', ()=>{ $jump.style.display = isAtBottom() ? 'none' : 'inline-flex'; });
+        $jump.addEventListener('click', scrollToBottom);
+
+        function appendSystem(text){
+            const el = document.createElement('div');
+            el.className = 'status';
+            el.textContent = text;
+            $msgs.appendChild(el);
+        }
+
+        function append(msg){
+            const stick = isAtBottom();
+            const me = (msg.senderId === window.CURRENT_USER_ID);
+            const el = document.createElement('div');
+            el.className = 'msg' + (me ? ' me' : '');
+            el.innerHTML = `
+      <div class="bubble">
+        <div>${escapeHtml(msg.content||'')}</div>
+        <small>${timeHHmm(msg.sentAt)}</small>
+      </div>`;
+            $msgs.appendChild(el);
+            if(stick) scrollToBottom();
+        }
+
+        async function ensureConversation(){
+            const res = await fetch('/api/chat/customer/conversation');
+            if(!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+            conversationId = data.id;
+
+            // load history
+            const hx = await fetch(`/api/chat/history?conversationId=${conversationId}`);
+            const list = await hx.json();
+            (list || []).forEach(append);
+            scrollToBottom();
+        }
+
+        function subscribe(){
+            if(!stomp || !conversationId) return;
+            stomp.subscribe(`/topic/conversation.${conversationId}`, frame=>{
+                try{ append(JSON.parse(frame.body)); }catch(e){ console.error(e); }
+            });
+        }
+
+        function enableSend(en){ $send.disabled = !en; $input.disabled = !en; }
+
+        function connect(){
+            const sock = new SockJS('/ws');
+            stomp = Stomp.over(sock);
+            // stomp.debug = null;
+
+            stomp.connect({}, async ()=>{
+                connected = true; setState('Đã kết nối');
+                try{
+                    await ensureConversation();
+                    subscribe();
+                    enableSend(true);
+                }catch(e){
+                    console.error(e);
+                    appendSystem('Không thể khởi tạo hội thoại. Vui lòng tải lại trang.');
+                }
+            }, err=>{
+                connected = false; setState('Mất kết nối');
+                console.error('STOMP error', err);
+                appendSystem('Mất kết nối realtime – tin nhắn không thể gửi/nhận.');
+                enableSend(false);
+            });
+        }
+
+        function send(){
+            const text = $input.value.trim();
+            if(!text || !stomp || !connected || !conversationId) return;
+            stomp.send('/app/chat.send', {}, JSON.stringify({ conversationId, content: text }));
+            $input.value = ''; $input.focus();
+        }
+
+        $send.addEventListener('click', send);
+        $input.addEventListener('keydown', e=>{ if(e.key==='Enter') send(); });
+
+        connect();
+    })();
+</script>
+</body>
+</html>

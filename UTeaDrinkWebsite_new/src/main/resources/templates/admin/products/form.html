@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	th:replace="~{fragments/admin-layout :: adminLayout(~{::title}, ~{::content})}">
+<head>
+<meta charset="UTF-8" />
+<title th:text="${form.id == null ? 'Thêm sản phẩm' : 'Sửa sản phẩm'}"></title>
+</head>
+<body>
+	<div th:fragment="content">
+	
+<div th:replace="~{fragments/breadcrumbs ::
+  bc('Trang chủ', @{/admin/home},
+     'Sản phẩm', @{/admin/products},
+     ${form.id} == null ? 'Thêm mới' : 'Chỉnh sửa')
+}"></div>
+
+		<div class="container-fluid p-0">
+			<h3 class="mb-3"
+				th:text="${form.id == null ? 'Thêm sản phẩm' : 'Sửa sản phẩm'}"></h3>
+
+			<div th:if="${errors != null and !#lists.isEmpty(errors)}"
+				class="alert alert-danger">
+				<ul class="m-0">
+					<li th:each="e: ${errors}" th:text="${e}"></li>
+				</ul>
+			</div>
+
+			<form
+				th:action="${form.id == null}
+				? @{/admin/products(q=${q}, shopId=${shopId}, status=${status}, page=${pageIndex}, size=${size})}
+				: @{/admin/products/{id}(id=${form.id}, q=${q}, shopId=${shopId}, status=${status}, page=${pageIndex}, size=${size})}"
+				method="post" enctype="multipart/form-data" th:object="${form}"
+				class="needs-validation" novalidate>
+
+				<input th:if="${_csrf != null}" type="hidden"
+					th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+				<input type="hidden" th:field="*{id}" />
+
+				<div class="row g-3">
+					<div class="col-lg-7">
+						<div class="mb-3">
+							<label class="form-label">Tên</label> <input class="form-control"
+								th:field="*{name}" required>
+						</div>
+						<div class="mb-3">
+							<label class="form-label">Mô tả</label>
+							<textarea class="form-control" rows="4" th:field="*{description}"></textarea>
+						</div>
+
+						<div class="row g-3">
+							<div class="col-md-6">
+								<label class="form-label">Cửa hàng</label> <select
+									class="form-select" th:field="*{shopId}" required>
+									<option value="">-- Chọn shop --</option>
+									<option th:each="s : ${shops}" th:value="${s.id}"
+										th:text="${s.name}"></option>
+								</select>
+							</div>
+							<div class="col-md-6">
+								<label class="form-label">Danh mục</label> <select
+									class="form-select" th:field="*{categoryId}">
+									<option value="">-- Chọn danh mục --</option>
+									<option th:each="c : ${categories}" th:value="${c.id}"
+										th:text="${c.name}"></option>
+								</select>
+							</div>
+						</div>
+
+						<div class="row g-3 mt-1">
+							<div class="col-md-6">
+								<label class="form-label">Trạng thái</label> <select
+									class="form-select" th:field="*{status}">
+									<option value="AVAILABLE">AVAILABLE</option>
+									<option value="HIDDEN">HIDDEN</option>
+									<option value="OUT_OF_STOCK">OUT OF STOCK</option>
+								</select>
+							</div>
+						</div>
+					</div>
+
+					<div class="col-lg-5">
+						<fieldset class="p-3 border rounded">
+							<legend class="fs-6 fw-bold">Giá theo kích cỡ</legend>
+
+							<table class="table align-middle">
+								<thead>
+									<tr>
+										<th>Size</th>
+										<th>Giá (VNĐ)</th>
+										<th>Dung tích (ml)</th>
+									</tr>
+								</thead>
+								<tbody th:if="*{variants != null and !variants.isEmpty()}">
+									<tr th:each="variant, stat : *{variants}">
+										<input type="hidden"
+											th:field="*{variants[__${stat.index}__].id}" />
+										<input type="hidden"
+											th:field="*{variants[__${stat.index}__].size}" />
+										<td><span class="fw-bold"
+											th:text="*{variants[__${stat.index}__].size}"></span></td>
+										<td><input type="number" class="form-control"
+											th:field="*{variants[__${stat.index}__].price}" min="0"
+											step="1000" inputmode="numeric" required /></td>
+										<td><input type="number" class="form-control"
+											th:field="*{variants[__${stat.index}__].volumeMl}" min="0"
+											step="50" inputmode="numeric" /></td>
+									</tr>
+								</tbody>
+								<tbody th:unless="*{variants != null and !variants.isEmpty()}">
+									<tr>
+										<td colspan="3">
+											<div class="alert alert-warning">Không có dữ liệu biến
+												thể hoặc có lỗi xảy ra.</div>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+							<div class="form-text">Nhập giá cho các kích cỡ. Nếu giá là
+								0, biến thể sẽ không được tạo.</div>
+						</fieldset>
+					</div>
+				</div>
+
+
+				<div class="row g-3 mt-2">
+					<div class="col-12">
+						<label class="form-label">Ảnh sản phẩm</label> <input
+							class="form-control" type="file" name="images" accept="image/*"
+							multiple>
+						<div class="form-text">Chọn 1 hoặc nhiều ảnh. Ảnh đầu tiên
+							sẽ là ảnh chính.</div>
+					</div>
+					<div class="col-12 mt-3"
+						th:if="${existingImages != null and !#lists.isEmpty(existingImages)}">
+						<label class="form-label">Ảnh hiện có (Sắp xếp theo thứ tự
+							ưu tiên)</label>
+						<div class="d-flex flex-wrap gap-2">
+							<div th:each="img : ${existingImages}"
+								class="border rounded p-1 text-center">
+								<img th:src="${img.url}"
+									style="width: 96px; height: 96px; object-fit: cover; border-radius: 6px;">
+								<div class="small text-muted" th:text="'#'+${img.sortOrder}"></div>
+							</div>
+						</div>
+						<div class="form-text text-warning">Lưu ý: Tải lên ảnh mới
+							sẽ thay thế toàn bộ ảnh cũ.</div>
+					</div>
+				</div>
+
+				<div class="mt-4 d-flex gap-2">
+					<button class="btn btn-primary">Lưu thay đổi</button>
+					<a class="btn btn-secondary"
+						th:href="@{/admin/products(q=${q}, shopId=${shopId}, status=${status}, page=${pageIndex}, size=${size})}">Hủy</a>
+				</div>
+			</form>
+
+		</div>
+	</div>
+</body>
+</html>
