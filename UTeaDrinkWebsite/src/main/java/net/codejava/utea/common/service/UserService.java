@@ -20,3 +20,4 @@ public interface UserService {
     void assignRoles(Long userId, Set<String> roleCodes);   // ["ADMIN","CUSTOMER"]
     Set<String> getRoleCodes(Long userId);
 }
+	

@@ -1,0 +1,101 @@
+# ==============================================
+#  SPRING BOOT APP CONFIGURATION
+# ==============================================
+spring.application.name=utea
+server.port=8080
+
+# ==============================================
+#  DATABASE (SQL Server)
+# ==============================================
+#spring.datasource.url=jdbc:sqlserver://DESKTOP-T2GDPKG;databaseName=utea12;encrypt=true;trustServerCertificate=true
+#spring.datasource.username=sa
+#spring.datasource.password=thienhoang
+#spring.datasource.driver-class-name=com.microsoft.sqlserver.jdbc.SQLServerDriver
+# ---------------------------------------------
+<<<<<<< HEAD
+# TuyetMinh
+spring.datasource.url=jdbc:sqlserver://LAPTOP-DEJAVU;databaseName=utea11;encrypt=true;trustServerCertificate=true
+spring.datasource.username=admin_minh
+spring.datasource.password=123
+=======
+# nhan
+spring.datasource.url=jdbc:sqlserver://THANHNHAN;instanceName=MSSQLSERVER01;databaseName=UTEDrink;encrypt=true;trustServerCertificate=true
+spring.datasource.username=sa
+spring.datasource.password=123456
+>>>>>>> origin/nhan
+spring.datasource.driver-class-name=com.microsoft.sqlserver.jdbc.SQLServerDriver
+# ---------------------------------------------
+# 
+
+# ==============================================
+#  JPA / Hibernate
+# ==============================================
+spring.jpa.hibernate.ddl-auto=update
+#spring.jpa.hibernate.ddl-auto=create-drop
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.database-platform=org.hibernate.dialect.SQLServerDialect
+spring.jpa.open-in-view=false
+
+# ==============================================
+#  THYMELEAF
+# ==============================================
+spring.thymeleaf.cache=false
+spring.thymeleaf.prefix=classpath:/templates/
+spring.thymeleaf.suffix=.html
+spring.thymeleaf.encoding=UTF-8
+
+# ==============================================
+#  ENCODING
+# ==============================================
+server.servlet.encoding.charset=UTF-8
+server.servlet.encoding.force=true
+
+# ==============================================
+#   MAIL (use app password; do not commit real secret)
+# ==============================================
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=uteadrink.web@gmail.com
+spring.mail.password=ravf kfon wtgd kkgc
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+app.mail.from=UTeaDrink <phamthienhoang21@gmail.com>
+
+# ==============================================
+#   CLOUDINARY CONFIG
+# ==============================================
+cloudinary.cloud-name=dhmh2ekqy
+cloudinary.api-key=911548849379795
+cloudinary.api-secret=FEt7Kt4r9BWR-0e0Dx-jFBv_71M
+cloudinary.folder=utea
+
+# ==============================================
+#   UPLOAD
+# ==============================================
+spring.servlet.multipart.enabled=true
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+
+# ==============================================
+#   OAUTH2
+# ==============================================
+# ===== OAuth2 Google =====
+spring.security.oauth2.client.registration.google.client-id=YOUR_GOOGLE_CLIENT_ID
+spring.security.oauth2.client.registration.google.client-secret=YOUR_GOOGLE_CLIENT_SECRET
+spring.security.oauth2.client.registration.google.scope=openid,profile,email
+spring.security.oauth2.client.registration.google.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
+
+# ===== OAuth2 Facebook =====
+spring.security.oauth2.client.registration.facebook.client-id=YOUR_FB_APP_ID
+spring.security.oauth2.client.registration.facebook.client-secret=YOUR_FB_APP_SECRET
+spring.security.oauth2.client.registration.facebook.scope=email,public_profile
+spring.security.oauth2.client.registration.facebook.redirect-uri={baseUrl}/login/oauth2/code/{registrationId}
+# ==============================================
+#   JWT
+# ==============================================
+security.jwt.secret-key=CHANGE_ME_TO_32PLUS_BYTES_RANDOM
+security.jwt.expiration-time=604800000
+app.jwt.cookie-name=UTEA_TOKEN
+app.jwt.cookie-secure=false
+app.jwt.cookie-samesite=Lax
