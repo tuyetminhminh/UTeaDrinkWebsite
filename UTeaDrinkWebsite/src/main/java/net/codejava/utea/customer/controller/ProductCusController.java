@@ -11,6 +11,10 @@ import net.codejava.utea.catalog.repository.ProductRepository;
 import net.codejava.utea.catalog.repository.ProductVariantRepository;
 import net.codejava.utea.review.service.ReviewService;
 import net.codejava.utea.review.view.ReviewView;
+import net.codejava.utea.manager.entity.ShopBanner;
+import net.codejava.utea.manager.repository.ShopBannerRepository;
+import net.codejava.utea.catalog.entity.Topping;
+import net.codejava.utea.catalog.service.ToppingService;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Sort;
 
 @Controller
 @RequestMapping("/customer")
@@ -30,6 +35,9 @@ public class ProductCusController {
     private final ProductCategoryRepository categoryRepo;
     private final ReviewService reviewService;
     private final ObjectMapper om = new ObjectMapper();
+    private final ShopBannerRepository bannerRepo;
+    private final ToppingService toppingService;
+    private static final long BAKERY_CAT_ID = 2L;
 
     // ------------------- MENU -------------------
     @GetMapping("/menu")
@@ -71,6 +79,12 @@ public class ProductCusController {
         model.addAttribute("categories", categories);
         model.addAttribute("catPages", catPages);
         model.addAttribute("catPageNums", catPageNums);
+
+        Sort bannerSort = Sort.by(Sort.Direction.ASC, "sortOrder")
+                .and(Sort.by(Sort.Direction.DESC, "createdAt")); // tie-breaker
+        List<ShopBanner> banners = bannerRepo.findByActiveTrue(bannerSort);
+
+        model.addAttribute("banners", banners);
 
         return "customer/menu";
     }
@@ -136,7 +150,15 @@ public class ProductCusController {
         List<Integer> rpPages = new ArrayList<>();
         for (int i = 0; i < totalRp; i++) rpPages.add(i);
 
+        boolean isBakery = product.getCategory() != null && product.getCategory().getId() == BAKERY_CAT_ID;
+        java.util.List<Topping> toppings = java.util.Collections.emptyList();
+        if (!isBakery && product.getShop() != null) {
+            toppings = toppingService.getToppingsForShop(product.getShop().getId());
+        }
+
         // ==== Gán model ====
+        model.addAttribute("isBakery", isBakery);
+        model.addAttribute("toppings", toppings);
         model.addAttribute("product", product);
         model.addAttribute("variants", variants);
         model.addAttribute("defaultPrice", defaultPrice);
@@ -159,5 +181,32 @@ public class ProductCusController {
         model.addAttribute("backUrl", backUrl);
 
         return "customer/product";
+    }
+    @GetMapping("/search.json")
+    @ResponseBody
+    public Map<String, Object> searchJson(
+            @RequestParam("q") String q,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "12") int size) {
+
+        Pageable pg = PageRequest.of(Math.max(0, page), Math.max(1, size),
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        var searchPage = productRepo.search(q == null ? "" : q.trim(), null, null, null, pg);
+
+        var items = searchPage.getContent().stream().map(p -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", p.getId());
+            m.put("name", p.getName());
+            m.put("price", p.getBasePrice());
+            m.put("imageUrl", p.getMainImageUrl()); // tên getter theo entity của bạn
+            return m;
+        }).toList();
+
+        return Map.of(
+                "content", items,
+                "page", searchPage.getNumber(),
+                "totalPages", searchPage.getTotalPages()
+        );
     }
 }

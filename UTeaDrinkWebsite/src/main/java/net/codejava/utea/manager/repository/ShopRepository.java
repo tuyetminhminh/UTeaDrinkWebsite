@@ -9,9 +9,16 @@ import java.util.Optional;
 
 @Repository
 public interface ShopRepository extends JpaRepository<Shop, Long> {
-    
+
     Optional<Shop> findByName(String name);
-    
+
     List<Shop> findByStatus(String status);
+
+    List<Shop> findByStatusOrderByNameAsc(String status);
+    // Ưu tiên shop đang mở
+    Optional<Shop> findFirstByStatusOrderByIdAsc(String status);
+
+    // Fallback: lấy shop đầu tiên bất kỳ
+    Optional<Shop> findFirstByOrderByIdAsc();
 }
 

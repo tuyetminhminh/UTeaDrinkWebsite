@@ -3,7 +3,7 @@ package net.codejava.utea.customer.controller;
 import lombok.RequiredArgsConstructor;
 import net.codejava.utea.common.entity.User;
 import net.codejava.utea.common.security.CustomUserDetails;
-import net.codejava.utea.customer.service.MyOrderQueryService;
+import net.codejava.utea.customer.service.impl.MyOrderQueryService;
 import net.codejava.utea.order.entity.Order;
 import net.codejava.utea.order.entity.enums.OrderStatus;
 import net.codejava.utea.order.repository.OrderRepository;

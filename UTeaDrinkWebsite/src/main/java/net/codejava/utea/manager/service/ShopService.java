@@ -1,9 +1,6 @@
 package net.codejava.utea.manager.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import net.codejava.utea.catalog.entity.Product;
-import net.codejava.utea.catalog.repository.ProductRepository;
 import net.codejava.utea.common.entity.User;
 import net.codejava.utea.common.repository.UserRepository;
 import net.codejava.utea.manager.dto.*;
@@ -15,20 +12,13 @@ import net.codejava.utea.manager.repository.ShopBannerRepository;
 import net.codejava.utea.manager.repository.ShopManagerRepository;
 import net.codejava.utea.manager.repository.ShopRepository;
 import net.codejava.utea.manager.repository.ShopSectionRepository;
-import net.codejava.utea.order.entity.Order;
-import net.codejava.utea.order.entity.OrderItem;
-import net.codejava.utea.order.entity.enums.OrderStatus;
-import net.codejava.utea.order.repository.OrderRepository;
-import net.codejava.utea.review.entity.enums.ReviewStatus;
-import net.codejava.utea.review.repository.ReviewRepository;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Sort;
 
 @Service
 @RequiredArgsConstructor
@@ -39,13 +29,9 @@ public class ShopService {
     private final ShopBannerRepository bannerRepo;
     private final ShopSectionRepository sectionRepo;
     private final UserRepository userRepo;
-    private final ProductRepository productRepo;
-    private final ObjectMapper objectMapper;
-    private final OrderRepository orderRepo;
-    private final ReviewRepository reviewRepo;
 
     // ==================== SHOP CRUD ====================
-    
+
     /**
      * Đăng ký shop mới (1 manager chỉ đăng ký 1 lần)
      */
@@ -112,7 +98,7 @@ public class ShopService {
     }
 
     // ==================== PUBLIC API ====================
-    
+
     /**
      * Lấy tất cả banner ACTIVE của shop (dành cho khách hàng)
      */
@@ -144,7 +130,7 @@ public class ShopService {
                 .orElseThrow(() -> new RuntimeException("Manager chưa đăng ký shop"));
 
         boolean isActive = bannerDTO.isActive();
-        
+
         ShopBanner banner = ShopBanner.builder()
                 .shop(shopManager.getShop())
                 .title(bannerDTO.getTitle())
@@ -208,184 +194,13 @@ public class ShopService {
     // ==================== SECTION CRUD ====================
 
     /**
-     * Lấy tất cả section của shop (cho manager)
+     * Lấy tất cả section của shop
      */
     @Transactional(readOnly = true)
     public List<ShopSectionDTO> getAllSections(Long shopId) {
         return sectionRepo.findByShopIdOrderBySortOrderAsc(shopId).stream()
                 .map(this::convertSectionToDTO)
                 .collect(Collectors.toList());
-    }
-    
-    /**
-     * Lấy sections ACTIVE với products đã populate (cho customer)
-     */
-    @Transactional(readOnly = true)
-    public List<Map<String, Object>> getActiveSectionsWithProducts(Long shopId) {
-        List<ShopSection> sections = sectionRepo.findByShopIdAndIsActiveOrderBySortOrderAsc(shopId, true);
-        
-        return sections.stream().map(section -> {
-            Map<String, Object> sectionData = new HashMap<>();
-            sectionData.put("id", section.getId());
-            sectionData.put("title", section.getTitle());
-            sectionData.put("sectionType", section.getSectionType());
-            sectionData.put("sortOrder", section.getSortOrder());
-            
-            // Parse contentJson to get limit
-            int limit = 8; // default
-            try {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> content = objectMapper.readValue(section.getContentJson(), Map.class);
-                if (content.containsKey("limit")) {
-                    limit = (Integer) content.get("limit");
-                }
-            } catch (Exception e) {
-                System.err.println("Error parsing contentJson: " + e.getMessage());
-            }
-            
-            // Get products based on section type and convert to simple DTOs
-            List<Map<String, Object>> products = getProductsForSection(shopId, section.getSectionType(), limit);
-            sectionData.put("products", products);
-            
-            return sectionData;
-        }).collect(Collectors.toList());
-    }
-    
-    /**
-     * Lấy products cho một section type và convert sang Map để tránh lazy loading issues
-     */
-    private List<Map<String, Object>> getProductsForSection(Long shopId, String sectionType, int limit) {
-        PageRequest pageRequest = PageRequest.of(0, limit);
-        
-        List<Product> products = switch (sectionType) {
-            case "FEATURED" -> productRepo.findFeaturedProducts(shopId, pageRequest);
-            case "NEW_ARRIVALS" -> productRepo.findNewArrivals(shopId, pageRequest);
-            case "TOP_SELLING" -> productRepo.findTopSelling(shopId, pageRequest);
-            case "PROMOTION" -> getPromotionProductsWithFallback(shopId, limit);
-            default -> List.of();
-        };
-        
-        // Convert to simple DTO to avoid lazy loading issues
-        return products.stream().map(this::convertProductToSimpleDTO).collect(Collectors.toList());
-    }
-    
-    /**
-     * Lấy sản phẩm khuyến mãi với fallback:
-     * - Ưu tiên: Sản phẩm có rating >= 4.0 và bán chạy
-     * - Nếu không đủ: Bổ sung thêm sản phẩm bán chạy khác để đủ số lượng
-     */
-    private List<Product> getPromotionProductsWithFallback(Long shopId, int limit) {
-        // Bước 1: Lấy sản phẩm có rating >= 4.0
-        PageRequest pageRequest = PageRequest.of(0, limit);
-        List<Product> highRatingProducts = productRepo.findPromotionProducts(shopId, pageRequest);
-        
-        // Nếu đã đủ số lượng, return luôn
-        if (highRatingProducts.size() >= limit) {
-            return highRatingProducts;
-        }
-        
-        // Bước 2: Nếu chưa đủ, lấy thêm sản phẩm bán chạy để bù đủ
-        int remaining = limit - highRatingProducts.size();
-        PageRequest fallbackPageRequest = PageRequest.of(0, limit); // Lấy nhiều hơn để filter
-        List<Product> topSellingProducts = productRepo.findTopSelling(shopId, fallbackPageRequest);
-        
-        // Lọc bỏ các sản phẩm đã có trong highRatingProducts
-        java.util.Set<Long> existingIds = highRatingProducts.stream()
-                .map(Product::getId)
-                .collect(java.util.stream.Collectors.toSet());
-        
-        List<Product> additionalProducts = topSellingProducts.stream()
-                .filter(p -> !existingIds.contains(p.getId()))
-                .limit(remaining)
-                .collect(java.util.stream.Collectors.toList());
-        
-        // Kết hợp 2 danh sách
-        List<Product> result = new ArrayList<>(highRatingProducts);
-        result.addAll(additionalProducts);
-        
-        return result;
-    }
-    
-    /**
-     * Convert Product entity to simple DTO for JSON response
-     */
-    private Map<String, Object> convertProductToSimpleDTO(Product product) {
-        Map<String, Object> dto = new HashMap<>();
-        dto.put("id", product.getId());
-        dto.put("name", product.getName());
-        dto.put("description", product.getDescription());
-        dto.put("basePrice", product.getBasePrice());
-        
-        // Tính số lượng đã bán thực tế từ các đơn hàng DELIVERED
-        int actualSoldCount = calculateActualSoldCount(product.getId());
-        dto.put("soldCount", actualSoldCount);
-        
-        // Tính rating trung bình thực tế từ reviews APPROVED
-        BigDecimal actualRating = calculateAverageRating(product.getId());
-        dto.put("ratingAvg", actualRating);
-        
-        dto.put("status", product.getStatus());
-        
-        // Get images safely
-        List<Map<String, Object>> images = new ArrayList<>();
-        if (product.getImages() != null && !product.getImages().isEmpty()) {
-            for (net.codejava.utea.catalog.entity.ProductImage img : product.getImages()) {
-                Map<String, Object> imageDto = new HashMap<>();
-                imageDto.put("id", img.getId());
-                imageDto.put("url", img.getUrl());
-                imageDto.put("sortOrder", img.getSortOrder());
-                images.add(imageDto);
-            }
-        }
-        dto.put("images", images);
-        
-        return dto;
-    }
-    
-    /**
-     * Tính số lượng sản phẩm đã bán thực tế từ các đơn hàng DELIVERED
-     */
-    private int calculateActualSoldCount(Long productId) {
-        try {
-            // Lấy tất cả đơn hàng DELIVERED
-            List<Order> deliveredOrders = orderRepo.findAll().stream()
-                    .filter(order -> OrderStatus.DELIVERED.equals(order.getStatus()))
-                    .collect(Collectors.toList());
-            
-            // Tính tổng số lượng đã bán
-            int totalSold = 0;
-            for (Order order : deliveredOrders) {
-                List<OrderItem> items = order.getItems();
-                if (items != null) {
-                    for (OrderItem item : items) {
-                        if (item.getProduct() != null && item.getProduct().getId().equals(productId)) {
-                            totalSold += item.getQuantity();
-                        }
-                    }
-                }
-            }
-            
-            return totalSold;
-        } catch (Exception e) {
-            System.err.println("Error calculating sold count for product " + productId + ": " + e.getMessage());
-            return 0;
-        }
-    }
-    
-    /**
-     * Tính rating trung bình thực tế từ reviews APPROVED
-     */
-    private BigDecimal calculateAverageRating(Long productId) {
-        try {
-            Double avgRating = reviewRepo.avgRating(productId, ReviewStatus.APPROVED);
-            if (avgRating == null || avgRating == 0.0) {
-                return null; // Trả về null nếu chưa có đánh giá
-            }
-            return BigDecimal.valueOf(avgRating).setScale(1, RoundingMode.HALF_UP);
-        } catch (Exception e) {
-            System.err.println("Error calculating rating for product " + productId + ": " + e.getMessage());
-            return null;
-        }
     }
 
     /**
@@ -396,30 +211,16 @@ public class ShopService {
         ShopManager shopManager = shopManagerRepo.findByManager_Id(managerId)
                 .orElseThrow(() -> new RuntimeException("Manager chưa đăng ký shop"));
 
-        // Debug logging
-        System.out.println("=== CREATE SECTION DEBUG ===");
-        System.out.println("DTO isActive: " + sectionDTO.getIsActive());
-        System.out.println("DTO class: " + sectionDTO.getClass().getName());
-
-        // Default to true if not specified
-        Boolean isActive = sectionDTO.getIsActive() != null ? sectionDTO.getIsActive() : true;
-        System.out.println("isActive value after default: " + isActive);
-
         ShopSection section = ShopSection.builder()
                 .shop(shopManager.getShop())
                 .title(sectionDTO.getTitle())
                 .sectionType(sectionDTO.getSectionType())
                 .contentJson(sectionDTO.getContentJson())
                 .sortOrder(sectionDTO.getSortOrder() != null ? sectionDTO.getSortOrder() : 0)
-                .isActive(isActive)
+                .isActive(sectionDTO.isActive())
                 .build();
 
-        System.out.println("Entity isActive before save: " + section.isActive());
-        
         section = sectionRepo.save(section);
-
-        System.out.println("Entity isActive after save: " + section.isActive());
-        System.out.println("=== END DEBUG ===");
 
         return convertSectionToDTO(section);
     }
@@ -440,25 +241,13 @@ public class ShopService {
             throw new RuntimeException("Không có quyền chỉnh sửa section này");
         }
 
-        // Debug logging
-        System.out.println("=== UPDATE SECTION DEBUG ===");
-        System.out.println("DTO isActive: " + sectionDTO.getIsActive());
-        
-        Boolean isActive = sectionDTO.getIsActive() != null ? sectionDTO.getIsActive() : true;
-        System.out.println("isActive value after default: " + isActive);
-
         section.setTitle(sectionDTO.getTitle());
         section.setSectionType(sectionDTO.getSectionType());
         section.setContentJson(sectionDTO.getContentJson());
         section.setSortOrder(sectionDTO.getSortOrder());
-        section.setActive(isActive);
+        section.setActive(sectionDTO.isActive());
 
-        System.out.println("Entity isActive before save: " + section.isActive());
-        
         section = sectionRepo.save(section);
-
-        System.out.println("Entity isActive after save: " + section.isActive());
-        System.out.println("=== END DEBUG ===");
 
         return convertSectionToDTO(section);
     }
@@ -523,5 +312,29 @@ public class ShopService {
                 .createdAt(section.getCreatedAt())
                 .build();
     }
+
+    /** Lấy toàn bộ banner ACTIVE (web chung, không theo shop) */
+    @Transactional(readOnly = true)
+    public List<ShopBannerDTO> getActiveBannersAll() {
+        Sort sort = Sort.by(Sort.Direction.ASC, "sortOrder")
+                .and(Sort.by(Sort.Direction.DESC, "createdAt")); // tie-breaker đẹp
+        return bannerRepo.findByActiveTrue(sort)
+                .stream()
+                .map(this::convertBannerToDTO)
+                .collect(Collectors.toList());
+    }
+    @Transactional(readOnly = true)
+    public Optional<Long> getDefaultShopId() {
+        return shopRepo.findFirstByStatusOrderByIdAsc("OPEN")
+                .or(() -> shopRepo.findFirstByOrderByIdAsc())
+                .map(Shop::getId);
+    }
+
+    @Transactional(readOnly = true)
+    public Long requireDefaultShopId() {
+        return getDefaultShopId()
+                .orElseThrow(() -> new IllegalStateException("Chưa có Shop nào trong hệ thống."));
+    }
+
 }
 

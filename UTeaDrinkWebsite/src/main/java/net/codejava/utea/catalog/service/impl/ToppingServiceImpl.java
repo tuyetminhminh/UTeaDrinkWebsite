@@ -23,4 +23,9 @@ public class ToppingServiceImpl implements ToppingService {
     public Topping getToppingById(Long toppingId) {
         return toppingRepository.findById(toppingId).orElse(null);
     }
+
+    @Override
+    public List<Topping> getActiveToppingsForShop(Long shopId) {
+        return toppingRepository.findByShopIdAndStatus(shopId, "ACTIVE");
+    }
 }

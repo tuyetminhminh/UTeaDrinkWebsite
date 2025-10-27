@@ -1,6 +1,5 @@
 package net.codejava.utea.manager.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,10 +18,7 @@ public class ShopSectionDTO {
     private String sectionType; // FEATURED, TOP_SELLING, NEW_ARRIVALS, PROMOTION
     private String contentJson;
     private Integer sortOrder;
-    
-    @JsonProperty("isActive")
-    private Boolean isActive; // Changed to Boolean wrapper for better JSON handling
-    
+    private boolean isActive;
     private LocalDateTime createdAt;
 }
 

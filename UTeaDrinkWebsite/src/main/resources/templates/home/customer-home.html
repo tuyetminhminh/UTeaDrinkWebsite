@@ -368,12 +368,12 @@
         </div>
     </div>
 </div>
-
+<div th:replace="~{fragments/footer-home :: siteFooter}"></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script th:inline="javascript">
     /*<![CDATA[*/
     const SHOP_ID = /*[[${shopId}]]*/ 1;
-    
+
     // Initialize carousel with custom settings
     document.addEventListener('DOMContentLoaded', function() {
         const carousel = document.querySelector('#bannerCarousel');
@@ -401,28 +401,28 @@
                 }
             });
         }
-        
+
         // Load shop sections
         loadShopSections();
     });
-    
+
     // Load sections với products từ API
     async function loadShopSections() {
         try {
             const response = await fetch(`/api/public/shops/${SHOP_ID}/sections`);
             const sections = await response.json();
-            
+
             const container = document.getElementById('shopSectionsContainer');
-            
+
             if (!sections || sections.length === 0) {
                 container.innerHTML = '<div class="text-center text-muted py-5"><p>Chưa có sản phẩm nào</p></div>';
                 return;
             }
-            
+
             container.innerHTML = sections.map(section => renderSection(section)).join('');
         } catch (error) {
             console.error('Error loading sections:', error);
-            document.getElementById('shopSectionsContainer').innerHTML = 
+            document.getElementById('shopSectionsContainer').innerHTML =
                 '<div class="text-center text-danger py-5"><p>Không thể tải sản phẩm</p></div>';
         }
     }

@@ -9,13 +9,17 @@ import java.util.List;
 
 public interface CartService {
 
-	Cart getOrCreate(User user);
+    Cart getOrCreate(User user);
 
     List<CartItem> listItems(User user);
 
     List<CartItem> listSelected(User user);
 
     CartItem addItem(User user, Long productId, Long variantId, int qty);
+
+    CartItem addItem(User user, Long productId, Long variantId, int qty, List<Long> toppingIds);
+
+    CartItem updateToppings(User user, Long itemId, List<Long> toppingIds);
 
     CartItem updateQty(User user, Long itemId, int qty);
 

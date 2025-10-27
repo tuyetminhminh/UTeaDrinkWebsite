@@ -80,6 +80,8 @@ public class SecurityConfig {
                                 "/products/**", "/GuestProducts/**", "/fragments/**",
                                 "/uploads/**", "/assets/**", "/ws/**"
                         ).permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/customer/cart/api/**").hasAnyRole("CUSTOMER","ADMIN","MANAGER") // ✅
                         .requestMatchers("/admin/**").hasAuthority("ADMIN")
                         .requestMatchers("/manager/**").hasAuthority("MANAGER")
                         .requestMatchers("/customer/**").hasAuthority("CUSTOMER")

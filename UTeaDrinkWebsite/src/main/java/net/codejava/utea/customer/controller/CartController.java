@@ -1,19 +1,22 @@
-// net.codejava.utea.customer.controller.CartController
 package net.codejava.utea.customer.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import net.codejava.utea.catalog.entity.ProductVariant;
 import net.codejava.utea.common.entity.User;
+import net.codejava.utea.common.security.CustomUserDetails;
 import net.codejava.utea.customer.entity.CartItem;
 import net.codejava.utea.customer.service.CartService;
 import net.codejava.utea.customer.service.VariantService;
-import net.codejava.utea.common.security.CustomUserDetails;
+import net.codejava.utea.catalog.repository.ProductRepository;
+import net.codejava.utea.catalog.repository.ProductVariantRepository;
+import net.codejava.utea.catalog.service.ToppingService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -23,24 +26,39 @@ public class CartController {
 
     private final CartService cartService;
     private final VariantService variantService;
+    private final ProductVariantRepository variantRepo;
+    private final ProductRepository productRepo;
+    private final ToppingService toppingService;
+    private final ObjectMapper om = new ObjectMapper();
 
-    private User currentUser(CustomUserDetails user) {
-        if (user == null) throw new RuntimeException("Chưa đăng nhập");
-        // CustomUserDetails thường có id/email/roles; giả sử bạn đã map 1-1 với User
-        // Nếu cần, inject UserRepository để .findById(user.getId())
+    private User currentUser(CustomUserDetails cud) {
+        if (cud == null) throw new RuntimeException("Chưa đăng nhập");
         User u = new User();
-        u.setId(user.getId()); // hoặc nạp từ repo
+        u.setId(cud.getUser().getId()); // ✅ lấy id từ user bên trong
         return u;
     }
+
 
     @GetMapping
     public String viewCart(@AuthenticationPrincipal CustomUserDetails user, Model model) {
         var u = currentUser(user);
-        var items = cartService.listItems(u);
+        var items = new ArrayList<>(cartService.listItems(u));
 
-        // Map<itemId, List<Variant>> để hiện dropdown đổi size cho từng dòng có variant
-        Map<Long, java.util.List<ProductVariant>> variantOptions = items.stream()
-                .filter(i -> i.getVariant() != null) // chỉ item có variant mới cần chọn size
+        // SẮP XẾP MỚI NHẤT TRƯỚC (ưu tiên createdAt; nếu không có thì theo id)
+        items.sort((a, b) -> {
+            try {
+                var ca = a.getCreatedAt();
+                var cb = b.getCreatedAt();
+                if (ca != null && cb != null) return cb.compareTo(ca);
+            } catch (Exception ignore) {}
+            return Long.compare(
+                    b.getId() == null ? 0L : b.getId(),
+                    a.getId() == null ? 0L : a.getId());
+        });
+
+        // Dropdown đổi size theo từng item (nếu có variant)
+        Map<Long, List<ProductVariant>> variantOptions = items.stream()
+                .filter(i -> i.getVariant() != null)
                 .collect(Collectors.toMap(
                         CartItem::getId,
                         it -> variantService.findActiveByProduct(it.getProduct().getId())
@@ -51,6 +69,29 @@ public class CartController {
         model.addAttribute("subtotalAll", cartService.getSubtotal(u));
         model.addAttribute("subtotalSelected", cartService.getSelectedSubtotal(u));
         model.addAttribute("useCustomerCSS", true);
+
+        // JSON TOPPING THEO SHOP: { shopId: [ {id,name,price}, ... ] }
+        Map<Long, List<Map<String, Object>>> topsMap = new LinkedHashMap<>();
+        for (CartItem it : items) {
+            var shop = (it.getProduct() != null) ? it.getProduct().getShop() : null;
+            if (shop == null) continue;
+            long shopId = shop.getId();
+            if (!topsMap.containsKey(shopId)) {
+                var tops = toppingService.getToppingsForShop(shopId);
+                var arr = tops.stream().map(t -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("id", t.getId());
+                    m.put("name", t.getName());
+                    m.put("price", t.getPrice());
+                    return m;
+                }).toList();
+                topsMap.put(shopId, arr);
+            }
+        }
+        String topsDataByShopJson = "{}";
+        try { topsDataByShopJson = om.writeValueAsString(topsMap); } catch (Exception ignore) {}
+        model.addAttribute("topsDataByShopJson", topsDataByShopJson);
+
         return "customer/cart";
     }
 
@@ -59,10 +100,25 @@ public class CartController {
                       @RequestParam Long productId,
                       @RequestParam(defaultValue = "1") int quantity,
                       @RequestParam(required = false) Long variantId,
-                      @RequestParam(defaultValue = "/customer/menu") String redirect) {
+                      @RequestParam(required = false, name = "toppingIds") List<Long> toppingIds,
+                      @RequestParam(required = false) String redirect,
+                      org.springframework.web.servlet.mvc.support.RedirectAttributes ra) {
         var u = currentUser(user);
-        cartService.addItem(u, productId, variantId, Math.max(1, quantity));
-        return "redirect:" + (redirect != null && !redirect.isBlank() ? redirect : "/customer/cart");
+        var p = productRepo.findById(productId).orElseThrow();
+
+        if (p.getCategory() != null && p.getCategory().getId() == 2L) {
+            variantId = null;
+            toppingIds = null;
+        }
+
+        cartService.addItem(u, productId, variantId, Math.max(1, quantity), toppingIds);
+        ra.addFlashAttribute("msg", "Đã thêm \"" + p.getName() + "\" vào giỏ hàng.");
+
+        String target = redirect;
+        if (target == null || target.isBlank() || "/customer/menu".equals(target)) {
+            target = "/customer/product/" + productId;
+        }
+        return "redirect:" + target;
     }
 
     @PostMapping("/update")
@@ -95,28 +151,42 @@ public class CartController {
     public String selectAll(@AuthenticationPrincipal CustomUserDetails user,
                             @RequestParam boolean selected) {
         var u = currentUser(user);
-        // không cần service riêng: có thể lặp items để set; nhưng bạn có thể thêm hàm tiện
         cartService.listItems(u).forEach(i -> cartService.toggleSelect(u, i.getId(), selected));
         return "redirect:/customer/cart";
     }
 
-    // Đổi size của một dòng (đổi variant)
     @PostMapping("/change-variant")
     public String changeVariant(@AuthenticationPrincipal CustomUserDetails user,
                                 @RequestParam Long itemId,
                                 @RequestParam Long newVariantId) {
         var u = currentUser(user);
-        // tái sử dụng add+remove (cách đơn giản): lấy item cũ, xóa, add item mới
+
         var old = cartService.listItems(u).stream()
                 .filter(i -> i.getId().equals(itemId))
                 .findFirst().orElseThrow(() -> new RuntimeException("Item not found"));
 
-        // remove dòng cũ
+        List<Long> toppingIds = null;
+        try {
+            if (old.getToppingsJson() != null && !old.getToppingsJson().isBlank()) {
+                var arr = om.readValue(old.getToppingsJson(), java.util.List.class);
+                toppingIds = (List<Long>) ((List<?>) arr).stream()
+                        .map(m -> ((Number) ((Map<?, ?>) m).get("id")).longValue())
+                        .toList();
+            }
+        } catch (Exception ignore) {}
+
         cartService.removeItem(u, itemId);
-        // add dòng mới (giữ số lượng cũ)
-        cartService.addItem(u, old.getProduct().getId(), newVariantId, old.getQuantity());
+        cartService.addItem(u, old.getProduct().getId(), newVariantId, old.getQuantity(), toppingIds);
 
         return "redirect:/customer/cart";
     }
 
+    @PostMapping("/change-toppings")
+    public String changeToppings(@AuthenticationPrincipal CustomUserDetails user,
+                                 @RequestParam Long itemId,
+                                 @RequestParam(required = false, name = "toppingIds") List<Long> toppingIds) {
+        var u = currentUser(user);
+        cartService.updateToppings(u, itemId, toppingIds);
+        return "redirect:/customer/cart";
+    }
 }

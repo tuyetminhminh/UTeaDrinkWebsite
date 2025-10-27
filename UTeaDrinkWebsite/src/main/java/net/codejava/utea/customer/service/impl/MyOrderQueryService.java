@@ -1,4 +1,4 @@
-package net.codejava.utea.customer.service;
+package net.codejava.utea.customer.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import net.codejava.utea.common.entity.User;
