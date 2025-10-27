@@ -45,6 +45,8 @@ public class OrderManagementDTO {
     // Shipper
     private Long shipperId;
     private String shipperName;
+    private String deliveryNote; // Ghi chú giao hàng
+    private String proofImageUrl; // Ảnh bằng chứng giao hàng
     
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

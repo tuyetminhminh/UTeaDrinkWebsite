@@ -16,19 +16,20 @@
         body {
             background: linear-gradient(135deg, #FFF9E6 0%, #FFF3E0 50%, #FFECB3 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 12px;
+            padding-top: 70px;
         }
 
         .container-fluid {
-            max-width: 1400px;
+            max-width: 1200px;
         }
 
         .header-card {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
-            padding: 28px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             border: 1px solid var(--border-soft);
         }
 
@@ -38,12 +39,13 @@
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 14px;
+            gap: 6px;
+            margin-bottom: 8px;
             transition: all 0.3s;
-            padding: 6px 14px;
-            border-radius: 8px;
+            padding: 4px 10px;
+            border-radius: 6px;
             background: #F5F5F5;
+            font-size: 12px;
         }
 
         .back-btn:hover {
@@ -55,52 +57,52 @@
             color: var(--text-primary);
             font-weight: 700;
             margin: 0;
-            font-size: 26px;
+            font-size: 18px;
         }
 
         .refresh-info {
             background: #E3F2FD;
-            padding: 12px 18px;
-            border-radius: 10px;
+            padding: 8px 14px;
+            border-radius: 8px;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             font-weight: 600;
             color: #1565C0;
-            margin-top: 12px;
-            font-size: 13px;
+            margin-top: 8px;
+            font-size: 11px;
         }
 
         .order-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 14px;
         }
 
         .order-card {
             background: white;
-            border-radius: 14px;
-            padding: 24px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             transition: all 0.3s ease;
             border: 1px solid var(--border-soft);
-            border-top: 4px solid #64B5F6;
+            border-top: 3px solid #64B5F6;
         }
 
         .order-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         .order-header {
             display: flex;
             justify-content: space-between;
             align-items: start;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
 
         .order-code {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 700;
             color: var(--text-primary);
         }
@@ -108,37 +110,37 @@
         .time-badge {
             background: #FFF3E0;
             color: #E65100;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
             font-weight: 600;
             border: 1px solid #FFE0B2;
         }
 
         .section-title {
             color: var(--text-secondary);
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
-            margin-bottom: 10px;
-            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
         }
 
         .info-section {
             background: #FAFAFA;
-            border-radius: 10px;
-            padding: 14px;
-            margin-bottom: 14px;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
             border: 1px solid #F5F5F5;
         }
 
         .info-row {
             display: flex;
             align-items: start;
-            gap: 10px;
-            margin-bottom: 8px;
+            gap: 8px;
+            margin-bottom: 6px;
             color: var(--text-secondary);
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .info-row:last-child {
@@ -147,8 +149,9 @@
 
         .info-row i {
             color: #64B5F6;
-            width: 18px;
+            width: 14px;
             margin-top: 2px;
+            font-size: 12px;
         }
 
         .info-row strong {
@@ -159,24 +162,24 @@
 
         .total-section {
             background: #E8F5E9;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
             text-align: center;
             border: 1px solid #C8E6C9;
         }
 
         .total-label {
             color: #2E7D32;
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 600;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .total-amount {
-            font-size: 28px;
+            font-size: 22px;
             font-weight: 700;
             color: #1B5E20;
         }
@@ -186,71 +189,226 @@
             background: #81C784;
             color: white;
             border: none;
-            padding: 14px;
-            border-radius: 10px;
+            padding: 10px;
+            border-radius: 8px;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 12px;
             transition: all 0.3s;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .accept-btn:hover {
             background: #66BB6A;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(129, 199, 132, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 12px rgba(129, 199, 132, 0.3);
         }
 
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px 20px;
             background: white;
-            border-radius: 14px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             grid-column: 1/-1;
         }
 
         .empty-state i {
-            font-size: 80px;
+            font-size: 60px;
             color: #E0E0E0;
-            margin-bottom: 20px;
+            margin-bottom: 14px;
         }
 
         .empty-state h3 {
             color: var(--text-primary);
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            font-size: 16px;
         }
 
         .empty-state p {
             color: var(--text-secondary);
-            font-size: 14px;
+            font-size: 12px;
         }
 
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* Shop Map Styles */
+        .shop-map-container {
+            background: #F5F5F5;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 8px;
         }
 
-        .order-card {
-            animation: fadeInUp 0.5s ease backwards;
+        .map-header {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 11px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .order-card:nth-child(1) { animation-delay: 0.1s; }
-        .order-card:nth-child(2) { animation-delay: 0.15s; }
-        .order-card:nth-child(3) { animation-delay: 0.2s; }
-        .order-card:nth-child(4) { animation-delay: 0.25s; }
-        .order-card:nth-child(5) { animation-delay: 0.3s; }
-        .order-card:nth-child(6) { animation-delay: 0.35s; }
+        .map-header i {
+            color: #E65100;
+            font-size: 12px;
+        }
+
+        .btn-directions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #4285F4 0%, #0F9D58 100%);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            font-size: 10px;
+            margin-top: 6px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 6px rgba(66, 133, 244, 0.3);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-directions:hover {
+            background: linear-gradient(135deg, #3367D6 0%, #0D7D46 100%);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(66, 133, 244, 0.4);
+        }
+
+        .btn-directions i {
+            font-size: 10px;
+        }
+
+        .map-iframe {
+            width: 100%;
+            height: 160px;
+            border: none;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .location-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .location-status.loading {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+
+        .location-status.success {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .location-status.error {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        .directions-buttons {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        /* Full Screen Map Modal */
+        .fullscreen-map-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .fullscreen-map-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-map-content {
+            background: white;
+            border-radius: 12px;
+            width: 95%;
+            height: 90%;
+            max-width: 1200px;
+            overflow: hidden;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .fullscreen-map-header {
+            background: linear-gradient(135deg, #4285F4 0%, #0F9D58 100%);
+            color: white;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .fullscreen-map-header h5 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fullscreen-map-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 18px;
+        }
+
+        .fullscreen-map-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .fullscreen-map-body {
+            flex: 1;
+            position: relative;
+        }
+
+        .fullscreen-map-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
     </style>
 </head>
 <body>
+    <!-- Header Fragment -->
+    <div th:replace="~{fragments/header :: header}"></div>
+
     <div class="container-fluid">
         <div class="header-card">
             <a href="/shipper/home" class="back-btn">
@@ -268,6 +426,24 @@
                 <i class="fas fa-spinner fa-spin"></i>
                 <h3>Đang tải đơn hàng...</h3>
                 <p>Vui lòng đợi trong giây lát</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Directions Map Modal -->
+    <div class="fullscreen-map-modal" id="directionsMapModal">
+        <div class="fullscreen-map-content">
+            <div class="fullscreen-map-header">
+                <h5>
+                    <i class="fas fa-route"></i>
+                    Chỉ đường đến cửa hàng
+                </h5>
+                <button class="fullscreen-map-close" onclick="closeDirectionsMap()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="fullscreen-map-body">
+                <iframe id="directionsMapIframe" allowfullscreen></iframe>
             </div>
         </div>
     </div>
@@ -339,6 +515,31 @@
                                         ${order.shopAddress}
                                     </div>
                                 </div>
+                                ${order.shopAddress ? `
+                                <div class="shop-map-container">
+                                    <div class="map-header">
+                                        <i class="fas fa-map-marked-alt"></i> Vị trí lấy hàng
+                                    </div>
+                                    <iframe 
+                                        class="map-iframe"
+                                        frameborder="0" 
+                                        referrerpolicy="no-referrer-when-downgrade"
+                                        src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(order.shopAddress)}&zoom=15"
+                                        allowfullscreen>
+                                    </iframe>
+                                    <div class="directions-buttons">
+                                        <button class="btn-directions" onclick="getDirectionsFromMyLocation('${encodeURIComponent(order.shopAddress)}', ${order.orderId})">
+                                            <i class="fas fa-location-arrow"></i> Chỉ đường từ vị trí tôi
+                                        </button>
+                                        <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.shopAddress)}" 
+                                           target="_blank" 
+                                           class="btn-directions">
+                                            <i class="fas fa-external-link-alt"></i> Mở Google Maps
+                                        </a>
+                                    </div>
+                                    <div id="location-status-${order.orderId}"></div>
+                                </div>
+                                ` : ''}
                             </div>
 
                             <div class="total-section">
@@ -404,6 +605,92 @@
             loadOrders();
             // Auto refresh every 15 seconds
             setInterval(loadOrders, 15000);
+        });
+
+        // Get directions from current location
+        async function getDirectionsFromMyLocation(destinationAddress, orderId) {
+            const statusDiv = document.getElementById(`location-status-${orderId}`);
+            
+            // Check if geolocation is supported
+            if (!navigator.geolocation) {
+                statusDiv.innerHTML = '<div class="location-status error"><i class="fas fa-exclamation-circle"></i> Trình duyệt không hỗ trợ GPS</div>';
+                return;
+            }
+
+            // Show loading
+            statusDiv.innerHTML = '<div class="location-status loading"><i class="fas fa-spinner fa-spin"></i> Đang lấy vị trí của bạn...</div>';
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    statusDiv.innerHTML = '<div class="location-status success"><i class="fas fa-check-circle"></i> Đã lấy vị trí! Đang tải chỉ đường...</div>';
+                    
+                    // Open fullscreen map with directions
+                    showDirectionsMap(lat, lng, decodeURIComponent(destinationAddress));
+                    
+                    // Clear status after 2 seconds
+                    setTimeout(() => {
+                        statusDiv.innerHTML = '';
+                    }, 2000);
+                },
+                (error) => {
+                    let errorMsg = 'Không thể lấy vị trí';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg = 'Bạn đã từ chối quyền truy cập vị trí';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg = 'Vị trí không khả dụng';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg = 'Hết thời gian chờ lấy vị trí';
+                            break;
+                    }
+                    statusDiv.innerHTML = `<div class="location-status error"><i class="fas fa-exclamation-circle"></i> ${errorMsg}</div>`;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        // Show fullscreen directions map
+        function showDirectionsMap(originLat, originLng, destination) {
+            const modal = document.getElementById('directionsMapModal');
+            const iframe = document.getElementById('directionsMapIframe');
+            
+            // Build directions URL
+            const directionsUrl = `https://www.google.com/maps/embed/v1/directions?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&origin=${originLat},${originLng}&destination=${encodeURIComponent(destination)}&mode=driving&zoom=14`;
+            
+            iframe.src = directionsUrl;
+            modal.classList.add('active');
+            
+            // Close on background click
+            modal.onclick = function(event) {
+                if (event.target === modal) {
+                    closeDirectionsMap();
+                }
+            };
+        }
+
+        // Close directions map
+        function closeDirectionsMap() {
+            const modal = document.getElementById('directionsMapModal');
+            const iframe = document.getElementById('directionsMapIframe');
+            
+            modal.classList.remove('active');
+            iframe.src = '';
+        }
+
+        // Close on ESC key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeDirectionsMap();
+            }
         });
     </script>
 </body>

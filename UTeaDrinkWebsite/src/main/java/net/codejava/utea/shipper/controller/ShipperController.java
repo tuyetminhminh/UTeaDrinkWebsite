@@ -3,6 +3,7 @@ package net.codejava.utea.shipper.controller;
 import lombok.RequiredArgsConstructor;
 import net.codejava.utea.common.entity.User;
 import net.codejava.utea.common.security.CustomUserDetails;
+import net.codejava.utea.media.service.CloudinaryService;
 import net.codejava.utea.shipper.dto.AvailableOrderDTO;
 import net.codejava.utea.shipper.dto.MyOrderDTO;
 import net.codejava.utea.shipper.dto.ShipperStatsDTO;
@@ -13,7 +14,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +27,7 @@ import java.util.Map;
 public class ShipperController {
 
     private final ShipperOrderService shipperService;
+    private final CloudinaryService cloudinaryService;
 
     // ==================== HELPER ====================
     
@@ -217,6 +221,50 @@ public class ShipperController {
             return ResponseEntity.ok("Đã xác nhận lấy hàng thành công");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * API: Upload ảnh bằng chứng giao hàng
+     */
+    @PostMapping("/api/upload-proof-image")
+    @ResponseBody
+    public ResponseEntity<?> uploadProofImage(
+            Authentication authentication,
+            @RequestParam("image") MultipartFile image,
+            @RequestParam("orderId") Long orderId) {
+        try {
+            getCurrentUser(authentication); // Verify authentication
+            
+            // Validate file
+            if (image.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Không có ảnh được chọn"));
+            }
+            
+            // Validate file size (max 5MB)
+            if (image.getSize() > 5 * 1024 * 1024) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Ảnh quá lớn. Tối đa 5MB"));
+            }
+            
+            // Validate file type
+            String contentType = image.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                return ResponseEntity.badRequest().body(Map.of("error", "File không phải là ảnh"));
+            }
+            
+            // Upload to Cloudinary
+            Map<String, Object> uploadResult = cloudinaryService.upload(image, "proof", "proof_" + orderId + "_" + System.currentTimeMillis());
+            String imageUrl = (String) uploadResult.get("secure_url");
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("imageUrl", imageUrl);
+            response.put("message", "Upload ảnh thành công");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Lỗi upload ảnh: " + e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
 

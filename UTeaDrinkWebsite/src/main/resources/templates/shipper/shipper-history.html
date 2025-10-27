@@ -17,19 +17,20 @@
         body {
             background: linear-gradient(135deg, #FFF9E6 0%, #FFF3E0 50%, #FFECB3 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 12px;
+            padding-top: 70px;
         }
 
         .container-fluid {
-            max-width: 1400px;
+            max-width: 1200px;
         }
 
         .header-card {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
-            padding: 28px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             border: 1px solid var(--border-soft);
         }
 
@@ -39,12 +40,13 @@
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 14px;
+            gap: 6px;
+            margin-bottom: 8px;
             transition: all 0.3s;
-            padding: 6px 14px;
-            border-radius: 8px;
+            padding: 4px 10px;
+            border-radius: 6px;
             background: #F5F5F5;
+            font-size: 12px;
         }
 
         .back-btn:hover {
@@ -56,44 +58,44 @@
             color: var(--text-primary);
             font-weight: 700;
             margin: 0;
-            font-size: 26px;
+            font-size: 18px;
         }
 
         .stats-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 18px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
         }
 
         .stat-box {
             background: white;
-            border-radius: 14px;
-            padding: 24px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             text-align: center;
             transition: all 0.3s ease;
             border: 1px solid var(--border-soft);
         }
 
         .stat-box:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         .stat-icon {
-            width: 60px;
-            height: 60px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            margin: 0 auto 16px;
+            margin: 0 auto 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
+            font-size: 20px;
         }
 
         .stat-box.yellow {
-            border-left: 4px solid #FFD54F;
+            border-left: 3px solid #FFD54F;
         }
 
         .stat-box.yellow .stat-icon {
@@ -102,7 +104,7 @@
         }
 
         .stat-box.green {
-            border-left: 4px solid #81C784;
+            border-left: 3px solid #81C784;
         }
 
         .stat-box.green .stat-icon {
@@ -111,7 +113,7 @@
         }
 
         .stat-box.orange {
-            border-left: 4px solid #FFB74D;
+            border-left: 3px solid #FFB74D;
         }
 
         .stat-box.orange .stat-icon {
@@ -120,7 +122,7 @@
         }
 
         .stat-box.blue {
-            border-left: 4px solid #64B5F6;
+            border-left: 3px solid #64B5F6;
         }
 
         .stat-box.blue .stat-icon {
@@ -129,55 +131,56 @@
         }
 
         .stat-value {
-            font-size: 30px;
+            font-size: 24px;
             font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .stat-label {
             color: var(--text-secondary);
-            font-size: 13px;
+            font-size: 10px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .stat-extra {
-            margin-top: 10px;
-            padding-top: 10px;
+            margin-top: 8px;
+            padding-top: 8px;
             border-top: 1px solid #F5F5F5;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
             color: #43A047;
         }
 
         .chart-section {
             background: white;
-            border-radius: 14px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             border: 1px solid var(--border-soft);
         }
 
         .section-title {
             color: var(--text-primary);
             font-weight: 700;
-            font-size: 20px;
-            margin-bottom: 20px;
+            font-size: 16px;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .section-title i {
             color: #81C784;
+            font-size: 14px;
         }
 
         .history-table {
             background: white;
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
         }
 
@@ -185,18 +188,19 @@
             background: #F5F5F5;
             color: var(--text-primary);
             font-weight: 600;
-            padding: 14px;
+            padding: 10px 12px;
             border: none;
             text-transform: uppercase;
-            font-size: 12px;
-            letter-spacing: 0.5px;
+            font-size: 10px;
+            letter-spacing: 0.3px;
         }
 
         .history-table td {
-            padding: 14px;
+            padding: 10px 12px;
             vertical-align: middle;
             color: var(--text-secondary);
             border-bottom: 1px solid #F5F5F5;
+            font-size: 12px;
         }
 
         .history-table tbody tr {
@@ -209,48 +213,28 @@
 
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px 20px;
             color: var(--text-secondary);
         }
 
         .empty-state i {
-            font-size: 80px;
+            font-size: 60px;
             color: #E0E0E0;
-            margin-bottom: 20px;
+            margin-bottom: 14px;
         }
 
         .empty-state h4 {
             color: var(--text-primary);
             font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .stat-box {
-            animation: fadeInUp 0.5s ease backwards;
-        }
-
-        .stat-box:nth-child(1) { animation-delay: 0.1s; }
-        .stat-box:nth-child(2) { animation-delay: 0.15s; }
-        .stat-box:nth-child(3) { animation-delay: 0.2s; }
-        .stat-box:nth-child(4) { animation-delay: 0.25s; }
-
-        .chart-section {
-            animation: fadeInUp 0.5s ease 0.4s backwards;
+            margin-bottom: 8px;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
+    <!-- Header Fragment -->
+    <div th:replace="~{fragments/header :: header}"></div>
+
     <div class="container-fluid">
         <!-- Header -->
         <div class="header-card">
@@ -414,8 +398,8 @@
                             pointBackgroundColor: '#66BB6A',
                             pointBorderColor: '#fff',
                             pointBorderWidth: 2,
-                            pointRadius: 5,
-                            pointHoverRadius: 7
+                            pointRadius: 4,
+                            pointHoverRadius: 6
                         }]
                     },
                     options: {
@@ -427,7 +411,7 @@
                                 labels: {
                                     color: '#5D4037',
                                     font: {
-                                        size: 13,
+                                        size: 11,
                                         weight: 'bold'
                                     }
                                 }
@@ -438,7 +422,7 @@
                                 bodyColor: '#fff',
                                 borderColor: '#81C784',
                                 borderWidth: 2,
-                                padding: 10,
+                                padding: 8,
                                 displayColors: false,
                                 callbacks: {
                                     label: function(context) {
@@ -453,7 +437,8 @@
                                 ticks: {
                                     color: '#8D6E63',
                                     font: {
-                                        weight: 'bold'
+                                        weight: 'bold',
+                                        size: 10
                                     },
                                     callback: function(value) {
                                         return value.toLocaleString() + '₫';
@@ -467,7 +452,8 @@
                                 ticks: {
                                     color: '#8D6E63',
                                     font: {
-                                        weight: 'bold'
+                                        weight: 'bold',
+                                        size: 10
                                     }
                                 },
                                 grid: {

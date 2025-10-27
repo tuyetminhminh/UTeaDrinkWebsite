@@ -1,5 +1,6 @@
 package net.codejava.utea.manager.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import net.codejava.utea.manager.dto.OrderItemDTO;
 import net.codejava.utea.manager.dto.OrderManagementDTO;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,6 +33,7 @@ public class OrderManagementService {
     private final OrderStatusHistoryRepository statusHistoryRepo;
     private final ShopManagerRepository shopManagerRepo;
     private final ShipAssignmentRepository shipAssignmentRepo;
+    private final ObjectMapper objectMapper;
 
     // ==================== ORDER MANAGEMENT ====================
 
@@ -241,6 +244,24 @@ public class OrderManagementService {
                 .mapToInt(OrderItem::getQuantity)
                 .sum();
 
+        // Parse delivery note and proof image from ShipAssignment
+        String deliveryNote = "";
+        String proofImageUrl = "";
+        if (shipAssignment != null && shipAssignment.getNote() != null) {
+            try {
+                if (shipAssignment.getNote().startsWith("{")) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> noteData = objectMapper.readValue(shipAssignment.getNote(), Map.class);
+                    deliveryNote = (String) noteData.getOrDefault("deliveryNote", "");
+                    proofImageUrl = (String) noteData.getOrDefault("proofImage", "");
+                } else {
+                    deliveryNote = shipAssignment.getNote();
+                }
+            } catch (Exception e) {
+                deliveryNote = shipAssignment.getNote();
+            }
+        }
+
         return OrderManagementDTO.builder()
                 .id(order.getId())
                 .orderCode(order.getOrderCode())
@@ -264,6 +285,8 @@ public class OrderManagementService {
                 .itemCount(totalItemCount)
                 .shipperId(shipAssignment != null ? shipAssignment.getShipper().getId() : null)
                 .shipperName(shipAssignment != null ? shipAssignment.getShipper().getFullName() : null)
+                .deliveryNote(deliveryNote)
+                .proofImageUrl(proofImageUrl)
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
                 .build();

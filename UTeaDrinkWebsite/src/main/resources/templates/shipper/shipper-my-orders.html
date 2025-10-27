@@ -16,19 +16,20 @@
         body {
             background: linear-gradient(135deg, #FFF9E6 0%, #FFF3E0 50%, #FFECB3 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 12px;
+            padding-top: 70px;
         }
 
         .container-fluid {
-            max-width: 1400px;
+            max-width: 1200px;
         }
 
         .header-card {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
-            padding: 28px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             border: 1px solid var(--border-soft);
         }
 
@@ -38,12 +39,13 @@
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 14px;
+            gap: 6px;
+            margin-bottom: 8px;
             transition: all 0.3s;
-            padding: 6px 14px;
-            border-radius: 8px;
+            padding: 4px 10px;
+            border-radius: 6px;
             background: #F5F5F5;
+            font-size: 12px;
         }
 
         .back-btn:hover {
@@ -55,26 +57,26 @@
             color: var(--text-primary);
             font-weight: 700;
             margin: 0;
-            font-size: 26px;
+            font-size: 18px;
         }
 
         .tabs-container {
             background: white;
-            border-radius: 14px;
-            padding: 18px 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             border: 1px solid var(--border-soft);
         }
 
         .custom-tabs {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             border-bottom: 2px solid #F5F5F5;
         }
 
         .custom-tab {
-            padding: 12px 24px;
+            padding: 8px 16px;
             background: transparent;
             border: none;
             color: var(--text-secondary);
@@ -82,7 +84,7 @@
             cursor: pointer;
             transition: all 0.3s;
             border-bottom: 3px solid transparent;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .custom-tab:hover {
@@ -93,7 +95,7 @@
             color: var(--text-primary);
             border-bottom-color: #81C784;
             background: #F9FBF9;
-            border-radius: 10px 10px 0 0;
+            border-radius: 8px 8px 0 0;
         }
 
         .tab-content-area {
@@ -107,50 +109,50 @@
         .order-list {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 14px;
         }
 
         .order-item {
             background: white;
-            border-radius: 14px;
-            padding: 24px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             transition: all 0.3s ease;
             border: 1px solid var(--border-soft);
         }
 
         .order-item:hover {
-            transform: translateX(4px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transform: translateX(2px);
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
         }
 
         .order-item.delivering {
-            border-left: 5px solid #81C784;
+            border-left: 4px solid #81C784;
         }
 
         .order-item.delivered {
-            border-left: 5px solid #64B5F6;
+            border-left: 4px solid #64B5F6;
         }
 
         .order-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
 
         .order-code {
-            font-size: 20px;
+            font-size: 15px;
             font-weight: 700;
             color: var(--text-primary);
         }
 
         .status-badge {
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 10px;
             font-weight: 600;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .status-delivering {
@@ -167,60 +169,61 @@
 
         .order-details {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 14px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
         }
 
         .detail-group {
-            padding: 16px;
+            padding: 10px;
             background: #FAFAFA;
-            border-radius: 10px;
+            border-radius: 8px;
             border: 1px solid #F5F5F5;
         }
 
         .detail-label {
             color: var(--text-secondary);
-            font-size: 11px;
+            font-size: 9px;
             font-weight: 700;
             text-transform: uppercase;
-            margin-bottom: 8px;
-            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
         }
 
         .detail-value {
             color: var(--text-primary);
             font-weight: 600;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .detail-value i {
             color: #81C784;
-            margin-right: 6px;
+            margin-right: 4px;
+            font-size: 11px;
         }
 
         .timeline {
             background: #F5F5F5;
-            padding: 16px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 12px;
         }
 
         .timeline-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 8px 0;
+            gap: 8px;
+            padding: 6px 0;
         }
 
         .timeline-icon {
-            width: 34px;
-            height: 34px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 700;
         }
 
@@ -243,30 +246,30 @@
             flex: 1;
             font-weight: 600;
             color: var(--text-secondary);
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .timeline-time {
             color: var(--text-secondary);
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 600;
         }
 
         .action-buttons {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         .btn-pickup {
             background: #64B5F6;
             color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
+            padding: 8px 14px;
+            border-radius: 6px;
             font-weight: 600;
             border: none;
             transition: all 0.3s;
-            font-size: 13px;
+            font-size: 11px;
         }
 
         .btn-pickup:hover {
@@ -277,12 +280,12 @@
         .btn-complete {
             background: #81C784;
             color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
+            padding: 8px 14px;
+            border-radius: 6px;
             font-weight: 600;
             border: none;
             transition: all 0.3s;
-            font-size: 13px;
+            font-size: 11px;
         }
 
         .btn-complete:hover {
@@ -292,162 +295,271 @@
 
         .proof-section {
             background: #E8F5E9;
-            padding: 16px;
-            border-radius: 10px;
-            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
             border: 1px solid #C8E6C9;
         }
 
         .proof-label {
             color: #2E7D32;
             font-weight: 700;
-            margin-bottom: 10px;
-            font-size: 12px;
+            margin-bottom: 8px;
+            font-size: 10px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .proof-image {
-            max-width: 200px;
-            border-radius: 8px;
-            margin-top: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            max-width: 150px;
+            border-radius: 6px;
+            margin-top: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
 
         .empty-state {
             background: white;
-            border-radius: 14px;
-            padding: 60px 30px;
+            border-radius: 10px;
+            padding: 40px 20px;
             text-align: center;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
 
         .empty-state i {
-            font-size: 80px;
+            font-size: 60px;
             color: #E0E0E0;
-            margin-bottom: 20px;
+            margin-bottom: 14px;
         }
 
         .empty-state h4 {
             color: var(--text-primary);
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            font-size: 16px;
         }
 
         .empty-state p {
             color: var(--text-secondary);
-        }
-
-        /* Shop Map Styles */
-        .shop-map-container {
-            background: #F5F5F5;
-            padding: 16px;
-            border-radius: 12px;
-            margin-top: 12px;
-        }
-
-        .map-header {
-            color: var(--text-primary);
-            font-weight: 700;
-            font-size: 14px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .map-header i {
-            color: #E65100;
-            font-size: 16px;
-        }
-
-        .btn-directions {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: linear-gradient(135deg, #4285F4 0%, #0F9D58 100%);
-            color: white;
-            padding: 10px 18px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 13px;
-            margin-top: 10px;
-            transition: all 0.3s;
-            box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
-        }
-
-        .btn-directions:hover {
-            background: linear-gradient(135deg, #3367D6 0%, #0D7D46 100%);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
-        }
-
-        .btn-directions i {
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .modal-content {
-            border-radius: 16px;
+            border-radius: 12px;
             border: none;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
         }
 
         .modal-header {
             background: #F5F5F5;
-            border-radius: 16px 16px 0 0;
-            padding: 18px 24px;
+            border-radius: 12px 12px 0 0;
+            padding: 14px 18px;
             border: none;
             color: var(--text-primary);
         }
 
         .modal-body {
-            padding: 24px;
+            padding: 18px;
         }
 
         .form-label {
             color: var(--text-primary);
             font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 13px;
+            margin-bottom: 6px;
+            font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .form-control, .form-select {
             border: 1px solid var(--border-soft);
-            border-radius: 10px;
-            padding: 10px 14px;
+            border-radius: 8px;
+            padding: 8px 12px;
             transition: all 0.3s;
+            font-size: 12px;
         }
 
         .form-control:focus, .form-select:focus {
             border-color: #81C784;
-            box-shadow: 0 0 0 0.2rem rgba(129, 199, 132, 0.15);
+            box-shadow: 0 0 0 0.15rem rgba(129, 199, 132, 0.15);
         }
 
-        @keyframes fadeInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+        /* Shop Map Styles */
+        .shop-map-container {
+            background: #F5F5F5;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
         }
 
-        .order-item {
-            animation: fadeInLeft 0.5s ease backwards;
+        .map-header {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .order-item:nth-child(1) { animation-delay: 0.1s; }
-        .order-item:nth-child(2) { animation-delay: 0.15s; }
-        .order-item:nth-child(3) { animation-delay: 0.2s; }
+        .map-header i {
+            color: #E65100;
+            font-size: 13px;
+        }
+
+        .btn-directions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #4285F4 0%, #0F9D58 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            font-size: 11px;
+            margin-top: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 6px rgba(66, 133, 244, 0.3);
+            cursor: pointer;
+        }
+
+        .btn-directions:hover {
+            background: linear-gradient(135deg, #3367D6 0%, #0D7D46 100%);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(66, 133, 244, 0.4);
+        }
+
+        .btn-directions i {
+            font-size: 11px;
+        }
+
+        .map-iframe {
+            width: 100%;
+            height: 180px;
+            border: none;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .location-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .location-status.loading {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+
+        .location-status.success {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .location-status.error {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        .directions-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Full Screen Map Modal */
+        .fullscreen-map-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .fullscreen-map-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-map-content {
+            background: white;
+            border-radius: 12px;
+            width: 95%;
+            height: 90%;
+            max-width: 1200px;
+            overflow: hidden;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .fullscreen-map-header {
+            background: linear-gradient(135deg, #4285F4 0%, #0F9D58 100%);
+            color: white;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .fullscreen-map-header h5 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fullscreen-map-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 18px;
+        }
+
+        .fullscreen-map-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .fullscreen-map-body {
+            flex: 1;
+            position: relative;
+        }
+
+        .fullscreen-map-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
     </style>
 </head>
 <body>
+    <!-- Header Fragment -->
+    <div th:replace="~{fragments/header :: header}"></div>
+
     <div class="container-fluid">
         <!-- Header -->
         <div class="header-card">
@@ -482,30 +594,84 @@
         </div>
     </div>
 
+    <!-- Fullscreen Directions Map Modal -->
+    <div class="fullscreen-map-modal" id="directionsMapModal">
+        <div class="fullscreen-map-content">
+            <div class="fullscreen-map-header">
+                <h5>
+                    <i class="fas fa-route"></i>
+                    Chỉ đường đến cửa hàng
+                </h5>
+                <button class="fullscreen-map-close" onclick="closeDirectionsMap()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="fullscreen-map-body">
+                <iframe id="directionsMapIframe" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
     <!-- Complete Delivery Modal -->
     <div class="modal fade" id="completeModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-check-circle me-2"></i> Hoàn thành giao hàng</h5>
+                    <h5 class="modal-title" style="font-size: 15px;"><i class="fas fa-check-circle me-2"></i> Hoàn thành giao hàng</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <form id="completeForm">
                         <input type="hidden" id="completeOrderId">
+                        <input type="hidden" id="proofImage">
+                        
                         <div class="mb-3">
                             <label class="form-label">Ghi chú giao hàng</label>
-                            <textarea class="form-control" id="deliveryNote" rows="3" 
-                                placeholder="VD: Đã giao tận tay khách hàng, khách hàng hài lòng"></textarea>
+                            <textarea class="form-control" id="deliveryNote" rows="2" 
+                                placeholder="VD: Đã giao tận tay khách hàng"></textarea>
                         </div>
+                        
                         <div class="mb-3">
-                            <label class="form-label">Link ảnh bằng chứng (không bắt buộc)</label>
-                            <input type="text" class="form-control" id="proofImage" 
-                                placeholder="https://example.com/proof.jpg">
+                            <label class="form-label">Ảnh bằng chứng giao hàng</label>
+                            
+                            <!-- Camera Preview -->
+                            <div id="cameraContainer" style="display: none; margin-bottom: 12px;">
+                                <video id="cameraPreview" autoplay playsinline style="width: 100%; max-height: 300px; border-radius: 8px; background: #000;"></video>
+                                <canvas id="photoCanvas" style="display: none;"></canvas>
+                            </div>
+                            
+                            <!-- Image Preview -->
+                            <div id="imagePreview" style="display: none; margin-bottom: 12px;">
+                                <img id="previewImg" src="" alt="Preview" style="width: 100%; max-height: 300px; border-radius: 8px; object-fit: contain; background: #f0f0f0;">
+                            </div>
+                            
+                            <!-- Upload Status -->
+                            <div id="uploadStatus" style="display: none; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; font-weight: 600;"></div>
+                            
+                            <!-- Camera Buttons -->
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="button" class="btn btn-sm" id="btnOpenCamera" 
+                                        style="background: linear-gradient(135deg, #4285F4 0%, #0F9D58 100%); color: white; border: none; font-size: 11px; padding: 8px 12px; border-radius: 6px;">
+                                    <i class="fas fa-camera me-1"></i> Mở camera
+                                </button>
+                                <button type="button" class="btn btn-sm" id="btnTakePhoto" 
+                                        style="background: #81C784; color: white; border: none; font-size: 11px; padding: 8px 12px; border-radius: 6px; display: none;">
+                                    <i class="fas fa-circle me-1"></i> Chụp ảnh
+                                </button>
+                                <button type="button" class="btn btn-sm" id="btnRetake" 
+                                        style="background: #FFB74D; color: white; border: none; font-size: 11px; padding: 8px 12px; border-radius: 6px; display: none;">
+                                    <i class="fas fa-redo me-1"></i> Chụp lại
+                                </button>
+                                <button type="button" class="btn btn-sm" id="btnUpload" 
+                                        style="background: #64B5F6; color: white; border: none; font-size: 11px; padding: 8px 12px; border-radius: 6px; display: none;">
+                                    <i class="fas fa-upload me-1"></i> Upload ảnh
+                                </button>
+                            </div>
                         </div>
+                        
                         <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal">Hủy</button>
-                            <button type="submit" class="btn btn-complete flex-grow-1">
+                            <button type="button" class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal" style="font-size: 12px;" onclick="stopCamera()">Hủy</button>
+                            <button type="submit" class="btn btn-complete flex-grow-1" id="btnSubmitComplete">
                                 <i class="fas fa-check me-2"></i> Hoàn thành
                             </button>
                         </div>
@@ -579,19 +745,24 @@
                                             <i class="fas fa-map-marked-alt"></i> Vị trí lấy hàng
                                         </div>
                                         <iframe 
-                                            width="100%" 
-                                            height="200" 
+                                            class="map-iframe"
                                             frameborder="0" 
-                                            style="border:0; border-radius: 8px;" 
                                             referrerpolicy="no-referrer-when-downgrade"
                                             src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(order.shopAddress)}&zoom=15"
                                             allowfullscreen>
                                         </iframe>
-                                        <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.shopAddress)}" 
-                                           target="_blank" 
-                                           class="btn-directions">
-                                            <i class="fas fa-directions"></i> Chỉ đường đến cửa hàng
-                                        </a>
+                                        <div class="directions-buttons">
+                                            <button class="btn-directions" onclick="getDirectionsFromMyLocation('${encodeURIComponent(order.shopAddress)}', ${order.orderId})">
+                                                <i class="fas fa-location-arrow"></i> Chỉ đường từ vị trí tôi
+                                            </button>
+                                            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.shopAddress)}" 
+                                               target="_blank" 
+                                               class="btn-directions"
+                                               style="text-decoration: none;">
+                                                <i class="fas fa-external-link-alt"></i> Mở Google Maps
+                                            </a>
+                                        </div>
+                                        <div id="location-status-${order.orderId}"></div>
                                     </div>
                                 </div>
                                 ` : ''}
@@ -734,7 +905,7 @@
                                 <div class="proof-label">
                                     <i class="fas fa-clipboard-check me-2"></i> Ghi chú giao hàng
                                 </div>
-                                ${noteData.deliveryNote ? `<p class="mb-2">${noteData.deliveryNote}</p>` : ''}
+                                ${noteData.deliveryNote ? `<p class="mb-2" style="font-size: 12px;">${noteData.deliveryNote}</p>` : ''}
                                 ${noteData.proofImage ? `
                                     <img src="${noteData.proofImage}" class="proof-image" alt="Ảnh bằng chứng">
                                 ` : ''}
@@ -770,12 +941,175 @@
             }
         }
 
+        // Camera variables
+        let videoStream = null;
+        let capturedImageBlob = null;
+
         // Open complete modal
         function openCompleteModal(orderId) {
             document.getElementById('completeOrderId').value = orderId;
             document.getElementById('deliveryNote').value = '';
             document.getElementById('proofImage').value = '';
+            
+            // Reset camera state
+            stopCamera();
+            document.getElementById('cameraContainer').style.display = 'none';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('uploadStatus').style.display = 'none';
+            document.getElementById('btnOpenCamera').style.display = 'inline-block';
+            document.getElementById('btnTakePhoto').style.display = 'none';
+            document.getElementById('btnRetake').style.display = 'none';
+            document.getElementById('btnUpload').style.display = 'none';
+            capturedImageBlob = null;
+            
             new bootstrap.Modal(document.getElementById('completeModal')).show();
+        }
+
+        // Stop camera
+        function stopCamera() {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+        }
+
+        // Open camera
+        document.getElementById('btnOpenCamera').addEventListener('click', async function() {
+            try {
+                const video = document.getElementById('cameraPreview');
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'environment', // Use back camera on mobile
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    } 
+                });
+                
+                videoStream = stream;
+                video.srcObject = stream;
+                
+                document.getElementById('cameraContainer').style.display = 'block';
+                document.getElementById('imagePreview').style.display = 'none';
+                document.getElementById('btnOpenCamera').style.display = 'none';
+                document.getElementById('btnTakePhoto').style.display = 'inline-block';
+                document.getElementById('btnRetake').style.display = 'none';
+                document.getElementById('btnUpload').style.display = 'none';
+                
+                showStatus('success', 'Camera đã sẵn sàng');
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                showStatus('error', 'Không thể mở camera: ' + error.message);
+            }
+        });
+
+        // Take photo
+        document.getElementById('btnTakePhoto').addEventListener('click', function() {
+            const video = document.getElementById('cameraPreview');
+            const canvas = document.getElementById('photoCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size to video size
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw video frame to canvas
+            ctx.drawImage(video, 0, 0);
+            
+            // Convert canvas to blob
+            canvas.toBlob(function(blob) {
+                capturedImageBlob = blob;
+                
+                // Show preview
+                const previewImg = document.getElementById('previewImg');
+                previewImg.src = URL.createObjectURL(blob);
+                
+                document.getElementById('cameraContainer').style.display = 'none';
+                document.getElementById('imagePreview').style.display = 'block';
+                document.getElementById('btnTakePhoto').style.display = 'none';
+                document.getElementById('btnRetake').style.display = 'inline-block';
+                document.getElementById('btnUpload').style.display = 'inline-block';
+                
+                stopCamera();
+                showStatus('success', 'Đã chụp ảnh thành công');
+            }, 'image/jpeg', 0.8);
+        });
+
+        // Retake photo
+        document.getElementById('btnRetake').addEventListener('click', function() {
+            capturedImageBlob = null;
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('btnOpenCamera').style.display = 'inline-block';
+            document.getElementById('btnRetake').style.display = 'none';
+            document.getElementById('btnUpload').style.display = 'none';
+            document.getElementById('proofImage').value = '';
+            showStatus('info', 'Hãy chụp ảnh mới');
+        });
+
+        // Upload photo
+        document.getElementById('btnUpload').addEventListener('click', async function() {
+            if (!capturedImageBlob) {
+                showStatus('error', 'Chưa có ảnh để upload');
+                return;
+            }
+            
+            const orderId = document.getElementById('completeOrderId').value;
+            const formData = new FormData();
+            formData.append('image', capturedImageBlob, 'proof_' + orderId + '.jpg');
+            formData.append('orderId', orderId);
+            
+            try {
+                showStatus('loading', 'Đang upload ảnh...');
+                document.getElementById('btnUpload').disabled = true;
+                
+                const response = await fetch('/shipper/api/upload-proof-image', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('proofImage').value = result.imageUrl;
+                    showStatus('success', 'Upload ảnh thành công! ✓');
+                    document.getElementById('btnUpload').style.display = 'none';
+                    document.getElementById('btnRetake').style.display = 'none';
+                } else {
+                    showStatus('error', result.error || 'Lỗi upload ảnh');
+                    document.getElementById('btnUpload').disabled = false;
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                showStatus('error', 'Lỗi kết nối: ' + error.message);
+                document.getElementById('btnUpload').disabled = false;
+            }
+        });
+
+        // Show status message
+        function showStatus(type, message) {
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.style.display = 'block';
+            statusDiv.textContent = message;
+            
+            if (type === 'success') {
+                statusDiv.style.background = '#E8F5E9';
+                statusDiv.style.color = '#2E7D32';
+            } else if (type === 'error') {
+                statusDiv.style.background = '#FFEBEE';
+                statusDiv.style.color = '#C62828';
+            } else if (type === 'loading') {
+                statusDiv.style.background = '#FFF3E0';
+                statusDiv.style.color = '#E65100';
+            } else {
+                statusDiv.style.background = '#E3F2FD';
+                statusDiv.style.color = '#1565C0';
+            }
+            
+            // Auto hide after 3 seconds (except loading)
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 3000);
+            }
         }
 
         // Handle complete form
@@ -816,6 +1150,92 @@
         window.addEventListener('DOMContentLoaded', () => {
             loadDeliveringOrders();
             loadDeliveredOrders();
+        });
+
+        // Get directions from current location
+        async function getDirectionsFromMyLocation(destinationAddress, orderId) {
+            const statusDiv = document.getElementById(`location-status-${orderId}`);
+            
+            // Check if geolocation is supported
+            if (!navigator.geolocation) {
+                statusDiv.innerHTML = '<div class="location-status error"><i class="fas fa-exclamation-circle"></i> Trình duyệt không hỗ trợ GPS</div>';
+                return;
+            }
+
+            // Show loading
+            statusDiv.innerHTML = '<div class="location-status loading"><i class="fas fa-spinner fa-spin"></i> Đang lấy vị trí của bạn...</div>';
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    statusDiv.innerHTML = '<div class="location-status success"><i class="fas fa-check-circle"></i> Đã lấy vị trí! Đang tải chỉ đường...</div>';
+                    
+                    // Open fullscreen map with directions
+                    showDirectionsMap(lat, lng, decodeURIComponent(destinationAddress));
+                    
+                    // Clear status after 2 seconds
+                    setTimeout(() => {
+                        statusDiv.innerHTML = '';
+                    }, 2000);
+                },
+                (error) => {
+                    let errorMsg = 'Không thể lấy vị trí';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg = 'Bạn đã từ chối quyền truy cập vị trí';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg = 'Vị trí không khả dụng';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg = 'Hết thời gian chờ lấy vị trí';
+                            break;
+                    }
+                    statusDiv.innerHTML = `<div class="location-status error"><i class="fas fa-exclamation-circle"></i> ${errorMsg}</div>`;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        // Show fullscreen directions map
+        function showDirectionsMap(originLat, originLng, destination) {
+            const modal = document.getElementById('directionsMapModal');
+            const iframe = document.getElementById('directionsMapIframe');
+            
+            // Build directions URL
+            const directionsUrl = `https://www.google.com/maps/embed/v1/directions?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&origin=${originLat},${originLng}&destination=${encodeURIComponent(destination)}&mode=driving&zoom=14`;
+            
+            iframe.src = directionsUrl;
+            modal.classList.add('active');
+            
+            // Close on background click
+            modal.onclick = function(event) {
+                if (event.target === modal) {
+                    closeDirectionsMap();
+                }
+            };
+        }
+
+        // Close directions map
+        function closeDirectionsMap() {
+            const modal = document.getElementById('directionsMapModal');
+            const iframe = document.getElementById('directionsMapIframe');
+            
+            modal.classList.remove('active');
+            iframe.src = '';
+        }
+
+        // Close on ESC key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeDirectionsMap();
+            }
         });
     </script>
 </body>
