@@ -1,0 +1,197 @@
+/* ========== NỀN ========== */
+/* Body nền gradient */
+body.bg-gradient {
+    background: linear-gradient(135deg, #ffe6f2, #fffdf7);
+    font-family: 'Segoe UI', sans-serif;
+
+    /* Thêm đoạn này để căn giữa */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;      /* full màn hình */
+    margin: 0;          /* bỏ margin mặc định */
+}
+body.bg-chat {
+    background: linear-gradient(135deg, #fffdf7, #e6fff5);
+    font-family: 'Segoe UI', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* ========== LOGIN ========== */
+.login-card {
+    width: 360px;
+    background: #ffffff;
+    padding: 35px 25px;
+    border-radius: 25px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.1);
+    text-align: center;
+}
+.login-card .brand {
+    font-size: 32px;
+    font-weight: bold;
+    color: #ff6699;
+    margin-bottom: 10px;
+}
+.login-card .subtitle {
+    font-size: 15px;
+    color: #888;
+    margin-bottom: 25px;
+}
+.login-form input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 15px;
+    border: 1px solid #ddd;
+    transition: 0.3s;
+}
+.login-form input:focus {
+    outline: none;
+    border-color: #ff85a2;
+    box-shadow: 0 0 5px #ffb3c6;
+}
+.login-form button {
+    width: 100%;
+    padding: 12px;
+    background: #ff85a2;
+    border: none;
+    color: #fff;
+    font-weight: bold;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.login-form button:hover {
+    background: #ff6699;
+}
+.extra-links {
+    margin-top: 15px;
+    font-size: 13px;
+}
+.extra-links a {
+    color: #ff6699;
+    text-decoration: none;
+}
+.extra-links a:hover {
+    text-decoration: underline;
+}
+
+/* ========== CHAT ========== */
+.chat-wrapper {
+    width: 450px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.chat-header {
+    background: #ff85a2;
+    color: #fff;
+    padding: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+.chat-box {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: #fafafa;
+}
+.message {
+    margin: 10px 0;
+    display: flex;
+}
+.message.customer {
+    justify-content: flex-start;
+}
+.message.admin {
+    justify-content: flex-end;
+}
+.message .bubble {
+    max-width: 70%;
+    padding: 12px 15px;
+    border-radius: 18px;
+    background: #e6f7ff;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.message.customer .bubble {
+    background: #ffe6f2;
+}
+.message.admin .bubble {
+    background: #d9f7be;
+}
+.sender {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+    display: block;
+}
+.chat-input {
+    display: flex;
+    padding: 15px;
+    border-top: 1px solid #eee;
+    background: #fff;
+}
+.chat-input input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 15px;
+    margin-right: 10px;
+}
+.chat-input input:focus {
+    border-color: #ff85a2;
+    outline: none;
+}
+.chat-input button {
+    padding: 0 20px;
+    border: none;
+    border-radius: 50%;
+    background: #ff85a2;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.chat-input button:hover {
+    background: #ff6699;
+}
+
+/* ========== CHIP VOUCHER ========== */
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    font-size: 14px;
+}
+
+.chip-voucher {
+    background: #fff3cd;
+    border-color: #ffc107;
+    color: #856404;
+}
+
+.chip .x {
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    margin-left: 4px;
+    padding: 0 4px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.chip .x:hover {
+    background: rgba(0,0,0,0.1);
+}

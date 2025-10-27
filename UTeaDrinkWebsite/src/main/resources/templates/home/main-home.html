@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>🍹 UTeaDrink - Hương vị tươi mát mỗi ngày</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        html{scroll-behavior:smooth}
+        body{font-family:'Poppins','Segoe UI',sans-serif;background:linear-gradient(180deg,#fff7e6,#fff2d9);color:#333;margin:0;overflow-x:hidden;line-height:1.7}
+        /* HERO */
+        #heroCarousel{position:relative;height:72vh;min-height:460px;overflow:hidden}
+        .hero-img{height:72vh;min-height:460px;width:100%;object-fit:cover}
+        .hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.25) 30%,rgba(0,0,0,.45));pointer-events:none}
+        .carousel-caption{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;max-width:860px;width:92%;z-index:2}
+        .carousel-caption h1{font-size:clamp(28px,5vw,58px);color:#fff;font-weight:900;letter-spacing:.5px;margin-bottom:10px}
+        .carousel-caption p{color:#f7f7f7;font-size:clamp(14px,2.2vw,20px);margin:0 auto 14px}
+        .carousel-caption .btn{font-weight:700;border-radius:999px;padding:12px 26px;border:none;background:#ff7b00;color:#fff;box-shadow:0 8px 24px rgba(255,123,0,.35)}
+        .carousel-caption .btn:hover{transform:translateY(-2px);background:#e36d00}
+        .carousel-indicators [data-bs-target]{width:10px;height:10px;border-radius:50%}
+        /* INTRO */
+        #intro{background:#fffaf2;border-radius:24px;padding:80px 40px;margin-top:60px;box-shadow:0 4px 18px rgba(0,0,0,.05)}
+        #intro .intro-img{width:100%;max-width:500px;border-radius:22px;object-fit:contain;display:block;margin:0 auto;box-shadow:0 6px 20px rgba(0,0,0,.1);transition:transform .4s}
+        #intro .intro-img:hover{transform:scale(1.03)}
+        #intro h3{color:#ff7b00;font-weight:850;margin-bottom:24px;font-size:36px;text-align:center}
+        #intro p{font-size:18px;color:#3a3a3a;font-weight:500;text-align:justify;margin-bottom:20px}
+        /* CATEGORY BAR + PRODUCTS */
+        #products{padding-top:40px}
+        .category-bar{display:flex;justify-content:center;flex-wrap:wrap;margin-top:10px;padding:10px 0;gap:12px}
+        .category-btn{border:1px solid #e67e22;color:#e67e22;padding:8px 18px;border-radius:20px;background:#fff;cursor:pointer;text-decoration:none;transition:all .25s}
+        .category-btn:hover{background:#f39c12;color:#fff}
+        .category-btn.active{background:#e67e22;color:#fff}
+        .product-container{max-width:1200px;margin:20px auto 30px;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:24px}
+        .product-card{background:#fff;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.1);text-align:center;padding:15px;transition:all .3s}
+        .product-card:hover{transform:translateY(-5px);box-shadow:0 6px 16px rgba(0,0,0,.15)}
+        .product-card img{width:100%;height:230px;object-fit:cover;border-radius:8px}
+        .price{color:#e67e22;font-weight:700}
+        /* CONTACT & MAP */
+        #contact{background:#fff8ee;border-radius:20px;padding:70px 20px;margin-top:60px;box-shadow:0 4px 15px rgba(0,0,0,.05)}
+        #contact .btn{background:#ff7b00;border:none;border-radius:50px;padding:12px 30px;font-weight:600;font-size:17px;box-shadow:0 6px 15px rgba(255,123,0,.25)}
+        #contact .btn:hover{background:#e36d00;transform:scale(1.05)}
+        .map-wrap{border-radius:16px;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,.08)}
+        @media (max-width:768px){#intro{padding:50px 25px}#intro .intro-img{max-width:80%;margin-bottom:25px}}
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div th:replace="~{fragments/header-home :: siteHeader}"></div>
+
+<!-- ===== HERO SLIDER ===== -->
+<section id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+    <!-- Indicators -->
+    <div class="carousel-indicators" th:if="${hasBanners}">
+        <button type="button" data-bs-target="#heroCarousel"
+                th:each="b,idx : ${banners}"
+                th:data-bs-slide-to="${idx.index}"
+                th:classappend="${idx.index == 0} ? ' active'"
+                th:aria-current="${idx.index == 0} ? 'true' : null"
+                th:aria-label="|Slide ${idx.index + 1}|"></button>
+    </div>
+
+    <!-- Slides when there are banners -->
+    <div class="carousel-inner" th:if="${hasBanners}">
+        <div class="carousel-item"
+             th:each="b,idx : ${banners}"
+             th:classappend="${idx.index == 0} ? ' active'">
+            <a th:if="${b.link != null and !#strings.isEmpty(b.link)}" th:href="${b.link}">
+                <img th:src="${b.imageUrl}" class="d-block w-100 hero-img"
+                     th:alt="${b.title != null ? b.title : 'UTeaDrink Banner'}" loading="lazy">
+            </a>
+            <img th:if="${b.link == null or #strings.isEmpty(b.link)}"
+                 th:src="${b.imageUrl}" class="d-block w-100 hero-img"
+                 th:alt="${b.title != null ? b.title : 'UTeaDrink Banner'}" loading="lazy">
+            <div class="hero-overlay"></div>
+            <div class="carousel-caption" th:if="${b.title}">
+                <h1 th:text="${b.title}">UTeaDrink</h1>
+                <p>Hương vị tươi mát – Năng lượng mỗi ngày 🌿</p>
+                <a href="#intro" class="btn btn-lg mt-2">Khám phá ngay</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fallback when no banners -->
+    <div class="carousel-inner" th:if="${!hasBanners}">
+        <div class="carousel-item active">
+            <img src="https://res.cloudinary.com/dhmh2ekqy/image/upload/v1760047323/1-tuan-nen-uong-bao-nhieu-tra-sua-1000x690_slbfnn.jpg"
+                 class="d-block w-100 hero-img" alt="UTeaDrink">
+            <div class="hero-overlay"></div>
+            <div class="carousel-caption">
+                <h1>UTeaDrink</h1>
+                <p>Hương vị tươi mát – Năng lượng mỗi ngày 🌿</p>
+                <a href="#intro" class="btn btn-lg mt-2">Khám phá ngay</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+    </button>
+</section>
+
+<!-- ===== INTRO ===== -->
+<section id="intro" class="container py-5">
+    <div class="row align-items-center justify-content-center gx-5">
+        <div class="col-md-6 text-center">
+            <img src="https://res.cloudinary.com/dhmh2ekqy/image/upload/v1759979120/tra-sua-matcha_anwkom.jpg"
+                 alt="Trà sữa matcha" class="intro-img">
+        </div>
+        <div class="col-md-6 mt-4 mt-md-0">
+            <h3>Về UTeaDrink</h3>
+            <p><strong>UTeaDrink</strong> là hệ thống chuỗi cửa hàng đồ uống trực tuyến hiện đại…</p>
+            <p>Với tôn chỉ <strong>“Tươi mỗi ngày – Hạnh phúc từ hương vị”</strong>…</p>
+            <p>Cùng với <strong>nền tảng đặt hàng trực tuyến thông minh</strong>…</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== PRODUCTS (categories + list) ===== -->
+<section id="products" class="container py-5">
+    <h3 class="text-center">Sản phẩm</h3>
+
+    <!-- Category bar -->
+    <div class="category-bar" th:if="${categories}">
+        <!-- Tất cả -->
+        <a th:href="@{/main-home(size=${size})} + ${anchor}"
+           class="category-btn"
+           th:classappend="${selectedCategoryId == null} ? ' active' : ''">
+            Tất cả
+        </a>
+
+        <!-- Các danh mục -->
+        <a th:each="c : ${categories}"
+           th:href="@{/main-home(categoryId=${c.id}, page=0, size=${size})} + ${anchor}"
+           class="category-btn"
+           th:classappend="${selectedCategoryId == c.id} ? ' active' : ''"
+           th:text="${c.name}">
+            Danh mục
+        </a>
+    </div>
+
+    <!-- Product list -->
+    <div class="product-container" th:if="${products}">
+        <div th:each="p : ${products}" class="product-card">
+            <div class="product-image">
+                <img th:src="${(p.images != null and !p.images.isEmpty()) ? p.images.get(0).url : '/images/no-image.png'}"
+                     th:alt="${p.name}">
+            </div>
+            <h5 th:text="${p.name}">Tên SP</h5>
+            <p th:text="${p.description}">Mô tả…</p>
+            <div class="price" th:text="${#numbers.formatDecimal(p.basePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+        </div>
+    </div>
+
+    <!-- Empty-state khi không có sản phẩm -->
+    <div class="text-center text-muted" th:if="${totalPages == 0}">
+        Chưa có sản phẩm phù hợp.
+    </div>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-center mt-3" th:if="${totalPages > 1}">
+        <nav aria-label="Product pagination">
+            <ul class="pagination">
+                <!-- Prev -->
+                <li class="page-item" th:classappend="${currentPage == 0} ? ' disabled'">
+                    <a class="page-link"
+                       th:href="${selectedCategoryId != null} ?
+                      @{/main-home(categoryId=${selectedCategoryId}, page=${currentPage-1}, size=${size})} + ${anchor} :
+                      @{/main-home(page=${currentPage-1}, size=${size})} + ${anchor}">«</a>
+                </li>
+
+                <!-- Pages -->
+                <li class="page-item"
+                    th:each="i : ${#numbers.sequence(0, totalPages-1)}"
+                    th:classappend="${i == currentPage} ? ' active'">
+                    <a class="page-link"
+                       th:text="${i+1}"
+                       th:href="${selectedCategoryId != null} ?
+                      @{/main-home(categoryId=${selectedCategoryId}, page=${i}, size=${size})} + ${anchor} :
+                      @{/main-home(page=${i}, size=${size})} + ${anchor}"></a>
+                </li>
+
+                <!-- Next -->
+                <li class="page-item" th:classappend="${currentPage+1 >= totalPages} ? ' disabled'">
+                    <a class="page-link"
+                       th:href="${selectedCategoryId != null} ?
+                      @{/main-home(categoryId=${selectedCategoryId}, page=${currentPage+1}, size=${size})} + ${anchor} :
+                      @{/main-home(page=${currentPage+1}, size=${size})} + ${anchor}">»</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</section>
+
+<!-- ===== CONTACT ===== -->
+<section id="contact" class="container py-5">
+    <h3 class="text-center mb-3">Liên hệ với chúng tôi</h3>
+    <p class="text-center mb-3">📍 Số 1 Võ Văn Ngân, ĐH Sư Phạm Kĩ Thuật | 📞 0123 456 789 | ✉️ contact@uteadrink.vn</p>
+    <div class="text-center">
+        <a th:href="@{/login}" class="btn btn-warning text-white px-4 py-2 rounded">Đăng nhập để đặt hàng</a>
+    </div>
+</section>
+
+<!-- ===== MAP (from shops list) ===== -->
+<section id="map" class="container pb-5" th:if="${shops}">
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between align-items-start"
+                    th:each="s, idx : ${shops}"
+                    th:attr="data-addr=${s.address}"
+                    onclick="showOnMap(this.getAttribute('data-addr'))"
+                    style="cursor:pointer">
+                    <div class="ms-2 me-auto">
+                        <div class="fw-bold" th:text="${s.name}">Tên shop</div>
+                        <small th:text="${s.address}">Địa chỉ</small><br/>
+                        <small th:text="${s.phone}">Điện thoại</small>
+                    </div>
+                    <span class="badge bg-warning rounded-pill" th:text="${idx.index + 1}">1</span>
+                </li>
+            </ul>
+        </div>
+        <div class="col-lg-8">
+            <div class="map-wrap">
+                <iframe id="mapFrame"
+                        src="https://www.google.com/maps?q=Đại%20học%20Sư%20phạm%20Kỹ%20thuật%20TP.HCM&output=embed"
+                        width="100%" height="420" style="border:0;" allowfullscreen="" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div th:replace="~{fragments/footer-home :: siteFooter}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Đổi map theo địa chỉ shop
+    function showOnMap(address){
+        if(!address) return;
+        const url = 'https://www.google.com/maps?q=' + encodeURIComponent(address) + '&output=embed';
+        document.getElementById('mapFrame').setAttribute('src', url);
+        document.getElementById('map').scrollIntoView({behavior:'smooth', block:'start'});
+    }
+</script>
+</body>
+</html>

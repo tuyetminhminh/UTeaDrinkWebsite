@@ -1,0 +1,72 @@
+<!-- templates/fragments/header.html -->
+<header th:fragment="siteHeader">
+    <style>
+        header {
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 15px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        header img {
+            height: 35px;
+            margin-right: 10px;
+        }
+
+        header h1 {
+            color: #ff7b00;
+            font-weight: 700;
+            font-size: 24px;
+            margin: 0;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            margin: 0 18px;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #ff7b00;
+        }
+
+        .btn-login {
+            background-color: #ff7b00;
+            color: white;
+            border-radius: 8px;
+            padding: 8px 18px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .btn-login:hover {
+            background-color: #e36d00;
+        }
+    </style>
+
+    <a th:href="@{/main-home}" class="logo" style="text-decoration: none; display: flex; align-items: center;">
+
+        <img src="https://cdn-icons-png.flaticon.com/512/415/415733.png" alt="logo">
+        <h1 style="color: #ff7b00; font-weight: 700; font-size: 24px; margin: 0;">UTeaDrink</h1>
+    </a>
+
+
+    <nav>
+        <a th:href="@{/main-home#intro}">Giới thiệu</a>
+        <a th:href="@{/main-home#products}">Sản phẩm</a>
+        <a th:href="@{/main-home#contact}">Liên hệ</a>
+        <a th:href="@{/login}" class="btn-login">Đăng nhập</a>
+    </nav>
+</header>
