@@ -21,12 +21,6 @@ public class UserForm {
     @Size(max = 200, message = "Họ tên quá dài (tối đa 200 ký tự)")
     private String fullName;
 
-    @Size(max = 20, message = "SĐT tối đa 20 ký tự")
-    private String phone;
-
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDate birthDate;
-
     @NotBlank(message = "Trạng thái không hợp lệ")
     private String status = "ACTIVE";
 

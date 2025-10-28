@@ -1,4 +1,3 @@
-// net/codejava/utea/chat/service/impl/ChatServiceImpl.java
 package net.codejava.utea.chat.service.impl;
 
 import lombok.RequiredArgsConstructor;
@@ -7,6 +6,7 @@ import net.codejava.utea.chat.dto.MessageView;
 import net.codejava.utea.chat.entity.Conversation;
 import net.codejava.utea.chat.entity.Message;
 import net.codejava.utea.chat.entity.enums.ConversationScope;
+import net.codejava.utea.chat.repository.ChatBanRepository;
 import net.codejava.utea.chat.repository.ConversationRepository;
 import net.codejava.utea.chat.repository.MessageRepository;
 import net.codejava.utea.common.entity.User;
@@ -29,6 +29,7 @@ public class ChatServiceImpl implements net.codejava.utea.chat.service.ChatServi
     private final MessageRepository messageRepo;
     private final UserRepository userRepo;
     private final ShopManagerRepository shopManagerRepo;
+    private final ChatBanRepository chatBanRepo;
 
     @Override
     public Conversation getOrCreateCustomerToManager(User customer) {
@@ -110,6 +111,12 @@ public class ChatServiceImpl implements net.codejava.utea.chat.service.ChatServi
 
     @Override
     public MessageView sendMessage(Long conversationId, Long senderId, String content, String imageUrl) {
+
+        var activeBan = chatBanRepo.findByUserIdAndBannedUntilAfter(senderId, LocalDateTime.now());
+        if (activeBan.isPresent()) {
+            throw new IllegalStateException("Chức năng chat của bạn đã bị tạm khóa.");
+        }
+
         var conv = conversationRepo.findById(conversationId).orElseThrow();
         var sender = userRepo.findById(senderId).orElseThrow();
 

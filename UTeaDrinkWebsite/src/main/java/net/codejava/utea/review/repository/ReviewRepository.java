@@ -1,5 +1,6 @@
 package net.codejava.utea.review.repository;
 
+import net.codejava.utea.review.dto.ReviewModerationRow;
 import net.codejava.utea.review.entity.Review;
 import net.codejava.utea.review.entity.enums.ReviewStatus;
 import net.codejava.utea.review.view.ReviewView;
@@ -99,4 +100,28 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
         GROUP BY r.rating
     """)
     java.util.List<Object[]> countByRatingForShop(@Param("shopId") Long shopId);
+    
+    // ==================== ADMIN QUERIES ====================
+    @Query(value = """
+            SELECT new net.codejava.utea.review.dto.ReviewModerationRow(
+                r.id, p.name, u.fullName, r.rating, r.content, r.status, r.createdAt
+            )
+            FROM Review r JOIN r.product p JOIN r.user u
+            WHERE (:status IS NULL OR r.status = :status)
+              AND (:kw IS NULL OR :kw = ''
+                   OR LOWER(p.name) LIKE LOWER(CONCAT('%', :kw, '%'))
+                   OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :kw, '%'))
+                   OR LOWER(r.content) LIKE LOWER(CONCAT('%', :kw, '%')))
+            """,
+            countQuery = """
+            SELECT COUNT(r) FROM Review r JOIN r.product p JOIN r.user u
+            WHERE (:status IS NULL OR r.status = :status)
+              AND (:kw IS NULL OR :kw = ''
+                   OR LOWER(p.name) LIKE LOWER(CONCAT('%', :kw, '%'))
+                   OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :kw, '%'))
+                   OR LOWER(r.content) LIKE LOWER(CONCAT('%', :kw, '%')))
+            """)
+    Page<ReviewModerationRow> searchForModeration(@Param("status") ReviewStatus status,
+                                                   @Param("kw") String kw,
+                                                   Pageable pageable);
 }

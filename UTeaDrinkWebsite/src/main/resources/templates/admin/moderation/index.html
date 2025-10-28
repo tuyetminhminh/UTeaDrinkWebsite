@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+    th:replace="~{fragments/admin-layout :: adminLayout(~{::title}, ~{::content})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Duyệt Nội dung</title>
+</head>
+<body>
+<div th:fragment="content" class="container-fluid p-0">
+
+    <div th:replace="~{fragments/breadcrumbs :: bc('Trang chủ', @{/admin/home}, 'Duyệt nội dung', @{/admin/moderation}, 'Tổng quan')}"></div>
+    <h3 class="fw-bold mb-3">📝 Duyệt Nội dung</h3>
+    
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <ul class="nav nav-tabs" id="moderationTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="reviews-tab-btn" data-bs-toggle="tab" data-bs-target="#reviews-tab" type="button" role="tab">Duyệt Review & Bình luận</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="chat-tab-btn" data-bs-toggle="tab" data-bs-target="#chat-tab" type="button" role="tab">Quản lý Chat</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active p-3" id="reviews-tab" role="tabpanel">
+            <form class="row g-2 align-items-end mb-3" method="get" th:action="@{/admin/moderation}">
+                <input type="hidden" name="user_kw" th:value="${user_kw}"> <div class="col-md-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select class="form-select" name="status" onchange="this.form.submit()">
+                        <option th:each="s : ${T(net.codejava.utea.review.entity.enums.ReviewStatus).values()}"
+                                th:value="${s}" th:text="${s.name()}" th:selected="${status == s}"></option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Từ khóa</label>
+                    <input class="form-control" name="review_kw" th:value="${review_kw}" placeholder="Sản phẩm, người dùng, nội dung...">
+                </div>
+                <div class="col-auto"><button class="btn btn-outline-secondary">Lọc</button></div>
+            </form>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>ID</th><th>Sản phẩm</th><th>Người dùng</th><th>Rating</th>
+                            <th>Nội dung</th><th>Ngày tạo</th><th>Trạng thái</th><th style="width:200px">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="r : ${reviewPage.content}">
+                        <td th:text="${r.id}"></td><td th:text="${r.productName}"></td><td th:text="${r.userName}"></td>
+                        <td><span th:text="${r.rating} + ' ⭐'"></span></td>
+                        <td style="max-width: 300px;" th:text="${r.content}"></td>
+                        <td th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${r.status.name() == 'APPROVED' ? 'bg-success' : (r.status.name() == 'REJECTED' ? 'bg-danger' : 'bg-warning')}"
+                                  th:text="${r.status.name()}"></span>
+                        </td>
+                        <td>
+                            <div th:if="${r.status.name() == 'PENDING'}">
+                                <form class="d-inline" method="post" th:action="@{/admin/moderation/reviews/{id}/approve(id=${r.id})}">
+                                    <button class="btn btn-sm btn-success">Duyệt</button>
+                                </form>
+                                <form class="d-inline" method="post" th:action="@{/admin/moderation/reviews/{id}/reject(id=${r.id})}">
+                                    <button class="btn btn-sm btn-danger">Từ chối</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            </div>
+
+        <div class="tab-pane fade p-3" id="chat-tab" role="tabpanel">
+            <form class="row g-2 align-items-end mb-3" method="get" th:action="@{/admin/moderation}">
+                 <input type="hidden" name="status" th:value="${status}"> <div class="col-md-4">
+                    <label class="form-label">Tìm người dùng</label>
+                    <input class="form-control" name="user_kw" th:value="${user_kw}" placeholder="Email, tên người dùng...">
+                </div>
+                <div class="col-auto"><button class="btn btn-outline-secondary">Tìm</button></div>
+            </form>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead><tr><th>ID</th><th>Email</th><th>Tên</th><th>Trạng thái Chat</th><th style="width: 250px;">Thao tác</th></tr></thead>
+                    <tbody>
+                    <tr th:each="u : ${userPage.content}">
+                        <td th:text="${u.id}"></td><td th:text="${u.email}"></td><td th:text="${u.fullName}"></td>
+                        <td>
+                           <span th:if="${u.chatBannedUntil() != null and #temporals.createNow().isBefore(u.chatBannedUntil())}"
+                                 class="badge bg-danger" th:text="'Bị khóa đến ' + ${#temporals.format(u.chatBannedUntil(), 'HH:mm dd/MM')}"></span>
+                           <span th:unless="${u.chatBannedUntil() != null and #temporals.createNow().isBefore(u.chatBannedUntil())}"
+                                 class="badge bg-success">Hoạt động</span>
+                        </td>
+                        <td>
+                            <form th:if="${u.chatBannedUntil() == null or #temporals.createNow().isAfter(u.chatBannedUntil())}"
+                                  th:action="@{/admin/moderation/users/{id}/ban-chat(id=${u.id})}" method="post" class="d-inline-flex align-items-center gap-1">
+                                <input type="number" name="hours" value="24" class="form-control form-control-sm" style="width: 70px;">
+                                <button class="btn btn-sm btn-warning">Khóa Chat</button>
+                            </form>
+                            <form th:if="${u.chatBannedUntil() != null and #temporals.createNow().isBefore(u.chatBannedUntil())}"
+                                  th:action="@{/admin/moderation/users/{id}/unban-chat(id=${u.id})}" method="post" class="d-inline">
+                                <button class="btn btn-sm btn-success">Mở khóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            </div>
+    </div>
+    <script>
+        // JS để giữ lại tab active sau khi reload trang
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabButtons = document.querySelectorAll('#moderationTabs button');
+            if (location.hash) {
+                const tabButton = document.querySelector(`button[data-bs-target="${location.hash}"]`);
+                if (tabButton) new bootstrap.Tab(tabButton).show();
+            }
+            tabButtons.forEach(button => {
+                button.addEventListener('shown.bs.tab', (event) => {
+                    location.hash = event.target.getAttribute('data-bs-target');
+                });
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

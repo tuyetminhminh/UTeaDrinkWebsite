@@ -14,18 +14,6 @@
   --header-h:64px;            /* chiều cao header dùng đồng bộ */
 }
 
-/* Header cố định + border dưới mờ */
-.main-header{
-  position:fixed; top:0; left:0; right:0; z-index:1030;
-  height:var(--header-h);
-  background:var(--header-bg);
-  backdrop-filter:saturate(140%) blur(6px);
-  border-bottom:1px solid var(--border);
-  box-shadow:0 6px 18px rgba(0,0,0,.04);   /* “hơi” bóng như TCH */
-}
-
-
-
 .brand {
 	font-weight: 900;
 	letter-spacing: -.3px;
@@ -56,9 +44,6 @@
 .dropdown-item:hover {
 	background: rgba(255, 123, 0, .15)
 }
-
-/* offset dưới header – để mọi trang không bị chèn lên */
-.page-offset{ height:var(--header-h) }
 
 </style>
 </head>
@@ -113,9 +98,6 @@
 				</div>
 			</nav>
 		</header>
-
-		<div class="page-offset"></div>
-
 		<script>
     (function(){
       // Default dark theo yêu cầu nhóm cam–đen

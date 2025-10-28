@@ -259,7 +259,6 @@ public class AdminShopController {
                     String name = (u.getFullName() != null && !u.getFullName().isBlank())
                             ? u.getFullName() : u.getEmail();
                     String desc = (u.getEmail() != null ? u.getEmail() : "");
-                    if (u.getPhone() != null && !u.getPhone().isBlank()) desc += " • " + u.getPhone();
 
                     Map<String, Object> m = new HashMap<>();
                     m.put("id", u.getId());

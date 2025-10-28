@@ -38,13 +38,20 @@ public class AdminUserController {
      * =========================
      */
     @GetMapping
-    public String list(@RequestParam(name = "kw", defaultValue = "") String kw,
-                       @RequestParam(name = "page", defaultValue = "1") int page,
-                       @RequestParam(name = "size", defaultValue = "10") int size, Model model) {
-        Page<User> data = userService.search(kw, PageRequest.of(Math.max(page - 1, 0), size));
+    public String list(@RequestParam(name = "kw",   defaultValue = "") String kw,
+                    @RequestParam(name = "page", defaultValue = "1") int page,
+                    @RequestParam(name = "size", defaultValue = "10") int size,
+                    Model model) {
+
+        int p = Math.max(page - 1, 0);                // 0-based cho Spring
+        Page<User> data = userService.search(kw, PageRequest.of(p, size));
+
         model.addAttribute("page", data);
+        model.addAttribute("pageIndex", data.getNumber() + 1); // 1-based cho UI
+        model.addAttribute("size", size);
+        model.addAttribute("sizes", new int[]{5, 10,20,50,100});  // combobox
         model.addAttribute("kw", kw);
-        model.addAttribute("rolesAll", roleRepo.findAll()); // để hiển thị checkboxes vai trò
+        model.addAttribute("rolesAll", roleRepo.findAll());
         return "admin/users/index";
     }
 
@@ -94,8 +101,6 @@ public class AdminUserController {
             f.setEmail(u.getEmail());
             f.setUsername(u.getUsername());
             f.setFullName(u.getFullName());
-            f.setPhone(u.getPhone());
-            f.setBirthDate(u.getBirthDate());
             f.setStatus(u.getStatus());
             f.setRoleCode(u.getRoles().stream().findFirst().map(r -> r.getCode()).orElse("CUSTOMER"));
 

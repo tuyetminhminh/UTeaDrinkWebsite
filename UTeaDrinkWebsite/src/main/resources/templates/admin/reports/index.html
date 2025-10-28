@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin-layout :: adminLayout(~{::title}, ~{::content})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Báo cáo Toàn hệ thống</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div th:fragment="content" class="container-fluid p-0">
+
+    <div th:replace="~{fragments/breadcrumbs :: bc('Trang chủ', @{/admin/home}, null, null, 'Báo cáo')}"></div>
+    <h3 class="fw-bold mb-3">📈 Báo cáo Doanh thu Toàn hệ thống</h3>
+
+    <form class="row g-2 align-items-end mb-3" method="get" th:action="@{/admin/reports}">
+        <div class="col-md-3">
+            <label class="form-label">Từ ngày</label>
+            <input type="date" class="form-control" name="fromDate" th:value="${fromDate}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Đến ngày</label>
+            <input type="date" class="form-control" name="toDate" th:value="${toDate}">
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary">Xem báo cáo</button>
+        </div>
+    </form>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Tổng Doanh thu</h5>
+                    <p class="card-text fs-4 fw-bold" th:text="${#numbers.formatDecimal(report.totalSystemRevenue, 1, 'COMMA', 2, 'POINT')} + ' ₫'"></p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Tổng Đơn hàng</h5>
+                    <p class="card-text fs-4 fw-bold" th:text="${report.totalSystemOrders}"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">Doanh thu theo ngày</div>
+        <div class="card-body">
+            <canvas id="dailyRevenueChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Doanh thu chi tiết theo Cửa hàng</div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Cửa hàng</th>
+                            <th>Tổng Doanh thu</th>
+                            <th>Tổng Đơn hàng</th>
+                            <th>Giá trị Trung bình/Đơn</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="shop : ${report.shopSummaries}">
+                            <td th:text="${shop.shopName}"></td>
+                            <td th:text="${#numbers.formatDecimal(shop.totalRevenue, 1, 'COMMA', 2, 'POINT')} + ' ₫'"></td>
+                            <td th:text="${shop.totalOrders}"></td>
+                            <td th:text="${#numbers.formatDecimal(shop.averageOrderValue, 1, 'COMMA', 2, 'POINT')} + ' ₫'"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            const dailyData = /*[[${report.dailyRevenue}]]*/ [];
+            const labels = dailyData.map(d => new Date(d.date).toLocaleDateString('vi-VN'));
+            const revenues = dailyData.map(d => d.revenue);
+
+            const ctx = document.getElementById('dailyRevenueChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu (VND)',
+                        data: revenues,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+</div>
+</body>
+</html>

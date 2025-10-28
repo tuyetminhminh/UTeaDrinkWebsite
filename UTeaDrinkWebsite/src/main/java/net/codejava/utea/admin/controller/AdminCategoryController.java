@@ -12,6 +12,7 @@ import net.codejava.utea.catalog.service.ProductCategoryService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -36,9 +37,12 @@ public class AdminCategoryController {
                         @RequestParam(defaultValue = "10") int size, Model model) {
         int p = Math.max(page, 1) - 1;
         int s = normalizeSize(size);
+        var pageable = PageRequest.of(p, s, Sort.by(Sort.Order.asc("name").ignoreCase()));
 
-        Page<ProductCategory> pageData = (q == null || q.isBlank()) ? categoryRepo.findAll(PageRequest.of(p, s))
-                : categoryRepo.findByNameContainingIgnoreCase(q.trim(), PageRequest.of(p, s));
+        Page<ProductCategory> pageData =
+            (q == null || q.isBlank())
+                ? categoryRepo.findAll(pageable)
+                : categoryRepo.findByNameContainingIgnoreCase(q.trim(), pageable);
 
         int totalPages = Math.max(pageData.getTotalPages(), 1);
         if (page > totalPages && totalPages > 0) { // Thêm điều kiện totalPages > 0
@@ -50,14 +54,14 @@ public class AdminCategoryController {
         model.addAttribute("pageIndex", Math.max(page, 1));
         model.addAttribute("size", s);
         // ĐÃ SỬA: Cập nhật danh sách kích thước trang
-        model.addAttribute("sizes", List.of(5, 10, 15, 20, 50, 100));
+        model.addAttribute("sizes", new int[]{5, 10, 20, 50, 100});
         return "admin/categories/index";
     }
 
     /* ========== NEW FORM ========== */
     @GetMapping("/new")
     public String newForm(@RequestParam(required = false) String q, @RequestParam(defaultValue = "1") int page,
-                          @RequestParam(defaultValue = "10") int size, Model model) {
+                        @RequestParam(defaultValue = "10") int size, Model model) {
         CategoryForm form = new CategoryForm();
         form.setActive(Boolean.TRUE); // nếu entity có cột active
         keepNav(model, q, page, size);
@@ -164,7 +168,7 @@ public class AdminCategoryController {
     /* ========== Helpers ========== */
     private int normalizeSize(int size) {
         // ĐÃ SỬA: Cập nhật danh sách kích thước hợp lệ
-        List<Integer> allowed = List.of(5, 10, 15, 20, 50, 100);
+        List<Integer> allowed = List.of(5, 10, 20, 50, 100);
         if (allowed.contains(size))
             return size;
         if (size < 1)

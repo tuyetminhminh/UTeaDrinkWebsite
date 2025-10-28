@@ -40,8 +40,6 @@ public class UserAdminAppService {
                 .email(f.getEmail().trim())
                 .username(StringUtils.hasText(f.getUsername()) ? f.getUsername().trim() : null)
                 .fullName(f.getFullName())
-                .phone(f.getPhone())
-                .birthDate(f.getBirthDate())
                 .status(f.getStatus())
                 .passwordHash(f.getPassword()) // bạn đang NoOp → set thẳng
                 .build();
@@ -75,8 +73,6 @@ public class UserAdminAppService {
         u.setEmail(f.getEmail().trim());
         u.setUsername(StringUtils.hasText(f.getUsername()) ? f.getUsername().trim() : null);
         u.setFullName(f.getFullName());
-        u.setPhone(f.getPhone());
-        u.setBirthDate(f.getBirthDate());
         u.setStatus(f.getStatus());
 
         if (StringUtils.hasText(f.getPassword())) {

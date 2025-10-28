@@ -13,13 +13,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
-@Table(
-        name = "users",
-        indexes = {
-        @Index(name = "ix_user_email", columnList = "email"),
-        @Index(name = "ix_user_phone", columnList = "phone")
-        }
-)
+@Table(name = "users", indexes = {
+                @Index(name = "ix_user_email", columnList = "email"),
+                @Index(name = "ix_user_phone", columnList = "phone")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,52 +24,38 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @Builder
 public class User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
 
-    @Column(nullable = false, unique = true, length = 150)
-    private String email;
+        @Column(nullable = false, unique = true, length = 150)
+        private String email;
 
-    @Column(unique = true, length = 100)
-    private String username; // có thể null, vẫn login bằng email được
+        @Column(unique = true, length = 100)
+        private String username; // có thể null, vẫn login bằng email được
 
-    @Column(name = "password_hash", nullable = false, length = 255)
-    private String passwordHash;
+        @Column(name = "password_hash", nullable = false, length = 255)
+        private String passwordHash;
 
-    @Column(name = "full_name", columnDefinition = "NVARCHAR(200)")
-    private String fullName;
+        @Column(name = "full_name", columnDefinition = "NVARCHAR(200)")
+        private String fullName;
 
-    // ✅ SĐT (tuỳ chọn unique)
-    @Column(name = "phone", length = 20)
-    private String phone;
+        @Column(length = 20)
+        @Builder.Default
+        private String status = "ACTIVE"; // ACTIVE | LOCKED | PENDING
 
-    // ✅ Ngày sinh (LocalDate)
-    @Column(name = "birth_date")
-    @DateTimeFormat(pattern = "yyyy-MM-dd")   // cho form Spring MVC
-    @JsonFormat(pattern = "yyyy-MM-dd")       // cho JSON REST (nếu có)
-    private LocalDate birthDate;
+        @Column(name = "created_at")
+        @Builder.Default
+        private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(length = 20)
-    @Builder.Default
-    private String status = "ACTIVE"; // ACTIVE | LOCKED | PENDING
+        /* ✅ Roles: EAGER để tránh LazyInitializationException khi login */
+        @ManyToMany(fetch = FetchType.EAGER)
+        @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+        @Builder.Default
+        private Set<Role> roles = new HashSet<>();
 
-    @Column(name = "created_at")
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    /* ✅ Roles: EAGER để tránh LazyInitializationException khi login */
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    @Builder.Default
-    private Set<Role> roles = new HashSet<>();
-
-    /* Addresses */
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private Set<Address> addresses = new HashSet<>();
+        /* Addresses */
+        @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+        @Builder.Default
+        private Set<Address> addresses = new HashSet<>();
 }

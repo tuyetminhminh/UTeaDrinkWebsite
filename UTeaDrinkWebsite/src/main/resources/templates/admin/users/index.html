@@ -17,7 +17,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="fw-bold">👥 Quản lý người dùng</h3>
-      <a class="btn btn-primary" th:href="@{/admin/users/new}">+ Thêm người dùng</a>
+      <a class="btn btn-primary" th:href="@{/admin/users/new}"><i class="bi bi-plus-circle"></i>Thêm người dùng</a>
     </div>
 
     <!-- Alerts -->
@@ -104,26 +104,48 @@
         </tbody>
       </table>
     </div>
-
-    <!-- Pagination -->
-    <nav th:if="${page.totalPages > 1}">
-      <ul class="pagination">
-        <li class="page-item" th:classappend="${page.first} ? 'disabled'">
-          <a class="page-link"
-             th:href="@{|/admin/users?page=${page.number}&size=${page.size}&kw=${kw}|}">«</a>
-        </li>
-        <li class="page-item" th:each="i : ${#numbers.sequence(1, page.totalPages)}"
-            th:classappend="${i == page.number + 1} ? 'active'">
-          <a class="page-link" th:text="${i}"
-             th:href="@{|/admin/users?page=${i}&size=${page.size}&kw=${kw}|}"></a>
-        </li>
-        <li class="page-item" th:classappend="${page.last} ? 'disabled'">
-          <a class="page-link"
-             th:href="@{|/admin/users?page=${page.number + 2}&size=${page.size}&kw=${kw}|}">»</a>
-        </li>
-      </ul>
-    </nav>
   </div>
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-3">
+
+      <!-- Pagination -->
+      <nav th:if="${page.totalPages > 1}" aria-label="Page navigation">
+        <ul class="pagination mb-0">
+          <!-- Prev -->
+          <li class="page-item" th:classappend="${pageIndex == 1} ? 'disabled'">
+            <a class="page-link"
+              th:href="@{/admin/users(page=${pageIndex-1}, size=${size}, kw=${kw})}">«</a>
+          </li>
+
+          <!-- Numbers -->
+          <li class="page-item"
+              th:each="i : ${#numbers.sequence(1, page.totalPages)}"
+              th:classappend="${i == pageIndex} ? 'active'">
+            <a class="page-link"
+              th:text="${i}"
+              th:href="@{/admin/users(page=${i}, size=${size}, kw=${kw})}"></a>
+          </li>
+
+          <!-- Next -->
+          <li class="page-item" th:classappend="${pageIndex == page.totalPages} ? 'disabled'">
+            <a class="page-link"
+              th:href="@{/admin/users(page=${pageIndex+1}, size=${size}, kw=${kw})}">»</a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Page size selector -->
+      <form th:action="@{/admin/users}" method="get" class="d-flex align-items-center gap-2">
+        <input type="hidden" name="kw"   th:value="${kw}">
+        <input type="hidden" name="page" value="1">
+
+        <label for="userPageSize" class="form-label mb-0 text-nowrap">Số dòng/trang:</label>
+        <select id="userPageSize" class="form-select form-select-sm" name="size"
+                style="width:auto" onchange="this.form.submit()">
+          <option th:each="s : ${sizes}" th:value="${s}" th:text="${s}" th:selected="${s == size}"></option>
+        </select>
+      </form>
+
+    </div>
 
   <!-- (CHỈ GIỮ) Reset Password Modal -->
   <div class="modal fade" id="resetModal" tabindex="-1">

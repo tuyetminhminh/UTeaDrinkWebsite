@@ -5,13 +5,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import net.codejava.utea.catalog.entity.Product;
-import net.codejava.utea.catalog.entity.ProductCategory;
-import net.codejava.utea.catalog.entity.ProductVariant;
 import net.codejava.utea.catalog.entity.enums.Size;
 import net.codejava.utea.catalog.repository.ProductCategoryRepository;
 import net.codejava.utea.catalog.repository.ProductRepository;
 import net.codejava.utea.catalog.service.AdminProductService;
-import net.codejava.utea.manager.entity.Shop;
 import net.codejava.utea.manager.repository.ShopRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,7 +23,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 @PreAuthorize("hasRole('ADMIN')")
@@ -55,7 +51,8 @@ public class AdminCatalogController {
         private List<VariantForm> variants = new ArrayList<>();
     }
 
-    @Data@NoArgsConstructor
+    @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class VariantForm {
         private Long id; // Dùng khi update
@@ -71,21 +68,21 @@ public class AdminCatalogController {
             @RequestParam(required = false) Long shopId,
             @RequestParam(defaultValue = "ALL") String status,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(name = "size", defaultValue = "10") int pageSize,
             Model model) {
 
         int p = Math.max(page, 1) - 1;
-        Pageable pageable = PageRequest.of(p, size);
+        Pageable pageable = PageRequest.of(p, pageSize);
         Page<Product> pageData = productRepo.adminSearch(q, shopId, status, pageable);
 
         model.addAttribute("page", pageData);
         model.addAttribute("pageIndex", Math.max(page, 1));
-        model.addAttribute("size", size);
+        model.addAttribute("size", pageSize);
         model.addAttribute("q", q);
         model.addAttribute("shopId", shopId);
         model.addAttribute("status", status);
         model.addAttribute("shops", shopRepo.findAll());
-        model.addAttribute("sizes", List.of(5, 10, 20, 50));
+        model.addAttribute("sizes", new int[] { 5, 10, 20, 50, 100 });
         return "admin/products/index";
     }
 
@@ -180,71 +177,72 @@ public class AdminCatalogController {
     // ẨN SẢN PHẨM
     @PostMapping("/{id}/hide")
     public String hide(@PathVariable Long id,
-                       @RequestParam(required = false) String q,
-                       @RequestParam(required = false) Long shopId,
-                       @RequestParam(required = false, defaultValue = "ALL") String status,
-                       @RequestParam(defaultValue = "1") int page,
-                       @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Long shopId,
+            @RequestParam(required = false, defaultValue = "ALL") String status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            RedirectAttributes ra) {
         adminProductService.hide(id, null);
-        return buildBackUrl(q, shopId, status, page, size);
+        ra.addAttribute("q", q);
+        ra.addAttribute("shopId", shopId);
+        ra.addAttribute("status", status);
+        ra.addAttribute("page", page);
+        ra.addAttribute("size", size);
+        return "redirect:/admin/products";
     }
 
     /* Mở lại */
     @PostMapping("/{id}/unhide")
     public String unhide(@PathVariable Long id, @RequestParam(required = false) String q,
-                         @RequestParam(required = false) Long shopId, @RequestParam(required = false) String status,
-                         @RequestParam(defaultValue = "1") int page, @RequestParam(required = false) Integer size) {
+            @RequestParam(required = false) Long shopId, @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1") int page, @RequestParam(required = false) Integer size,
+            RedirectAttributes ra) {
         adminProductService.unhide(id);
-        return buildBackUrl(q, shopId, status, page, size);
+        ra.addAttribute("q", q);
+        ra.addAttribute("shopId", shopId);
+        ra.addAttribute("status", status);
+        ra.addAttribute("page", page);
+        ra.addAttribute("size", size);
+        return "redirect:/admin/products";
     }
 
     // XÓA HẲN
     @PostMapping("/{id}/delete-hard")
     public String deleteHard(@PathVariable Long id,
-                             @RequestParam(required = false) String q,
-                             @RequestParam(required = false) Long shopId,
-                             @RequestParam(required = false, defaultValue = "ALL") String status,
-                             @RequestParam(defaultValue = "1") int page,
-                             @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Long shopId,
+            @RequestParam(required = false, defaultValue = "ALL") String status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size, RedirectAttributes ra) {
         adminProductService.hardDelete(id);
-        return buildBackUrl(q, shopId, status, page, size);
+
+        ra.addAttribute("q", q);
+        ra.addAttribute("shopId", shopId);
+        ra.addAttribute("status", status);
+        ra.addAttribute("page", page);
+        ra.addAttribute("size", size);
+        
+        return "redirect:/admin/products";
     }
-
-
 
     /* Cập nhật nhẹ tên/mô tả/giá/cate */
     @PostMapping("/{id}/update")
     public String update(@PathVariable Long id, @RequestParam String name,
-                         @RequestParam(required = false) String description, @RequestParam(required = false) BigDecimal basePrice,
-                         @RequestParam(required = false) Long categoryId, @RequestParam(required = false) String q,
-                         @RequestParam(required = false) Long shopId, @RequestParam(required = false) String status,
-                         @RequestParam(defaultValue = "1") int page, @RequestParam(required = false) Integer size) {
+            @RequestParam(required = false) String description, @RequestParam(required = false) BigDecimal basePrice,
+            @RequestParam(required = false) Long categoryId, @RequestParam(required = false) String q,
+            @RequestParam(required = false) Long shopId, @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1") int page, @RequestParam(required = false) Integer size,
+            RedirectAttributes ra) {
 
         adminProductService.updateBasic(id, name, description, basePrice, categoryId);
-        return buildBackUrl(q, shopId, status, page, size);
+        ra.addAttribute("q", q);
+        ra.addAttribute("shopId", shopId);
+        ra.addAttribute("status", status);
+        ra.addAttribute("page", page);
+        ra.addAttribute("size", size);
+        return "redirect:/admin/products";
     }
 
-    private int normalizeSize(int size) {
-        // Cho phép 5/10/20/50/100 hoặc số custom trong [1..200]
-        List<Integer> allowed = List.of(5, 10, 20, 50, 100);
-        if (allowed.contains(size))
-            return size;
-        if (size < 1)
-            return 10;
-        return Math.min(size, 200);
-    }
-
-    private String buildBackUrl(String q, Long shopId, String status, int page, Integer size) {
-        String s = (status == null || status.isBlank()) ? "ALL" : status;
-        int p = Math.max(1, page);
-        int z = (size == null ? 10 : normalizeSize(size));
-        // Dùng style query param để tự động encode và tránh "null"
-        String url = String.format("redirect:/admin/products?page=%d&size=%d&status=%s", p, z, s);
-        if (q != null && !q.isBlank())
-            url += "&q=" + q;
-        if (shopId != null)
-            url += "&shopId=" + shopId;
-        return url;
-    }
 
 }

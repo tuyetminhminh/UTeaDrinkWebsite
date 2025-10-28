@@ -9,11 +9,15 @@
 <div th:fragment="content" class="container-fluid p-0">
 
   <div th:replace="~{fragments/breadcrumbs ::
-      bc('Trang chủ', @{/admin/home}, 'Sản phẩm', @{/admin/products}, 'Topping')}"></div>
+      bc('Trang chủ', @{/admin/home}, null, null, 'Topping')}"></div>
 
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="fw-bold">🥤 Quản lý Topping</h3>
-    <a class="btn btn-primary" th:href="@{/admin/toppings/new}">+ Thêm topping</a>
+    <a class="btn btn-primary"
+   th:href="@{/admin/toppings/new(page=${pageIndex}, size=${size}, shopId=${shopId}, kw=${kw})}">
+  <i class="bi bi-plus-circle"></i> Thêm topping
+</a>
+
   </div>
 
   <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
@@ -65,41 +69,66 @@
         </td>
         <td>
           <a class="btn btn-sm btn-outline-primary me-1"
-             th:href="@{'/admin/toppings/' + ${t.id} + '/edit'}">Sửa</a>
-
-          <form class="d-inline me-1" method="post"
-                th:action="@{'/admin/toppings/' + ${t.id} + '/toggle'}">
-            <button class="btn btn-sm btn-outline-warning">Đổi trạng thái</button>
-          </form>
+            th:href="@{'/admin/toppings/' + ${t.id} + '/edit'(page=${pageIndex}, size=${size}, shopId=${shopId}, kw=${kw})}">
+            Sửa
+          </a>
 
           <form class="d-inline" method="post"
                 th:action="@{'/admin/toppings/' + ${t.id} + '/delete'}"
                 onsubmit="return confirm('Xóa topping này?');">
+            <input type="hidden" name="page"   th:value="${pageIndex}">
+            <input type="hidden" name="size"   th:value="${size}">
+            <input type="hidden" name="shopId" th:value="${shopId}">
+            <input type="hidden" name="kw"     th:value="${kw}">
             <button class="btn btn-sm btn-outline-danger">Xóa</button>
           </form>
+
         </td>
       </tr>
       </tbody>
     </table>
   </div>
 
-  <nav th:if="${page.totalPages > 1}">
-    <ul class="pagination">
-        <li class="page-item" th:classappend="${page.first} ? 'disabled'">
-            <a class="page-link"
-               th:href="@{/admin/toppings(page=${page.number}, size=${page.size}, shopId=${shopId}, kw=${kw})}">«</a>
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-3">
+
+    <!-- Pagination -->
+    <nav th:if="${page.totalPages > 1}" aria-label="Page navigation">
+      <ul class="pagination mb-0">
+        <li class="page-item" th:classappend="${pageIndex==1}? 'disabled'">
+          <a class="page-link"
+            th:href="@{/admin/toppings(page=${pageIndex-1}, size=${size}, shopId=${shopId}, kw=${kw})}">«</a>
         </li>
-        <li class="page-item" th:each="i : ${#numbers.sequence(1, page.totalPages)}"
-            th:classappend="${i == page.number + 1} ? 'active'">
-            <a class="page-link" th:text="${i}"
-               th:href="@{/admin/toppings(page=${i}, size=${page.size}, shopId=${shopId}, kw=${kw})}"></a>
+
+        <li class="page-item"
+            th:each="i : ${#numbers.sequence(1, page.totalPages)}"
+            th:classappend="${i==pageIndex}? 'active'">
+          <a class="page-link" th:text="${i}"
+            th:href="@{/admin/toppings(page=${i}, size=${size}, shopId=${shopId}, kw=${kw})}"></a>
         </li>
-        <li class="page-item" th:classappend="${page.last} ? 'disabled'">
-            <a class="page-link"
-               th:href="@{/admin/toppings(page=${page.number + 2}, size=${page.size}, shopId=${shopId}, kw=${kw})}">»</a>
+
+        <li class="page-item" th:classappend="${pageIndex==page.totalPages}? 'disabled'">
+          <a class="page-link"
+            th:href="@{/admin/toppings(page=${pageIndex+1}, size=${size}, shopId=${shopId}, kw=${kw})}">»</a>
         </li>
-    </ul>
-</nav>
+      </ul>
+    </nav>
+
+    <!-- Page size selector -->
+    <form th:action="@{/admin/toppings}" method="get" class="d-flex align-items-center gap-2">
+      <input type="hidden" name="shopId" th:value="${shopId}">
+      <input type="hidden" name="kw"     th:value="${kw}">
+      <input type="hidden" name="page"   value="1">
+
+      <label for="topPageSize" class="form-label mb-0 text-nowrap">Số dòng/trang:</label>
+      <select id="topPageSize" class="form-select form-select-sm" name="size"
+              style="width:auto" onchange="this.form.submit()">
+        <option th:each="s : ${sizes}"
+                th:value="${s}" th:text="${s}" th:selected="${s == size}"></option>
+      </select>
+    </form>
+
+  </div>
+
 
 </div>
 </body>

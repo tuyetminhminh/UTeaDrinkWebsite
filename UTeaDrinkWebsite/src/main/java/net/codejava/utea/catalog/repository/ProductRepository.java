@@ -106,4 +106,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByIdsWithImagesAndShop(@Param("shopId") Long shopId, @Param("ids") List<Long> ids);
 
     boolean existsByShop_Id(Long shopId);
+    long countByStatus(String status);
 }

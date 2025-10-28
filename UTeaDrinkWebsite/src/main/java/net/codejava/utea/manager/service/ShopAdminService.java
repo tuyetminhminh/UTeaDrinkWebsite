@@ -190,7 +190,6 @@ public class ShopAdminService {
                     m.put("id", u.getId());
                     m.put("text", StringUtils.hasText(u.getFullName()) ? u.getFullName() : u.getEmail());
                     String desc = (u.getEmail() != null ? u.getEmail() : "");
-                    if (StringUtils.hasText(u.getPhone())) desc += " • " + u.getPhone();
                     m.put("desc", desc);
                     return m;
                 })
