@@ -13,9 +13,17 @@ public class CheckoutRequest {
     private String district;
     private String note;
 
+
+
+    private Long addressId;
+
     @Builder.Default
     private PaymentMethod paymentMethod = PaymentMethod.COD;
 
     private String couponCode;
     private String shipCode;
+
+
+
+
 }

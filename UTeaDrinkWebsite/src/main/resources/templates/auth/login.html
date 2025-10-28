@@ -120,6 +120,17 @@
             font-size: 0.9rem;
             font-weight: 500;
         }
+
+        /* ===== Nút mắt mật khẩu ===== */
+        #togglePassword {
+            border-radius: 0 10px 10px 0;
+            border-color: #ffd4a3;
+            transition: background-color 0.3s;
+        }
+
+        #togglePassword:hover {
+            background-color: #fff4e6;
+        }
     </style>
 </head>
 
@@ -131,9 +142,16 @@
             <label class="form-label">Email hoặc Tên đăng nhập</label>
             <input type="text" name="username" class="form-control" required>
         </div>
-        <div class="mb-3">
+
+        <!-- Ô mật khẩu có nút ẩn/hiện -->
+        <div class="mb-3 position-relative">
             <label class="form-label">Mật khẩu</label>
-            <input type="password" name="password" class="form-control" required>
+            <div class="input-group">
+                <input type="password" name="password" class="form-control" id="passwordInput" required>
+                <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                    <i class="bi bi-eye-slash" id="eyeIcon"></i>
+                </button>
+            </div>
         </div>
 
         <div class="d-grid gap-2 mt-3">
@@ -146,11 +164,6 @@
             <a class="btn btn-outline-dark" href="/oauth2/authorization/google">
                 <i class="bi bi-google me-2"></i> Đăng nhập với Google
             </a>
-            <a class="btn btn-primary"
-               style="background: #1877f2; border-color: #1877f2"
-               href="/oauth2/authorization/facebook">
-                <i class="bi bi-facebook me-2"></i> Đăng nhập với Facebook
-            </a>
         </div>
     </form>
 
@@ -162,5 +175,18 @@
     <p th:if="${error}" class="text-danger text-center mt-3" th:text="${error}"></p>
     <p th:if="${success}" class="text-success text-center mt-3" th:text="${success}"></p>
 </div>
+
+<script>
+    const toggleBtn = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('passwordInput');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    toggleBtn.addEventListener('click', function () {
+        const isHidden = passwordInput.type === 'password';
+        passwordInput.type = isHidden ? 'text' : 'password';
+        eyeIcon.classList.toggle('bi-eye');
+        eyeIcon.classList.toggle('bi-eye-slash');
+    });
+</script>
 </body>
 </html>

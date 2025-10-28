@@ -4,3 +4,6 @@
 *.iml
 target/
 *.env
+
+bin/
+

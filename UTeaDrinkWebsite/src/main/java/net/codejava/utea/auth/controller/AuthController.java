@@ -43,8 +43,8 @@ public class AuthController {
     private long expMs; // 7 ngày
     @GetMapping({"/", "/main-home"})
     public String home() { return "home/main-home"; }
-    @GetMapping("/admin/home")
-    public String adminHome() { return "home/admin-home"; }
+    /*@GetMapping("/admin/home")
+    public String adminHome() { return "home/admin-home"; }*/
     // Customer home moved to HomeController for banner support
     @GetMapping("/seller/home")
     public String sellerHome() { return "home/seller-home"; }

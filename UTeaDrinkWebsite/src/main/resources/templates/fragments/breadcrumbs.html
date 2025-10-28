@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    .bc-wrap {
+      background: var(--surface, #fff);
+      border: 1px solid var(--card-border, rgba(17,17,17,.08));
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+    }
+    .breadcrumb {
+      margin: 0;
+    }
+    .breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+      content: "›";
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== Cách mới: 5 tham số l1,h1,l2,h2,cur ===== -->
+<nav class="bc-wrap" th:fragment="bc (l1, h1, l2, h2, cur)" aria-label="breadcrumb">
+  <ol class="breadcrumb small">
+    <li class="breadcrumb-item">
+      <a th:href="${h1}" th:text="${l1}">Trang chủ</a>
+    </li>
+
+    <li class="breadcrumb-item" th:if="${l2 != null}">
+      <a th:if="${h2 != null}" th:href="${h2}" th:text="${l2}"></a>
+      <span th:if="${h2 == null}" th:text="${l2}"></span>
+    </li>
+
+    <li class="breadcrumb-item active" aria-current="page" th:text="${cur}">Hiện tại</li>
+  </ol>
+  <div id="bc-flag" class="d-none"></div>
+</nav>
+
+</body>
+</html>

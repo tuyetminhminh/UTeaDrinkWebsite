@@ -339,23 +339,23 @@
     document.getElementById('couponModal').addEventListener('show.bs.modal', function(){
         const mainForm = document.querySelector('form[action*="checkout"]');
         if(!mainForm) return;
-        
+
         const currentCoupon = mainForm.querySelector('[name="couponCode"]').value || '';
         const currentShip   = mainForm.querySelector('[name="shipCode"]').value || '';
-        
+
         document.getElementById('hidCoupon').value = currentCoupon;
         document.getElementById('hidShip').value   = currentShip;
-        
+
         // Highlight các mã đã chọn
         highlightSelectedVouchers(currentCoupon, currentShip);
     });
-    
+
     function highlightSelectedVouchers(currentCoupon, currentShip) {
         // Xóa highlight cũ
         document.querySelectorAll('#couponModal .list-group-item').forEach(item => {
             item.classList.remove('active');
         });
-        
+
         // Highlight mã đang được chọn
         document.querySelectorAll('#couponModal .list-group-item').forEach(item => {
             const code = item.dataset.code || '';
@@ -363,19 +363,19 @@
                 item.classList.add('active');
             }
         });
-        
+
         // Cập nhật text hiển thị
         updateSelectedVoucherInfo(currentCoupon, currentShip);
     }
-    
+
     function updateSelectedVoucherInfo(currentCoupon, currentShip) {
         const info = document.getElementById('selectedVoucherInfo');
         if (!info) return;
-        
+
         const parts = [];
         if (currentCoupon) parts.push('<span class="badge bg-warning text-dark">' + currentCoupon + '</span>');
         if (currentShip) parts.push('<span class="badge bg-info">' + currentShip + '</span>');
-        
+
         if (parts.length > 0) {
             info.innerHTML = parts.join(' + ');
         } else {
@@ -392,7 +392,7 @@
         f.querySelector('[name="province"]').value    = btn.dataset.province || '';
         bootstrap.Modal.getOrCreateInstance(document.getElementById('addressModal')).hide();
     }
-    
+
     function pickCoupon(btn, kind){
         const code = btn.dataset.code || '';
         if(kind==='coupon') {
@@ -401,24 +401,24 @@
         if(kind==='ship') {
             document.getElementById('hidShip').value = code;
         }
-        
+
         // Highlight mã vừa chọn
         const currentCoupon = document.getElementById('hidCoupon').value || '';
         const currentShip   = document.getElementById('hidShip').value || '';
         highlightSelectedVouchers(currentCoupon, currentShip);
     }
-    
+
     function removeCoupon(kind){
         const mainForm = document.querySelector('form[action*="checkout"]');
         if(!mainForm) return;
-        
+
         if(kind==='coupon') {
             mainForm.querySelector('[name="couponCode"]').value = '';
         }
         if(kind==='ship') {
             mainForm.querySelector('[name="shipCode"]').value = '';
         }
-        
+
         // Submit lại form để cập nhật
         mainForm.querySelector('button[formaction*="apply-coupons"]').click();
     }

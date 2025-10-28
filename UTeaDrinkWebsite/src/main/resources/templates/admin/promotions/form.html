@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin-layout :: adminLayout(~{::title}, ~{::content})}">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${form.id == null ? 'Thêm Khuyến mãi' : 'Sửa Khuyến mãi'}"></title>
+</head>
+<body>
+<div th:fragment="content" class="container-fluid p-0">
+
+    <div th:replace="~{fragments/breadcrumbs ::
+         bc('Trang chủ', @{/admin/home}, 'Khuyến mãi', @{/admin/promotions},
+            (form.id == null ? 'Thêm' : 'Sửa'))}"></div>
+
+    <h3 class="fw-bold mb-3" th:text="${form.id == null ? '➕ Thêm Khuyến mãi' : '✏️ Sửa Khuyến mãi'}"></h3>
+
+    <form th:action="${form.id == null} ? @{/admin/promotions} : @{/admin/promotions/{id}(id=${form.id})}"
+          method="post" th:object="${form}" class="row g-3">
+
+        <div th:if="${#fields.hasGlobalErrors()}" class="col-12">
+            <div class="alert alert-danger mb-0">
+                <ul class="mb-0">
+                    <li th:each="e : ${#fields.globalErrors()}" th:text="${e}"></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-12"><h5 class="border-bottom pb-2">Thông tin cơ bản</h5></div>
+        <div class="col-md-6">
+            <label class="form-label">Tiêu đề *</label>
+            <input class="form-control" th:field="*{title}">
+            <div class="text-danger small" th:errors="*{title}"></div>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Mô tả</label>
+            <input class="form-control" th:field="*{description}">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Phạm vi *</label>
+            <select id="scopeSelector" class="form-select" th:field="*{scope}">
+                <option th:each="s : ${T(net.codejava.utea.promotion.entity.enums.PromoScope).values()}"
+                        th:value="${s}" th:text="${s.name()}"></option>
+            </select>
+        </div>
+        <div id="shopSelectorDiv" class="col-md-3">
+            <label class="form-label">Cửa hàng *</label>
+            <select class="form-select" th:field="*{shopId}">
+                <option value="">-- Chọn cửa hàng --</option>
+                <option th:each="s : ${shops}" th:value="${s.id}" th:text="${s.name}"></option>
+            </select>
+            <div class="text-danger small" th:errors="*{shopId}"></div>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">Hiệu lực từ</label>
+            <input type="datetime-local" class="form-control" th:field="*{activeFrom}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Hiệu lực đến</label>
+            <input type="datetime-local" class="form-control" th:field="*{activeTo}">
+        </div>
+
+        <div class="col-12 mt-4"><h5 class="border-bottom pb-2">Quy tắc khuyến mãi</h5></div>
+        <div class="col-md-3">
+            <label class="form-label">Loại khuyến mãi *</label>
+            <select id="promoTypeSelector" class="form-select" th:field="*{type}">
+                <option th:each="t : ${T(net.codejava.utea.promotion.entity.enums.PromoType).values()}"
+                        th:value="${t}" th:text="${t.name()}"></option>
+            </select>
+        </div>
+
+        <div id="rule-percent" class="row g-3 col-12 rule-section">
+            <div class="col-md-3">
+                <label class="form-label">Phần trăm giảm (%)*</label>
+                <input type="number" class="form-control" th:field="*{percentOff}" min="1" max="100">
+                <div class="text-danger small" th:errors="*{percentOff}"></div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Giảm tối đa (VNĐ)</label>
+                <input type="number" class="form-control" th:field="*{amountCap}" min="0">
+            </div>
+        </div>
+
+        <div id="rule-amount" class="row g-3 col-12 rule-section">
+            <div class="col-md-3">
+                <label class="form-label">Số tiền giảm (VNĐ)*</label>
+                <input type="number" class="form-control" th:field="*{amountOff}" min="0">
+                <div class="text-danger small" th:errors="*{amountOff}"></div>
+            </div>
+        </div>
+
+        <div id="rule-shipping" class="row g-3 col-12 rule-section">
+             <div class="col-md-3">
+                <label class="form-label">Giảm phí vận chuyển (VNĐ)</label>
+                <input type="number" class="form-control" th:field="*{shipDiscountAmount}" min="0">
+            </div>
+             <div class="col-md-3 align-self-end">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" th:field="*{isFreeShip}">
+                    <label class="form-check-label">Miễn phí vận chuyển</label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 mt-4"><h5 class="border-bottom pb-2">Điều kiện áp dụng</h5></div>
+         <div class="col-md-3">
+            <label class="form-label">Giá trị đơn hàng tối thiểu (VNĐ)</label>
+            <input type="number" class="form-control" th:field="*{minTotal}" min="0">
+        </div>
+         <div class="col-md-3 align-self-end">
+             <div class="form-check">
+                <input class="form-check-input" type="checkbox" th:field="*{onlyNewUser}">
+                <label class="form-check-label">Chỉ dành cho khách hàng mới</label>
+            </div>
+        </div>
+        
+        <div class="col-12 d-flex gap-2 mt-4">
+            <button class="btn btn-primary">Lưu</button>
+            <a class="btn btn-outline-secondary" th:href="@{/admin/promotions}">Hủy</a>
+            
+        </div>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const scopeSelector = document.getElementById('scopeSelector');
+            const shopSelectorDiv = document.getElementById('shopSelectorDiv');
+            const promoTypeSelector = document.getElementById('promoTypeSelector');
+            const ruleSections = document.querySelectorAll('.rule-section');
+
+            function toggleShopSelector() {
+                if (scopeSelector.value === 'SHOP') {
+                    shopSelectorDiv.style.display = 'block';
+                } else {
+                    shopSelectorDiv.style.display = 'none';
+                }
+            }
+            
+            function toggleRuleSections() {
+                const selectedType = promoTypeSelector.value.toLowerCase();
+                ruleSections.forEach(section => {
+                    if (section.id === 'rule-' + selectedType) {
+                        section.style.display = 'flex'; // d-flex của bootstrap
+                    } else {
+                        section.style.display = 'none';
+                    }
+                });
+            }
+
+            // Initial setup
+            toggleShopSelector();
+            toggleRuleSections();
+
+            // Add event listeners
+            scopeSelector.addEventListener('change', toggleShopSelector);
+            promoTypeSelector.addEventListener('change', toggleRuleSections);
+        });
+    </script>
+</div>
+</body>
+</html>

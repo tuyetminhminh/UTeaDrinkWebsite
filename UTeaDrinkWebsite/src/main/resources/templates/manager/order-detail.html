@@ -610,21 +610,28 @@
             </h4>
             <div class="status-wrapper">
                 <span class="info-label">Trạng thái đơn hàng:</span>
-                <span class="badge status-badge" 
-                      th:classappend="${order.status == 'NEW' ? 'bg-warning' : 
-                                       order.status == 'CONFIRMED' ? 'bg-info' :
-                                       order.status == 'PREPARING' ? 'bg-secondary' :
-                                       order.status == 'DELIVERING' ? 'bg-primary' :
-                                       order.status == 'DELIVERED' ? 'bg-success' : 
-                                       'bg-danger'}"
-                      th:text="${order.status == 'NEW' ? 'Mới' :
-                                order.status == 'CONFIRMED' ? 'Đã xác nhận' :
-                                order.status == 'PREPARING' ? 'Đang chuẩn bị' :
-                                order.status == 'DELIVERING' ? 'Đang giao' :
-                                order.status == 'DELIVERED' ? 'Đã giao' :
-                                order.status == 'CANCELED' ? 'Đã hủy' : order.status}">
-                    NEW
-                </span>
+                <span class="badge status-badge"
+                      th:classappend="${
+          order.status == 'NEW'        ? 'bg-warning'   :
+          order.status == 'PAID'       ? 'bg-success'   :
+          order.status == 'CONFIRMED'  ? 'bg-info'      :
+          order.status == 'PREPARING'  ? 'bg-secondary' :
+          order.status == 'DELIVERING' ? 'bg-primary'   :
+          order.status == 'DELIVERED'  ? 'bg-success'   :
+                                         'bg-danger'
+      }"
+                      th:text="${
+          order.status == 'NEW'        ? 'Mới'             :
+          order.status == 'PAID'       ? 'Đã thanh toán'   :
+          order.status == 'CONFIRMED'  ? 'Đã xác nhận'     :
+          order.status == 'PREPARING'  ? 'Đang chuẩn bị'   :
+          order.status == 'DELIVERING' ? 'Đang giao'       :
+          order.status == 'DELIVERED'  ? 'Đã giao'         :
+          order.status == 'CANCELED'   ? 'Đã hủy'          : order.status
+      }">
+  NEW
+</span>
+
             </div>
         </div>
 
@@ -664,9 +671,9 @@
                             <tr th:each="item : ${order.items}">
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        <img th:if="${item.productImage}" 
-                                             th:src="${item.productImage}" 
-                                             alt="Product" 
+                                        <img th:if="${item.productImage}"
+                                             th:src="${item.productImage}"
+                                             alt="Product"
                                              class="product-img">
                                         <div>
                                             <strong th:text="${item.productName}">Trà sữa trân châu</strong>
@@ -684,7 +691,7 @@
                         <tfoot>
                             <tr>
                                 <td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>
-                                <td><strong class="text-success" 
+                                <td><strong class="text-success"
                                             th:text="${#numbers.formatDecimal(order.total, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                                     200,000 đ
                                 </strong></td>
@@ -700,13 +707,14 @@
                 <div class="info-card">
                     <h5><i class="fas fa-cogs"></i> Thao tác</h5>
                     <div class="action-buttons">
-                        <button th:if="${order.status == 'NEW'}" 
-                                class="btn btn-success btn-action" 
+                        <!-- Xác nhận -->
+                        <button th:if="${order.status == 'NEW' or order.status == 'PAID'}"
+                                class="btn btn-success btn-action"
                                 onclick="confirmOrder()">
                             <i class="fas fa-check"></i> Xác nhận đơn
                         </button>
-                        <button th:if="${order.status == 'CONFIRMED'}" 
-                                class="btn btn-info btn-action" 
+                        <button th:if="${order.status == 'CONFIRMED'}"
+                                class="btn btn-info btn-action"
                                 onclick="prepareOrder()">
                             <i class="fas fa-utensils"></i> Bắt đầu chuẩn bị
                         </button>
@@ -719,8 +727,9 @@
                             <i class="fas fa-shipping-fast"></i> <strong>Shipper đang giao hàng</strong><br>
                             <small>Shipper sẽ tự cập nhật khi giao thành công</small>
                         </div>
-                        <button th:if="${order.status == 'NEW' or order.status == 'CONFIRMED'}" 
-                                class="btn btn-danger btn-action" 
+                        <!-- Hủy -->
+                        <button th:if="${order.status == 'NEW' or order.status == 'CONFIRMED' or order.status == 'PAID'}"
+                                class="btn btn-danger btn-action"
                                 onclick="cancelOrder()">
                             <i class="fas fa-times"></i> Hủy đơn
                         </button>
@@ -730,7 +739,7 @@
                 <!-- Shipper Info (Read-Only) -->
                 <div class="info-card">
                     <h5><i class="fas fa-motorcycle"></i> Thông tin Shipper</h5>
-                    
+
                     <!-- Đơn đã có shipper (DELIVERING/DELIVERED) -->
                     <div th:if="${order.shipperName != null}" id="shipperInfo">
                         <div class="shipper-info">
@@ -740,7 +749,7 @@
                             <div>
                                 <strong th:text="${order.shipperName}">Shipper Name</strong>
                                 <div class="small text-muted">
-                                    <i class="fas fa-clock me-1"></i> 
+                                    <i class="fas fa-clock me-1"></i>
                                     <span th:if="${order.status == 'DELIVERING'}">Đang giao hàng</span>
                                     <span th:if="${order.status == 'DELIVERED'}">Đã giao hàng</span>
                                 </div>
@@ -787,10 +796,10 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('orderDetailContainer');
-            
+
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('expanded');
-            
+
             // Save state to localStorage
             const isCollapsed = sidebar.classList.contains('collapsed');
             localStorage.setItem('sidebarCollapsed', isCollapsed);

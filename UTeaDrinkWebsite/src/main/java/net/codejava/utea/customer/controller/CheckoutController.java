@@ -75,6 +75,7 @@ public class CheckoutController {
         var addresses = addressService.listOf(u);
         if ((reqIn.getFullname()==null || reqIn.getFullname().isBlank()) && !addresses.isEmpty()){
             var d = addresses.get(0);
+            reqIn.setAddressId(d.getId());// ///////////////////////////////////////////////////////////
             reqIn.setFullname(d.getReceiverName());
             reqIn.setPhone(d.getPhone());
             reqIn.setAddressLine(d.getLine());

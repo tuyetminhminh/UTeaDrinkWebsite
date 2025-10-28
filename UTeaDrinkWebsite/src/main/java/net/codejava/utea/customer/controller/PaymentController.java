@@ -18,7 +18,6 @@ public class PaymentController {
 
     private final PaymentTransactionRepository payRepo;
     private final OrderService orderService;
-
     // ====== TRANG QR THEO GATEWAY ======
     @GetMapping("/{method}/{orderCode}")
     public String qrPage(@PathVariable String method,
@@ -53,15 +52,34 @@ public class PaymentController {
         var txn = payRepo.findTopByOrderCodeAndMethodOrderByIdDesc(orderCode, pm)
                 .orElseThrow(() -> new RuntimeException("Payment transaction not found"));
 
-        // idempotent
+        // Idempotent: nếu đã PAID thì bỏ qua
         if (txn.getStatus() != PaymentStatus.PAID) {
-            txn.setStatus(PaymentStatus.PAID);
-            payRepo.save(txn);
-            // YÊU CẦU: online success -> đơn về 0đ + PAID
-            orderService.markPaid(orderCode);
+            try {
+                // 1) Đổi trạng thái giao dịch
+                txn.setStatus(PaymentStatus.PAID);
+                payRepo.save(txn);
+
+                // 2) Đánh dấu đơn đã thanh toán + đối soát số tiền + gắn PaymentTransaction
+                orderService.markPaid(orderCode, txn.getId().toString(), txn.getAmount());
+
+                ra.addFlashAttribute("toastSuccess", "Thanh toán thành công. Cảm ơn bạn!");
+            } catch (IllegalStateException amountMismatch) {
+                // Số tiền không khớp với order.total ⇒ rollback trạng thái giao dịch
+                txn.setStatus(PaymentStatus.FAILED);
+                payRepo.save(txn);
+                ra.addFlashAttribute("toastError",
+                        "Thanh toán không hợp lệ (số tiền không khớp). Vui lòng liên hệ hỗ trợ.");
+                return new RedirectView("/customer/checkout?error=PAY_AMOUNT_MISMATCH", true);
+            } catch (Exception ex) {
+                // Lỗi khác
+                txn.setStatus(PaymentStatus.FAILED);
+                payRepo.save(txn);
+                ra.addFlashAttribute("toastError",
+                        "Có lỗi khi xác nhận thanh toán. Bạn hãy thử lại hoặc chọn phương thức khác.");
+                return new RedirectView("/customer/checkout?error=PAY_CONFIRM_ERROR", true);
+            }
         }
 
-        ra.addFlashAttribute("toastSuccess", "Thanh toán thành công. Cảm ơn bạn!");
         return new RedirectView("/customer/orders/thank-you?order=" + orderCode, true);
     }
 

@@ -357,6 +357,12 @@
                         onclick="filterByStatus('NEW')">
                     <i class="fas fa-clock"></i> Mới
                 </button>
+                <button class="btn"
+                        th:classappend="${selectedStatus == 'PAID'} ? 'active btn-success text-white' : 'btn-outline-success'"
+                        onclick="filterByStatus('PAID')">
+                    <i class="fas fa-receipt"></i> Đã thanh toán
+                </button>
+
                 <button class="btn" 
                    th:classappend="${selectedStatus == 'CONFIRMED'} ? 'active btn-info text-white' : 'btn-outline-info'"
                         onclick="filterByStatus('CONFIRMED')">
@@ -425,13 +431,15 @@
                             </td>
                             <td>
                                 <span class="badge" 
-                                      th:classappend="${order.status == 'NEW' ? 'bg-warning' : 
+                                      th:classappend="${order.status == 'NEW' ? 'bg-warning' :
+                                                       order.status == 'PAID' ? 'status-paid'  :
                                                        order.status == 'CONFIRMED' ? 'bg-info' :
                                                        order.status == 'PREPARING' ? 'bg-secondary' :
                                                        order.status == 'DELIVERING' ? 'bg-primary' :
                                                        order.status == 'DELIVERED' ? 'bg-success' : 
                                                        'bg-danger'}"
                                       th:text="${order.status == 'NEW' ? 'Mới' :
+                                                order.status == 'PAID' ? 'Đã thanh toán':
                                                 order.status == 'CONFIRMED' ? 'Đã xác nhận' :
                                                 order.status == 'PREPARING' ? 'Đang chuẩn bị' :
                                                 order.status == 'DELIVERING' ? 'Đang giao' :
@@ -462,8 +470,8 @@
                                        title="Xem chi tiết">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <button th:if="${order.status == 'NEW'}" 
-                                            class="btn btn-success btn-action" 
+                                    <button th:if="${order.status == 'NEW' or order.status == 'PAID'}"
+                                            class="btn btn-success btn-action"
                                             th:onclick="'confirmOrder(' + ${order.id} + ')'"
                                             title="Xác nhận">
                                         <i class="fas fa-check"></i>
@@ -475,8 +483,8 @@
                                         <i class="fas fa-utensils"></i>
                                     </button>
                                     <!-- OPTION 2: Không có nút giao - Shipper tự nhận -->
-                                    <button th:if="${order.status == 'NEW' or order.status == 'CONFIRMED'}" 
-                                            class="btn btn-danger btn-action" 
+                                    <button th:if="${order.status == 'NEW' or order.status == 'CONFIRMED' or order.status == 'PAID'}"
+                                            class="btn btn-danger btn-action"
                                             th:onclick="'cancelOrder(' + ${order.id} + ')'"
                                             title="Hủy đơn">
                                         <i class="fas fa-times"></i>

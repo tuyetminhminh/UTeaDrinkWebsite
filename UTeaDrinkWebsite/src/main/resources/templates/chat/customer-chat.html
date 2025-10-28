@@ -166,7 +166,7 @@
 
 <!-- Thymeleaf inline -->
 <script th:inline="javascript">
-    window.CURRENT_USER_ID = [[${me.id}]];
+    window.CURRENT_USER_ID = /*[[${me?.id}]]*/ null;
 </script>
 
 <script>

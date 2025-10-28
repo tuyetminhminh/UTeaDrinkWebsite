@@ -21,56 +21,57 @@
         body {
             background: linear-gradient(135deg, #FFF9E6 0%, #FFF3E0 50%, #FFECB3 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 12px;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-top: 70px;
         }
 
         .shipper-container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
         .header-card {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
-            padding: 28px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             border: 1px solid var(--border-soft);
         }
 
         .header-card h1 {
             color: var(--text-primary);
             font-weight: 700;
-            margin-bottom: 8px;
-            font-size: 28px;
+            margin-bottom: 4px;
+            font-size: 20px;
         }
 
         .header-card .subtitle {
             color: var(--text-secondary);
-            font-size: 15px;
+            font-size: 12px;
             font-weight: 500;
         }
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 18px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
         }
 
         .stat-card {
             background: white;
-            border-radius: 14px;
-            padding: 24px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            border-radius: 10px;
+            padding: 14px 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
             transition: all 0.3s ease;
             border: 1px solid var(--border-soft);
         }
 
         .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         .stat-card.today {
@@ -94,14 +95,14 @@
         }
 
         .stat-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            margin-bottom: 14px;
+            font-size: 18px;
+            margin-bottom: 10px;
         }
 
         .stat-card.today .stat-icon {
@@ -125,48 +126,48 @@
         }
 
         .stat-value {
-            font-size: 32px;
+            font-size: 24px;
             font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
 
         .stat-label {
             color: var(--text-secondary);
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
 
         .stat-money {
             display: block;
             color: #4CAF50;
-            font-weight: 700;
-            font-size: 12px;
+            font-weight: 600;
+            font-size: 10px;
             margin-top: 4px;
         }
 
         .actions-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
         }
 
         .action-btn {
             background: white;
             color: var(--text-primary);
-            padding: 16px 20px;
-            border-radius: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
             text-decoration: none;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             font-weight: 600;
-            font-size: 14px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            font-size: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
             transition: all 0.3s ease;
             border: 1px solid var(--border-soft);
         }
@@ -191,31 +192,33 @@
 
         .main-content {
             background: white;
-            border-radius: 14px;
-            padding: 24px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            border-radius: 10px;
+            padding: 16px 18px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
             border: 1px solid var(--border-soft);
+            margin-bottom: 14px;
         }
 
         .section-title {
             color: var(--text-primary);
             font-weight: 700;
-            font-size: 20px;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
+            font-size: 16px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
             border-bottom: 2px solid #F5F5F5;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .section-title i {
             color: #81C784;
+            font-size: 14px;
         }
 
         .order-table {
             background: white;
-            border-radius: 10px;
+            border-radius: 8px;
             overflow: hidden;
         }
 
@@ -223,18 +226,19 @@
             background: #F5F5F5;
             color: var(--text-primary);
             font-weight: 600;
-            padding: 14px;
+            padding: 10px 12px;
             border: none;
             text-transform: uppercase;
-            font-size: 12px;
-            letter-spacing: 0.5px;
+            font-size: 10px;
+            letter-spacing: 0.3px;
         }
 
         .order-table td {
-            padding: 14px;
+            padding: 10px 12px;
             vertical-align: middle;
             color: var(--text-secondary);
             border-bottom: 1px solid #F5F5F5;
+            font-size: 12px;
         }
 
         .order-table tbody tr {
@@ -344,6 +348,29 @@
             transform: translateY(-1px);
         }
 
+        /* Shop Map Button */
+        .btn-view-map {
+            background: linear-gradient(135deg, #4285F4 0%, #0F9D58 100%);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .btn-view-map:hover {
+            background: linear-gradient(135deg, #3367D6 0%, #0D7D46 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(66, 133, 244, 0.3);
+        }
+
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -448,7 +475,7 @@
         }
 
         .map-info {
-            padding: 20px 24px;
+            padding: 16px 20px;
             background: #F5F5F5;
             border-bottom: 2px solid #E0E0E0;
         }
@@ -456,8 +483,8 @@
         .map-info-item {
             display: flex;
             align-items: start;
-            gap: 12px;
-            margin-bottom: 12px;
+            gap: 10px;
+            margin-bottom: 10px;
         }
 
         .map-info-item:last-child {
@@ -465,15 +492,15 @@
         }
 
         .map-info-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
             background: white;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #4285F4;
-            font-size: 14px;
+            font-size: 12px;
             flex-shrink: 0;
         }
 
@@ -482,24 +509,24 @@
         }
 
         .map-info-label {
-            font-size: 11px;
+            font-size: 10px;
             color: #8D6E63;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
+            letter-spacing: 0.3px;
+            margin-bottom: 3px;
         }
 
         .map-info-value {
             color: #5D4037;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .map-iframe-container {
             position: relative;
             width: 100%;
-            height: 450px;
+            height: 350px;
         }
 
         .map-iframe-container iframe {
@@ -507,253 +534,232 @@
             height: 100%;
             border: none;
         }
-
-        .btn-view-map {
-            background: linear-gradient(135deg, #4285F4 0%, #0F9D58 100%);
-            color: white;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-view-map:hover {
-            background: linear-gradient(135deg, #3367D6 0%, #0D7D46 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
-        }
     </style>
 </head>
 <body>
-    <!-- Header Fragment -->
-    <div th:replace="~{fragments/header :: header}"></div>
+<!-- Header Fragment -->
+<div th:replace="~{fragments/header :: header}"></div>
 
-    <div class="shipper-container" style="margin-top: 80px;">
-        <!-- Welcome Card -->
-        <div class="header-card">
-            <h1><i class="fas fa-motorcycle me-2"></i> Xin chào, <span th:text="${shipperName}">Shipper</span>!</h1>
-            <p class="subtitle"><i class="fas fa-location-dot me-2"></i> Sẵn sàng giao hàng ngay hôm nay!</p>
+<div class="shipper-container">
+    <!-- Welcome Card -->
+    <div class="header-card">
+        <h1><i class="fas fa-motorcycle me-2"></i> Xin chào, <span th:text="${shipperName}">Shipper</span>!</h1>
+        <p class="subtitle"><i class="fas fa-location-dot me-2"></i> Sẵn sàng giao hàng ngay hôm nay!</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card today">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="stat-value" th:text="${stats.todayOrders ?: 0}">0</div>
+            <div class="stat-label">Đơn hôm nay</div>
+            <small class="stat-money" th:text="${#numbers.formatDecimal(stats.todayEarnings ?: 0, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</small>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="stats-grid">
-            <div class="stat-card today">
-                <div class="stat-icon">
-                    <i class="fas fa-calendar-day"></i>
-                </div>
-                <div class="stat-value" th:text="${stats.todayOrders ?: 0}">0</div>
-                <div class="stat-label">Đơn hôm nay</div>
-                <small class="stat-money" th:text="${#numbers.formatDecimal(stats.todayEarnings ?: 0, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</small>
-            </div>
-
-            <div class="stat-card delivering">
-                <div class="stat-icon">
-                    <i class="fas fa-truck-fast"></i>
-                </div>
-                <div class="stat-value" th:text="${stats.deliveringCount ?: 0}">0</div>
-                <div class="stat-label">Đang giao</div>
-                <small class="stat-money">Đơn hiện tại</small>
-            </div>
-
-            <div class="stat-card available">
-                <div class="stat-icon">
-                    <i class="fas fa-box-open"></i>
-                </div>
-                <div class="stat-value" th:text="${stats.availableCount ?: 0}">0</div>
-                <div class="stat-label">Đơn khả dụng</div>
-                <small class="stat-money">Chờ nhận</small>
-            </div>
-
-            <div class="stat-card total">
-                <div class="stat-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="stat-value" th:text="${stats.completedOrders ?: 0}">0</div>
-                <div class="stat-label">Tổng đã giao</div>
-                <small class="stat-money" th:text="${#numbers.formatDecimal(stats.totalEarnings ?: 0, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</small>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="actions-grid">
-            <a href="/shipper/available-orders" class="action-btn">
-                <i class="fas fa-box-open"></i>
-                <span>Nhận đơn mới</span>
-            </a>
-            <a href="/shipper/my-orders" class="action-btn">
-                <i class="fas fa-list-check"></i>
-                <span>Đơn của tôi</span>
-            </a>
-            <a href="/shipper/history" class="action-btn">
-                <i class="fas fa-clock-rotate-left"></i>
-                <span>Lịch sử</span>
-            </a>
-        </div>
-
-        <!-- Đơn đã nhận (chờ lấy hàng) -->
-        <div class="main-content">
-            <h3 class="section-title">
-                <i class="fas fa-warehouse"></i>
-                Đơn đã nhận (chờ lấy hàng)
-            </h3>
-            <p class="text-muted mb-3" style="font-size: 13px;">
-                <i class="fas fa-info-circle me-1"></i>
-                Những đơn bạn đã nhận nhưng chưa lấy hàng từ cửa hàng
-            </p>
-            <div class="order-table">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Mã đơn</th>
-                            <th>Cửa hàng</th>
-                            <th>Khách hàng</th>
-                            <th>Địa chỉ giao</th>
-                            <th>Phí ship</th>
-                            <th>Nhận lúc</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody id="assignedTableBody">
-                        <tr>
-                            <td colspan="7" class="empty-state">
-                                <i class="fas fa-box-open"></i>
-                                <h5>Chưa có đơn hàng chờ lấy</h5>
-                                <p>Đơn bạn nhận sẽ hiển thị ở đây!</p>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Đơn đang giao -->
-        <div class="main-content">
-            <h3 class="section-title">
+        <div class="stat-card delivering">
+            <div class="stat-icon">
                 <i class="fas fa-truck-fast"></i>
-                Đơn đang giao
-            </h3>
-            <p class="text-muted mb-3" style="font-size: 13px;">
-                <i class="fas fa-info-circle me-1"></i>
-                Những đơn bạn đang trên đường giao cho khách hàng
-            </p>
-            <div class="order-table">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Mã đơn</th>
-                            <th>Khách hàng</th>
-                            <th>Địa chỉ giao</th>
-                            <th>SĐT</th>
-                            <th>Phí ship</th>
-                            <th>Lấy hàng lúc</th>
-                            <th>Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody id="deliveringTableBody">
-                        <tr th:if="${deliveringOrders == null || deliveringOrders.isEmpty()}">
-                            <td colspan="7" class="empty-state">
-                                <i class="fas fa-truck-fast"></i>
-                                <h5>Chưa có đơn đang giao</h5>
-                                <p>Đơn bạn đang giao sẽ hiển thị ở đây!</p>
-                            </td>
-                        </tr>
-                        <tr th:each="order : ${deliveringOrders}">
-                            <td><strong th:text="${order.orderCode}">ORD-001</strong></td>
-                            <td>
-                                <div th:text="${order.customerName}">Khách hàng</div>
-                                <small class="text-muted" th:text="${order.shopName}">Cửa hàng</small>
-                            </td>
-                            <td th:text="${order.deliveryAddress}">Địa chỉ</td>
-                            <td th:text="${order.customerPhone}">0901234567</td>
-                            <td><strong class="text-warning" th:text="${#numbers.formatDecimal(order.shippingFee ?: 0, 0, 'COMMA', 0, 'POINT')} + '₫'">15,000₫</strong></td>
-                            <td>
-                                <small th:text="${order.pickedUpAt != null ? #temporals.format(order.pickedUpAt, 'dd/MM/yyyy HH:mm') : 'N/A'}">24/10/2025 10:00</small>
-                            </td>
-                            <td>
-                                <a th:href="@{/shipper/my-orders}" class="btn btn-sm" 
-                                   style="background: linear-gradient(135deg, #66BB6A, #43A047); color: white; border: none; font-weight: 600; padding: 8px 16px; border-radius: 8px;">
-                                    <i class="fas fa-eye me-1"></i> Chi tiết
-                                </a>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
+            <div class="stat-value" th:text="${stats.deliveringCount ?: 0}">0</div>
+            <div class="stat-label">Đang giao</div>
+            <small class="stat-money">Đơn hiện tại</small>
         </div>
 
-    </div>
+        <div class="stat-card available">
+            <div class="stat-icon">
+                <i class="fas fa-box-open"></i>
+            </div>
+            <div class="stat-value" th:text="${stats.availableCount ?: 0}">0</div>
+            <div class="stat-label">Đơn khả dụng</div>
+            <small class="stat-money">Chờ nhận</small>
+        </div>
 
-    <!-- Map Modal -->
-    <div class="map-modal" id="mapModal">
-        <div class="map-modal-content">
-            <div class="map-modal-header">
-                <h5>
-                    <i class="fas fa-map-marked-alt"></i>
-                    Vị trí lấy hàng
-                </h5>
-                <button class="map-modal-close" onclick="closeMapModal()">
-                    <i class="fas fa-times"></i>
-                </button>
+        <div class="stat-card total">
+            <div class="stat-icon">
+                <i class="fas fa-chart-line"></i>
             </div>
-            <div class="map-modal-body">
-                <div class="map-info">
-                    <div class="map-info-item">
-                        <div class="map-info-icon">
-                            <i class="fas fa-store"></i>
-                        </div>
-                        <div class="map-info-text">
-                            <div class="map-info-label">Cửa hàng</div>
-                            <div class="map-info-value" id="modalShopName">--</div>
-                        </div>
-                    </div>
-                    <div class="map-info-item">
-                        <div class="map-info-icon">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                        <div class="map-info-text">
-                            <div class="map-info-label">Địa chỉ</div>
-                            <div class="map-info-value" id="modalShopAddress">--</div>
-                        </div>
-                    </div>
-                    <div class="map-info-item" id="modalPhoneContainer" style="display: none;">
-                        <div class="map-info-icon">
-                            <i class="fas fa-phone"></i>
-                        </div>
-                        <div class="map-info-text">
-                            <div class="map-info-label">Số điện thoại</div>
-                            <div class="map-info-value" id="modalShopPhone">--</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="map-iframe-container">
-                    <iframe id="mapIframe" allowfullscreen></iframe>
-                </div>
-            </div>
+            <div class="stat-value" th:text="${stats.completedOrders ?: 0}">0</div>
+            <div class="stat-label">Tổng đã giao</div>
+            <small class="stat-money" th:text="${#numbers.formatDecimal(stats.totalEarnings ?: 0, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</small>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script th:inline="javascript">
-        const shipperId = /*[[${shipperId}]]*/ 0;
+    <!-- Quick Actions -->
+    <div class="actions-grid">
+        <a href="/shipper/available-orders" class="action-btn">
+            <i class="fas fa-box-open"></i>
+            <span>Nhận đơn mới</span>
+        </a>
+        <a href="/shipper/my-orders" class="action-btn">
+            <i class="fas fa-list-check"></i>
+            <span>Đơn của tôi</span>
+        </a>
+        <a href="/shipper/history" class="action-btn">
+            <i class="fas fa-clock-rotate-left"></i>
+            <span>Lịch sử</span>
+        </a>
+    </div>
 
-        // Stats đã được load từ server-side qua Thymeleaf
+    <!-- Đơn đã nhận (chờ lấy hàng) -->
+    <div class="main-content">
+        <h3 class="section-title">
+            <i class="fas fa-warehouse"></i>
+            Đơn đã nhận (chờ lấy hàng)
+        </h3>
+        <p class="text-muted mb-3" style="font-size: 13px;">
+            <i class="fas fa-info-circle me-1"></i>
+            Những đơn bạn đã nhận nhưng chưa lấy hàng từ cửa hàng
+        </p>
+        <div class="order-table">
+            <table class="table table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Cửa hàng</th>
+                    <th>Khách hàng</th>
+                    <th>Địa chỉ giao</th>
+                    <th>Phí ship</th>
+                    <th>Nhận lúc</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody id="assignedTableBody">
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        <i class="fas fa-box-open"></i>
+                        <h5>Chưa có đơn hàng chờ lấy</h5>
+                        <p>Đơn bạn nhận sẽ hiển thị ở đây!</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-        // Load assigned orders (chờ lấy hàng)
-        async function loadAssignedOrders() {
-            try {
-                const response = await fetch(`/shipper/api/assigned-orders`);
-                const orders = await response.json();
-                
-                const tbody = document.getElementById('assignedTableBody');
-                
-                if (orders.length === 0) {
-                    tbody.innerHTML = `
+    <!-- Đơn đang giao -->
+    <div class="main-content">
+        <h3 class="section-title">
+            <i class="fas fa-truck-fast"></i>
+            Đơn đang giao
+        </h3>
+        <p class="text-muted mb-3" style="font-size: 13px;">
+            <i class="fas fa-info-circle me-1"></i>
+            Những đơn bạn đang trên đường giao cho khách hàng
+        </p>
+        <div class="order-table">
+            <table class="table table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Địa chỉ giao</th>
+                    <th>SĐT</th>
+                    <th>Phí ship</th>
+                    <th>Lấy hàng lúc</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody id="deliveringTableBody">
+                <tr th:if="${deliveringOrders == null || deliveringOrders.isEmpty()}">
+                    <td colspan="7" class="empty-state">
+                        <i class="fas fa-truck-fast"></i>
+                        <h5>Chưa có đơn đang giao</h5>
+                        <p>Đơn bạn đang giao sẽ hiển thị ở đây!</p>
+                    </td>
+                </tr>
+                <tr th:each="order : ${deliveringOrders}">
+                    <td><strong th:text="${order.orderCode}">ORD-001</strong></td>
+                    <td>
+                        <div th:text="${order.customerName}">Khách hàng</div>
+                        <small class="text-muted" th:text="${order.shopName}">Cửa hàng</small>
+                    </td>
+                    <td th:text="${order.deliveryAddress}">Địa chỉ</td>
+                    <td th:text="${order.customerPhone}">0901234567</td>
+                    <td><strong class="text-warning" th:text="${#numbers.formatDecimal(order.shippingFee ?: 0, 0, 'COMMA', 0, 'POINT')} + '₫'">15,000₫</strong></td>
+                    <td>
+                        <small th:text="${order.pickedUpAt != null ? #temporals.format(order.pickedUpAt, 'dd/MM/yyyy HH:mm') : 'N/A'}">24/10/2025 10:00</small>
+                    </td>
+                    <td>
+                        <a th:href="@{/shipper/my-orders}" class="btn btn-sm"
+                           style="background: linear-gradient(135deg, #66BB6A, #43A047); color: white; border: none; font-weight: 600; padding: 8px 16px; border-radius: 8px;">
+                            <i class="fas fa-eye me-1"></i> Chi tiết
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Map Modal -->
+<div class="map-modal" id="mapModal">
+    <div class="map-modal-content">
+        <div class="map-modal-header">
+            <h5>
+                <i class="fas fa-map-marked-alt"></i>
+                Vị trí lấy hàng
+            </h5>
+            <button class="map-modal-close" onclick="closeMapModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="map-modal-body">
+            <div class="map-info">
+                <div class="map-info-item">
+                    <div class="map-info-icon">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div class="map-info-text">
+                        <div class="map-info-label">Cửa hàng</div>
+                        <div class="map-info-value" id="modalShopName">--</div>
+                    </div>
+                </div>
+                <div class="map-info-item">
+                    <div class="map-info-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="map-info-text">
+                        <div class="map-info-label">Địa chỉ</div>
+                        <div class="map-info-value" id="modalShopAddress">--</div>
+                    </div>
+                </div>
+                <div class="map-info-item" id="modalPhoneContainer" style="display: none;">
+                    <div class="map-info-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="map-info-text">
+                        <div class="map-info-label">Số điện thoại</div>
+                        <div class="map-info-value" id="modalShopPhone">--</div>
+                    </div>
+                </div>
+            </div>
+            <div class="map-iframe-container">
+                <iframe id="mapIframe" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    const shipperId = /*[[${shipperId}]]*/ 0;
+
+    // Stats đã được load từ server-side qua Thymeleaf
+
+    // Load assigned orders (chờ lấy hàng)
+    async function loadAssignedOrders() {
+        try {
+            const response = await fetch(`/shipper/api/assigned-orders`);
+            const orders = await response.json();
+
+            const tbody = document.getElementById('assignedTableBody');
+
+            if (orders.length === 0) {
+                tbody.innerHTML = `
                         <tr>
                             <td colspan="7" class="empty-state">
                                 <i class="fas fa-box-open"></i>
@@ -762,10 +768,10 @@
                             </td>
                         </tr>
                     `;
-                    return;
-                }
-                
-                tbody.innerHTML = orders.map(order => `
+                return;
+            }
+
+            tbody.innerHTML = orders.map(order => `
                     <tr>
                         <td><strong>${order.orderCode}</strong></td>
                         <td>
@@ -773,7 +779,7 @@
                             <small class="text-muted">${order.shopAddress || order.shopPhone || ''}</small>
                             ${order.shopAddress ? `
                                 <div style="margin-top: 6px;">
-                                    <button class="btn-view-map" onclick="showShopMap('${order.shopName}', '${order.shopAddress}', '${order.shopPhone || ''}')">
+                                    <button class="btn-view-map" onclick="showShopMap('${escapeQuotes(order.shopName)}', '${escapeQuotes(order.shopAddress)}', '${escapeQuotes(order.shopPhone || '')}')">
                                         <i class="fas fa-map-marked-alt"></i> Xem địa chỉ
                                     </button>
                                 </div>
@@ -789,100 +795,106 @@
                             <small>${order.assignedAt ? new Date(order.assignedAt).toLocaleString('vi-VN') : 'N/A'}</small>
                         </td>
                         <td>
-                            <button class="btn btn-sm" 
-                                    style="background: linear-gradient(135deg, #FFB74D, #FF9800); color: white; border: none; font-weight: 600; padding: 8px 16px; border-radius: 8px;"
+                            <button class="btn btn-sm"
+                                    style="background: linear-gradient(135deg, #FFB74D, #FF9800); color: white; border: none; font-weight: 600; padding: 8px 16px; border-radius: 8px; font-size: 11px;"
                                     onclick="confirmPickup(${order.orderId})">
                                 <i class="fas fa-box-check me-1"></i> Đã lấy hàng
                             </button>
                         </td>
                     </tr>
                 `).join('');
-            } catch (error) {
-                console.error('Error loading assigned orders:', error);
-            }
+        } catch (error) {
+            console.error('Error loading assigned orders:', error);
+        }
+    }
+
+    // Confirm pickup (Đã lấy hàng)
+    async function confirmPickup(orderId) {
+        if (!confirm('Xác nhận bạn đã lấy hàng từ cửa hàng?')) {
+            return;
         }
 
-        // Confirm pickup (Đã lấy hàng)
-        async function confirmPickup(orderId) {
-            if (!confirm('Xác nhận bạn đã lấy hàng từ cửa hàng?')) {
-                return;
-            }
-            
-            try {
-                const response = await fetch(`/shipper/api/confirm-pickup?orderId=${orderId}`, {
-                    method: 'POST'
-                });
-                
-                if (response.ok) {
-                    alert('✅ Đã xác nhận lấy hàng! Đơn chuyển sang "Đang giao"');
-                    location.reload(); // Reload page to update all data
-                } else {
-                    const error = await response.text();
-                    alert('❌ Lỗi: ' + error);
-                }
-            } catch (error) {
-                console.error('Error confirming pickup:', error);
-                alert('❌ Có lỗi xảy ra');
-            }
-        }
+        try {
+            const response = await fetch(`/shipper/api/confirm-pickup?orderId=${orderId}`, {
+                method: 'POST'
+            });
 
-        // Load all data on page load
-        window.addEventListener('DOMContentLoaded', () => {
-            loadAssignedOrders(); // Load đơn chờ lấy hàng
-            
-            // Auto refresh assigned orders every 30 seconds
-            setInterval(() => {
-                loadAssignedOrders();
-            }, 30000);
-        });
-
-        // Map Modal Functions
-        function showShopMap(shopName, shopAddress, shopPhone) {
-            // Set modal data
-            document.getElementById('modalShopName').textContent = shopName;
-            document.getElementById('modalShopAddress').textContent = shopAddress;
-            
-            // Show/hide phone if exists
-            const phoneContainer = document.getElementById('modalPhoneContainer');
-            const phoneValue = document.getElementById('modalShopPhone');
-            if (shopPhone && shopPhone !== 'null' && shopPhone !== '') {
-                phoneValue.textContent = shopPhone;
-                phoneContainer.style.display = 'flex';
+            if (response.ok) {
+                alert('✅ Đã xác nhận lấy hàng! Đơn chuyển sang "Đang giao"');
+                location.reload(); // Reload page to update all data
             } else {
-                phoneContainer.style.display = 'none';
+                const error = await response.text();
+                alert('❌ Lỗi: ' + error);
             }
-            
-            // Set map iframe
-            const mapIframe = document.getElementById('mapIframe');
-            const encodedAddress = encodeURIComponent(shopAddress);
-            mapIframe.src = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodedAddress}&zoom=15`;
-            
-            // Show modal
-            const modal = document.getElementById('mapModal');
-            modal.classList.add('active');
-            
-            // Close on background click
-            modal.onclick = function(event) {
-                if (event.target === modal) {
-                    closeMapModal();
-                }
-            };
+        } catch (error) {
+            console.error('Error confirming pickup:', error);
+            alert('❌ Có lỗi xảy ra');
+        }
+    }
+
+    // Load all data on page load
+    window.addEventListener('DOMContentLoaded', () => {
+        loadAssignedOrders(); // Load đơn chờ lấy hàng
+
+        // Auto refresh assigned orders every 30 seconds
+        setInterval(() => {
+            loadAssignedOrders();
+        }, 30000);
+    });
+
+    // Helper function to escape quotes
+    function escapeQuotes(str) {
+        if (!str) return '';
+        return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+
+    // Map Modal Functions
+    function showShopMap(shopName, shopAddress, shopPhone) {
+        // Set modal data
+        document.getElementById('modalShopName').textContent = shopName;
+        document.getElementById('modalShopAddress').textContent = shopAddress;
+
+        // Show/hide phone if exists
+        const phoneContainer = document.getElementById('modalPhoneContainer');
+        const phoneValue = document.getElementById('modalShopPhone');
+        if (shopPhone && shopPhone !== 'null' && shopPhone !== '') {
+            phoneValue.textContent = shopPhone;
+            phoneContainer.style.display = 'flex';
+        } else {
+            phoneContainer.style.display = 'none';
         }
 
-        function closeMapModal() {
-            const modal = document.getElementById('mapModal');
-            modal.classList.remove('active');
-            
-            // Clear iframe to stop loading
-            document.getElementById('mapIframe').src = '';
-        }
+        // Set map iframe
+        const mapIframe = document.getElementById('mapIframe');
+        const encodedAddress = encodeURIComponent(shopAddress);
+        mapIframe.src = `https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodedAddress}&zoom=15`;
 
-        // Close modal on ESC key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
+        // Show modal
+        const modal = document.getElementById('mapModal');
+        modal.classList.add('active');
+
+        // Close on background click
+        modal.onclick = function(event) {
+            if (event.target === modal) {
                 closeMapModal();
             }
-        });
-    </script>
+        };
+    }
+
+    function closeMapModal() {
+        const modal = document.getElementById('mapModal');
+        modal.classList.remove('active');
+
+        // Clear iframe to stop loading
+        document.getElementById('mapIframe').src = '';
+    }
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeMapModal();
+        }
+    });
+</script>
 </body>
 </html>
