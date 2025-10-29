@@ -407,7 +407,7 @@
 </head>
 <body>
 <!-- Header Fragment -->
-<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{fragments/header-shipper :: shipperHeader}"></div>
 
 <div class="container-fluid">
     <div class="header-card">
@@ -624,36 +624,49 @@
             (position) => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
+                const accuracy = position.coords.accuracy;
 
-                statusDiv.innerHTML = '<div class="location-status success"><i class="fas fa-check-circle"></i> Đã lấy vị trí! Đang tải chỉ đường...</div>';
+                // Log để debug
+                console.log('📍 Vị trí hiện tại:', {
+                    lat: lat,
+                    lng: lng,
+                    accuracy: accuracy + 'm',
+                    timestamp: new Date(position.timestamp).toLocaleTimeString()
+                });
+
+                statusDiv.innerHTML = `<div class="location-status success">
+                    <i class="fas fa-check-circle"></i> Đã lấy vị trí! (Độ chính xác: ${Math.round(accuracy)}m)<br>
+                    <small style="opacity:0.7">Tọa độ: ${lat.toFixed(6)}, ${lng.toFixed(6)}</small>
+                </div>`;
 
                 // Open fullscreen map with directions
                 showDirectionsMap(lat, lng, decodeURIComponent(destinationAddress));
 
-                // Clear status after 2 seconds
+                // Clear status after 3 seconds
                 setTimeout(() => {
                     statusDiv.innerHTML = '';
-                }, 2000);
+                }, 3000);
             },
             (error) => {
                 let errorMsg = 'Không thể lấy vị trí';
                 switch(error.code) {
                     case error.PERMISSION_DENIED:
-                        errorMsg = 'Bạn đã từ chối quyền truy cập vị trí';
+                        errorMsg = 'Bạn đã từ chối quyền truy cập vị trí. Vui lòng cho phép GPS trong cài đặt trình duyệt';
                         break;
                     case error.POSITION_UNAVAILABLE:
-                        errorMsg = 'Vị trí không khả dụng';
+                        errorMsg = 'Vị trí không khả dụng. Hãy đảm bảo GPS được bật và bạn ở nơi có tín hiệu';
                         break;
                     case error.TIMEOUT:
-                        errorMsg = 'Hết thời gian chờ lấy vị trí';
+                        errorMsg = 'Hết thời gian chờ lấy vị trí. Thử lại hoặc di chuyển ra ngoài trời';
                         break;
                 }
+                console.error('❌ Lỗi GPS:', error);
                 statusDiv.innerHTML = `<div class="location-status error"><i class="fas fa-exclamation-circle"></i> ${errorMsg}</div>`;
             },
             {
                 enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
+                timeout: 20000,
+                maximumAge: 5000
             }
         );
     }

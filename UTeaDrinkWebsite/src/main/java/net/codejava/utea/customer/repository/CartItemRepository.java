@@ -28,4 +28,11 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     @EntityGraph(attributePaths = {"product", "product.images", "variant"})
     Optional<CartItem> findByCartIdAndProductIdAndVariant_IdAndToppingsJson(Long cartId, Long productId, Long variantId, String toppingsJson);
 
+    // Thêm phương thức tìm theo product khi không có topping (match format với phương thức đã có)
+    @EntityGraph(attributePaths = {"product", "product.images", "variant"})
+    Optional<CartItem> findByCartIdAndProductIdAndVariant_IdIsNullAndToppingsJsonIsNull(Long cartId, Long productId);
+    
+    @EntityGraph(attributePaths = {"product", "product.images", "variant"})
+    Optional<CartItem> findByCartIdAndProductIdAndVariant_IdAndToppingsJsonIsNull(Long cartId, Long productId, Long variantId);
+
 }

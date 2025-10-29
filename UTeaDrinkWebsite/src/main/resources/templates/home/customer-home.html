@@ -5,6 +5,12 @@
     <title>UTeaDrink 🍹 - Trang chủ khách hàng</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    
+    <!-- CSRF Token for API calls -->
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}">
+    
     <style>
         body {
             background: #f8f9fa;
@@ -13,7 +19,7 @@
 
         /* Banner Carousel */
         .banner-section {
-            margin-top: 80px;
+            margin-top: 0;
             margin-bottom: 40px;
             padding: 0;
         }
@@ -298,7 +304,7 @@
 </head>
 
 <body>
-<div th:replace="fragments/header :: header"></div>
+<div th:replace="~{fragments/header-customer :: customerHeader}"></div>
 
 <!-- Banner Carousel Section (if banners exist) -->
 <section class="banner-section container-fluid" th:if="${hasBanners}">
@@ -375,6 +381,12 @@
 <script th:inline="javascript">
     /*<![CDATA[*/
     const SHOP_ID = /*[[${shopId}]]*/ 1;
+    
+    // CSRF Token
+    const CSRF = {
+        header: document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN',
+        token: document.querySelector('meta[name="_csrf"]')?.content || ''
+    };
 
     // Initialize carousel with custom settings
     document.addEventListener('DOMContentLoaded', function() {
@@ -509,35 +521,35 @@
         }
         
         return `
-            <div class="product-card-wrapper">
-                <div class="product-card" onclick="viewProduct(${product.id})">
-                    <div class="product-image-container">
-                        ${badge}
-                        <img src="${image}" 
-                             class="product-image" 
-                             alt="${product.name}"
-                             onerror="this.src='https://via.placeholder.com/300x300/f5f5f5/999999?text=No+Image'">
-                        <div class="product-overlay">
-                            <button class="btn-quick-view" onclick="event.stopPropagation(); viewProduct(${product.id})">
-                                <i class="fas fa-eye"></i> Xem nhanh
-                            </button>
-                        </div>
-                    </div>
-                    <div class="product-info">
-                        <h3 class="product-name" title="${product.name}">${product.name}</h3>
-                        <div class="product-price-row">
-                            <span class="product-price">${price}</span>
-                        </div>
-                        ${ratingDisplay}
-                        <div class="product-stats">
-                            <span class="sold-count">
-                                <i class="fas fa-shopping-cart"></i> 
-                                Đã bán: <strong>${soldCount}</strong>
-                            </span>
-                        </div>
+            <article class="product-card" onclick="viewProduct(${product.id})">
+                <div class="product-image-container">
+                    ${badge}
+                    <img src="${image}" 
+                         class="product-thumb" 
+                         alt="${product.name}"
+                         loading="lazy"
+                         onerror="this.src='https://via.placeholder.com/300x300/f5f5f5/999999?text=No+Image'">
+                    <div class="product-overlay">
+                        <button class="btn-add-cart" onclick="event.stopPropagation(); addToCart(${product.id})">
+                            <i class="fas fa-shopping-cart"></i> Thêm nhanh vào giỏ
+                        </button>
                     </div>
                 </div>
-            </div>
+                
+                <div class="product-info">
+                    <h3 class="product-name" title="${product.name}">${product.name}</h3>
+                    <div class="product-price-row">
+                        <span class="product-price">${price}</span>
+                    </div>
+                    ${ratingDisplay}
+                    <div class="product-stats">
+                        <span class="sold-count">
+                            <i class="fas fa-shopping-cart"></i> 
+                            Đã bán: <strong>${soldCount}</strong>
+                        </span>
+                    </div>
+                </div>
+            </article>
         `;
     }
     
@@ -553,6 +565,82 @@
     function viewProduct(productId) {
         window.location.href = `/customer/product/${productId}`;
     }
+    
+    // Add to cart (quick add)
+    async function addToCart(productId) {
+        try {
+            const response = await fetch('/customer/cart/api/quick-add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    [CSRF.header]: CSRF.token
+                },
+                body: `productId=${productId}`
+            });
+            
+            const data = await response.json();
+            
+            if (data.ok) {
+                // Show success toast
+                showToast('✅ Đã thêm vào giỏ hàng!', 'success');
+                
+                // Update cart count if exists
+                const cartCountElements = document.querySelectorAll('.cart-count');
+                if (cartCountElements.length > 0 && data.cartCount) {
+                    cartCountElements.forEach(el => {
+                        el.textContent = data.cartCount;
+                        el.style.display = 'inline-block';
+                    });
+                }
+            } else {
+                showToast('❌ ' + (data.message || 'Không thể thêm vào giỏ'), 'error');
+            }
+        } catch (error) {
+            console.error('Add to cart error:', error);
+            showToast('❌ Có lỗi xảy ra. Vui lòng thử lại!', 'error');
+        }
+    }
+    
+    // Show toast notification
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+        toast.textContent = message;
+        toast.style.cssText = `
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            background: ${type === 'success' ? '#10b981' : '#ef4444'};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 9999;
+            font-weight: 600;
+            animation: slideInRight 0.3s ease-out;
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(400px); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
     /*]]>*/
 </script>
 
@@ -650,21 +738,23 @@
     
     .product-card {
         background: white;
-        border-radius: 12px;
+        border-radius: 16px;
         overflow: hidden;
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         height: 100%;
         display: flex;
         flex-direction: column;
         position: relative;
+        border: 1px solid rgba(0,0,0,0.04);
     }
     
     .product-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+        transform: translateY(-8px);
+        box-shadow: 0 16px 32px rgba(0,0,0,0.15);
         z-index: 10;
+        border-color: rgba(229, 57, 53, 0.2);
     }
     
     /* Product Image */
@@ -676,17 +766,17 @@
         background: #f8f9fa;
     }
     
-    .product-image {
+    .product-thumb {
         position: absolute;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         transition: transform 0.4s ease;
     }
     
-    .product-card:hover .product-image {
+    .product-card:hover .product-thumb {
         transform: scale(1.1);
     }
     
@@ -708,21 +798,30 @@
         opacity: 1;
     }
     
-    .btn-quick-view {
+    .btn-add-cart {
         padding: 0.5rem 1rem;
-        background: white;
-        color: #333;
+        background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+        color: white;
         border: none;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.85rem;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 0.75rem;
         cursor: pointer;
         transform: translateY(10px);
-        transition: all 0.3s ease;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(229, 57, 53, 0.4);
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
     }
     
-    .product-card:hover .btn-quick-view {
-        transform: translateY(0);
+    .product-card:hover .btn-add-cart {
+        transform: translateY(0) scale(1.05);
+        box-shadow: 0 6px 20px rgba(229, 57, 53, 0.6);
+    }
+    
+    .btn-add-cart:hover {
+        background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%);
     }
     
     /* Product Badge */
@@ -742,41 +841,41 @@
     }
     
     .product-badge.hot {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
         color: white;
-        animation: pulse 2s infinite;
     }
     
     .product-badge.popular {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        background: linear-gradient(135deg, #ff6347 0%, #ff4500 100%);
         color: white;
-    }
-    
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
     }
     
     /* Product Info */
     .product-info {
-        padding: 0.85rem;
+        padding: 1rem;
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 0.4rem;
+        gap: 0.5rem;
     }
     
     .product-name {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #1a1a1a;
-        margin: 0;
+        font-weight: 700;
+        font-size: 1.05rem;
         line-height: 1.4;
+        margin: 0 0 0.5rem;
+        color: #1a1a1a;
         display: -webkit-box;
         -webkit-line-clamp: 2;
+        line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        min-height: 2.6em;
+        min-height: 2.9rem;
+        transition: color 0.3s;
+    }
+    
+    .product-card:hover .product-name {
+        color: #e53935;
     }
     
     .product-price-row {
@@ -786,12 +885,10 @@
     }
     
     .product-price {
-        font-size: 1.2rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: #e53935;
+        font-weight: 800;
+        font-size: 1.25rem;
+        margin: 0;
     }
     
     /* Rating */
@@ -799,7 +896,7 @@
         display: flex;
         align-items: center;
         gap: 0.4rem;
-        font-size: 0.8rem;
+        margin: 0.25rem 0;
     }
     
     .product-rating.no-rating {
@@ -811,7 +908,7 @@
     .product-rating .stars {
         color: #ffc107;
         display: flex;
-        gap: 1px;
+        gap: 2px;
     }
     
     .product-rating .stars i {
@@ -826,26 +923,33 @@
     
     /* Product Stats */
     .product-stats {
-        padding-top: 0.45rem;
-        border-top: 1px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
         margin-top: auto;
+        padding-top: 0.75rem;
+        border-top: 1px solid #f0f0f0;
     }
     
     .sold-count {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         color: #666;
         display: flex;
         align-items: center;
-        gap: 0.3rem;
+        gap: 0.4rem;
+        background: #f8f9fa;
+        padding: 0.35rem 0.7rem;
+        border-radius: 20px;
     }
     
     .sold-count i {
         color: #4caf50;
-        font-size: 0.75rem;
+        font-size: 0.8rem;
     }
     
     .sold-count strong {
         color: #333;
+        font-weight: 700;
     }
     
     /* Loading State */

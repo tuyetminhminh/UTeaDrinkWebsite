@@ -54,9 +54,9 @@ public class CartApiController {
 
         // Luật quick-add:
         // - Mặc định không topping
-        // - Nếu product thuộc danh mục không cần size (ví dụ id=2) => không chọn variant
+        // - Nếu product thuộc danh mục Bánh (id=3) => không chọn variant và topping
         Long variantId = null;
-        boolean forceNoVariant = p.getCategory() != null && Objects.equals(p.getCategory().getId(), 2L);
+        boolean forceNoVariant = p.getCategory() != null && Objects.equals(p.getCategory().getId(), 3L);
 
         if (!forceNoVariant) {
             // Không truy cập p.getVariants() (LAZY). Lấy qua repository (đã sort theo giá tăng dần).

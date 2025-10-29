@@ -231,11 +231,23 @@ public class CheckoutController {
 
     @PostMapping
     public String place(@AuthenticationPrincipal CustomUserDetails user,
-                        @ModelAttribute("req") CheckoutRequest req, RedirectAttributes ra) {
+                        @ModelAttribute("req") CheckoutRequest req, RedirectAttributes ra, Model model) {
         var u = currentUser(user);
         var subtotal = cartService.getSelectedSubtotal(u);
         if (subtotal.signum() <= 0) return "redirect:/customer/cart";
         var shippingFee = cartService.estimateShippingFee(subtotal);
+
+        // ✅ VALIDATION ĐỊA CHỈ - Kiểm tra xem user đã nhập đầy đủ thông tin chưa
+        boolean hasAddress = (req.getFullname() != null && !req.getFullname().isBlank()) &&
+                             (req.getPhone() != null && !req.getPhone().isBlank()) &&
+                             (req.getAddressLine() != null && !req.getAddressLine().isBlank()) &&
+                             (req.getDistrict() != null && !req.getDistrict().isBlank()) &&
+                             (req.getProvince() != null && !req.getProvince().isBlank());
+        
+        if (!hasAddress) {
+            ra.addFlashAttribute("toastError", "Vui lòng điền đầy đủ thông tin giao hàng!");
+            return "redirect:/customer/checkout";
+        }
 
         // Tính tổng giá cuối cùng - Logic ưu tiên: Voucher trước, Promotion sau
         var voucherResult = promotionService.applyBoth(req.getCouponCode(), req.getShipCode(), subtotal, shippingFee, u);

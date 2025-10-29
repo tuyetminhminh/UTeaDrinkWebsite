@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+<header th:fragment="shipperHeader" class="shipper-header">
+    <style>
+        .shipper-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+        
+        .shipper-main-nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 6px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* Logo */
+        .shipper-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+        
+        .shipper-logo:hover {
+            transform: scale(1.03);
+        }
+        
+        .logo-shipper-icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+        
+        .logo-shipper-text {
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.15rem;
+            margin: 0;
+            background: linear-gradient(135deg, #fff 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .shipper-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        /* Stats Bar - Hidden for simplicity */
+        .shipper-stats {
+            display: none;
+        }
+        
+        /* Navigation */
+        .shipper-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .shipper-nav-link {
+            color: #e5e7eb;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            position: relative;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .shipper-nav-link:hover {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        
+        .shipper-nav-link.active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+        
+        .nav-badge {
+            background: #ef4444;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+        
+        /* User Section */
+        .shipper-user-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        /* Status toggle - Hidden for simplicity */
+        .shipper-status-toggle {
+            display: none;
+        }
+        
+        .shipper-user-dropdown {
+            position: relative;
+        }
+        
+        .shipper-user-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .shipper-user-btn:hover {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+        }
+        
+        .shipper-user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .shipper-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: rgba(0, 0, 0, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            min-width: 200px;
+            padding: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1050;
+        }
+        
+        .shipper-user-dropdown:hover .shipper-dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .shipper-dropdown-item {
+            color: #e0e0e0;
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .shipper-dropdown-item:hover {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        
+        .shipper-dropdown-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 8px 0;
+        }
+        
+        .shipper-logout-btn {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #e0e0e0;
+            padding: 10px 14px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+        
+        .shipper-logout-btn:hover {
+            background: rgba(220, 38, 38, 0.1);
+            color: #ef4444;
+        }
+        
+        /* Mobile */
+        .mobile-menu-shipper-btn {
+            display: none;
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid #10b981;
+            color: #10b981;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .shipper-stats {
+                display: none;
+            }
+            
+            .shipper-nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-shipper-btn {
+                display: block;
+            }
+            
+            .shipper-main-nav {
+                padding: 12px 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .logo-shipper-text {
+                font-size: 1.2rem;
+            }
+            
+            .shipper-status-toggle {
+                display: none;
+            }
+            
+            .shipper-user-name {
+                display: none;
+            }
+        }
+        
+        /* Body padding */
+        body {
+            padding-top: 65px;
+        }
+    </style>
+
+    <nav class="shipper-main-nav">
+        <!-- Logo -->
+        <a th:href="@{/shipper/home}" class="shipper-logo">
+            <div class="logo-shipper-icon">🚚</div>
+            <div>
+                <h1 class="logo-shipper-text">UTeaDrink</h1>
+                <div class="shipper-badge">SHIPPER</div>
+            </div>
+        </a>
+
+        <!-- Stats (Desktop) -->
+        <div class="shipper-stats">
+            <div class="stat-item">
+                <div class="stat-value" th:text="${todayOrders != null ? todayOrders : 0}">0</div>
+                <div class="stat-label">Hôm nay</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" th:text="${activeOrders != null ? activeOrders : 0}">0</div>
+                <div class="stat-label">Đang giao</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" th:text="${completedOrders != null ? completedOrders : 0}">0</div>
+                <div class="stat-label">Hoàn thành</div>
+            </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="shipper-nav-links">
+            <a th:href="@{/shipper/home}" class="shipper-nav-link">
+                <i class="bi bi-house-fill"></i>
+                Trang chủ
+            </a>
+            <a th:href="@{/shipper/available-orders}" class="shipper-nav-link">
+                <i class="bi bi-clipboard-check"></i>
+                Đơn hàng mới
+                <span class="nav-badge" th:if="${availableCount != null and availableCount > 0}" th:text="${availableCount}">0</span>
+            </a>
+            <a th:href="@{/shipper/my-orders}" class="shipper-nav-link">
+                <i class="bi bi-truck"></i>
+                Đơn của tôi
+            </a>
+            <a th:href="@{/shipper/history}" class="shipper-nav-link">
+                <i class="bi bi-clock-history"></i>
+                Lịch sử
+            </a>
+        </div>
+
+        <!-- User Section -->
+        <div class="shipper-user-section">
+            <!-- Status Toggle -->
+            <div class="shipper-status-toggle">
+                <span class="status-label">Trạng thái:</span>
+                <div class="status-switch" onclick="toggleShipperStatus()" id="statusSwitch">
+                    <div class="status-switch-slider"></div>
+                </div>
+                <span class="status-text" id="statusText">Offline</span>
+            </div>
+
+            <!-- User Dropdown -->
+            <div class="shipper-user-dropdown">
+                <div class="shipper-user-btn">
+                    <i class="bi bi-person-circle" style="font-size: 1.2rem; color: #10b981;"></i>
+                    <span class="shipper-user-name" th:text="${#authentication.principal.displayName}">Shipper</span>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                
+                <div class="shipper-dropdown-menu">
+                    <a href="#" class="shipper-dropdown-item">
+                        <i class="bi bi-person-circle"></i>
+                        Thông tin cá nhân
+                    </a>
+                    <a th:href="@{/shipper/history}" class="shipper-dropdown-item">
+                        <i class="bi bi-graph-up"></i>
+                        Thống kê
+                    </a>
+                    <div class="shipper-dropdown-divider"></div>
+                    <form th:action="@{/logout}" method="post" style="margin: 0;">
+                        <button type="submit" class="shipper-logout-btn">
+                            <i class="bi bi-box-arrow-right"></i>
+                            Đăng xuất
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-shipper-btn">
+                <i class="bi bi-list" style="font-size: 1.5rem;"></i>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        function toggleShipperStatus() {
+            const switchEl = document.getElementById('statusSwitch');
+            const textEl = document.getElementById('statusText');
+            switchEl.classList.toggle('active');
+            
+            if (switchEl.classList.contains('active')) {
+                textEl.textContent = 'Online';
+                // Call API to update status
+            } else {
+                textEl.textContent = 'Offline';
+                // Call API to update status
+            }
+        }
+        
+        // Auto-load status from server
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load current status and update UI
+        });
+    </script>
+</header>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

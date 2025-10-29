@@ -18,9 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -83,11 +81,11 @@ public class CartServiceImpl implements CartService {
         Optional<CartItem> existing;
         if (variant == null) {
             existing = (topsJson == null)
-                    ? itemRepo.findByCartIdAndVariant(cart.getId(), null)
+                    ? itemRepo.findByCartIdAndProductIdAndVariant_IdIsNullAndToppingsJsonIsNull(cart.getId(), productId)
                     : itemRepo.findByCartIdAndProductIdAndVariant_IdIsNullAndToppingsJson(cart.getId(), productId, topsJson);
         } else {
             existing = (topsJson == null)
-                    ? itemRepo.findByCartIdAndVariant(cart.getId(), variant)
+                    ? itemRepo.findByCartIdAndProductIdAndVariant_IdAndToppingsJsonIsNull(cart.getId(), productId, variant.getId())
                     : itemRepo.findByCartIdAndProductIdAndVariant_IdAndToppingsJson(cart.getId(), productId, variant.getId(), topsJson);
         }
 
@@ -211,8 +209,8 @@ public class CartServiceImpl implements CartService {
         Product product = item.getProduct();
         ProductVariant variant = item.getVariant();
 
-        // Danh mục Bánh (id=2) => không cho topping
-        if (product.getCategory() != null && product.getCategory().getId() == 2L) {
+        // Danh mục Bánh (id=3) => không cho size và topping
+        if (product.getCategory() != null && product.getCategory().getId() == 3L) {
             toppingIds = null;
         }
 
@@ -225,11 +223,11 @@ public class CartServiceImpl implements CartService {
         Optional<CartItem> existing;
         if (variant == null) {
             existing = (topsJson == null)
-                    ? itemRepo.findByCartIdAndVariant(cart.getId(), null)
+                    ? itemRepo.findByCartIdAndProductIdAndVariant_IdIsNullAndToppingsJsonIsNull(cart.getId(), product.getId())
                     : itemRepo.findByCartIdAndProductIdAndVariant_IdIsNullAndToppingsJson(cart.getId(), product.getId(), topsJson);
         } else {
             existing = (topsJson == null)
-                    ? itemRepo.findByCartIdAndVariant(cart.getId(), variant)
+                    ? itemRepo.findByCartIdAndProductIdAndVariant_IdAndToppingsJsonIsNull(cart.getId(), product.getId(), variant.getId())
                     : itemRepo.findByCartIdAndProductIdAndVariant_IdAndToppingsJson(cart.getId(), product.getId(), variant.getId(), topsJson);
         }
 

@@ -1,6 +1,7 @@
 package net.codejava.utea.config;
 
 import lombok.RequiredArgsConstructor;
+import net.codejava.utea.auth.security.CustomAccessDeniedHandler;
 import net.codejava.utea.auth.security.JwtAuthFilter;
 import net.codejava.utea.auth.security.JwtAuthenticationEntryPoint;
 import net.codejava.utea.auth.security.OAuth2LoginSuccessHandler;
@@ -28,6 +29,7 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final JwtAuthenticationEntryPoint entryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
     private final UserDetailsService userDetailsService;
 
     // Bean OAuth2UserService duy nhất (Impl của bạn)
@@ -68,7 +70,10 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .csrf(csrf -> csrf.disable())
-                .exceptionHandling(eh -> eh.authenticationEntryPoint(entryPoint))
+                .exceptionHandling(eh -> eh
+                        .authenticationEntryPoint(entryPoint)      // 401: Chưa đăng nhập
+                        .accessDeniedHandler(accessDeniedHandler)  // 403: Không có quyền
+                )
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -78,7 +83,8 @@ public class SecurityConfig {
                                 "/css/**", "/js/**", "/images/**", "/webjars/**",
                                 "/index", "/about", "/contact",
                                 "/products/**", "/GuestProducts/**", "/fragments/**",
-                                "/uploads/**", "/assets/**", "/ws/**"
+                                "/uploads/**", "/assets/**", "/ws/**",
+                                "/error/403"  // Cho phép truy cập trang 403
                         ).permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/customer/cart/api/**").hasAnyRole("CUSTOMER","ADMIN","MANAGER") // ✅

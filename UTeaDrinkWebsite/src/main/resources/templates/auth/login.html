@@ -131,6 +131,27 @@
         #togglePassword:hover {
             background-color: #fff4e6;
         }
+
+        /* ===== Link trang chủ ===== */
+        .link-home {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            color: #ff6600;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .link-home:hover {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: #ff9900;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 102, 0, 0.15);
+            text-decoration: none;
+        }
     </style>
 </head>
 
@@ -170,6 +191,12 @@
     <div class="text-center mt-4">
         <a th:href="@{/forgot}" class="me-2">Quên mật khẩu?</a> |
         <a th:href="@{/register}" class="ms-2">Đăng ký tài khoản</a>
+    </div>
+
+    <div class="text-center">
+        <a th:href="@{/}" class="link-home">
+            <i class="bi bi-house-door-fill me-1"></i> Quay về trang chủ
+        </a>
     </div>
 
     <p th:if="${error}" class="text-danger text-center mt-3" th:text="${error}"></p>

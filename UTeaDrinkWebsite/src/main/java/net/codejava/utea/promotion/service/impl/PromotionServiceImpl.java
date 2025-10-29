@@ -7,6 +7,7 @@ import net.codejava.utea.order.repository.OrderRepository;
 import net.codejava.utea.promotion.entity.Promotion;
 import net.codejava.utea.promotion.entity.Voucher;
 import net.codejava.utea.promotion.entity.enums.PromoType;
+import net.codejava.utea.promotion.repository.CustomerVoucherRepository;
 import net.codejava.utea.promotion.repository.PromotionRepository;
 import net.codejava.utea.promotion.repository.VoucherRepository;
 import net.codejava.utea.promotion.service.AutoPromotionResult;
@@ -30,6 +31,7 @@ public class PromotionServiceImpl implements PromotionService {
     private final VoucherRepository voucherRepo;
     private final PromotionRepository promotionRepo;
     private final OrderRepository orderRepo;
+    private final CustomerVoucherRepository customerVoucherRepo; // ⭐ THÊM MỚI
     private final ObjectMapper objectMapper;
 
     @Override
@@ -84,6 +86,19 @@ public class PromotionServiceImpl implements PromotionService {
             return new PromotionResult(false, "Mã không hợp lệ hoặc đã hết hạn.", BigDecimal.ZERO, subtotal.add(shipping));
         }
         var v = opt.get();
+        
+        // ⭐ KIỂM TRA: User đã lưu voucher hay chưa?
+        if (user != null) {
+            var savedVoucher = customerVoucherRepo.findByUser_IdAndVoucher_CodeAndState(
+                    user.getId(), code.trim(), "ACTIVE"
+            );
+            
+            if (savedVoucher.isEmpty()) {
+                return new PromotionResult(false, 
+                    "Bạn cần LƯU voucher này trước khi sử dụng. Vào trang Voucher để lưu mã.", 
+                    BigDecimal.ZERO, subtotal.add(shipping));
+            }
+        }
         
         // Kiểm tra điều kiện forFirstOrder: chỉ cho người dùng chưa có đơn hàng nào
         if (Boolean.TRUE.equals(v.getForFirstOrder()) && user != null) {

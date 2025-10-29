@@ -64,14 +64,22 @@ public class CustomUserDetails implements UserDetails, Serializable {
     // ---- Helpers tiện dụng ----
     public Long getId() { return user.getId(); }
     public String getEmail() { return user.getEmail(); }
-
-    /** Hiển thị tên: ưu tiên username → fullName → local-part của email */
-    public String getDisplayName() {
-        String u = user.getUsername();
-        if (u != null && !u.isBlank()) return u.trim();
-
+    
+    /** Lấy fullName từ User */
+    public String getFullName() {
         String fn = user.getFullName();
         if (fn != null && !fn.isBlank()) return fn.trim();
+        return null;
+    }
+
+    /** Hiển thị tên: ưu tiên fullName → username → local-part của email */
+    public String getDisplayName() {
+        // Ưu tiên fullName trước
+        String fn = user.getFullName();
+        if (fn != null && !fn.isBlank()) return fn.trim();
+        
+        String u = user.getUsername();
+        if (u != null && !u.isBlank()) return u.trim();
 
         String em = user.getEmail();
         if (em != null) {

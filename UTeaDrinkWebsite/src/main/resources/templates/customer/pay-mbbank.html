@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Thanh toán MBBank - PayOS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+    <style>
+        :root{
+            --mbbank:#0046ad;      /* xanh MBBank */
+            --ink:#0f172a;
+            --muted:#6b7280;
+            --line:#e9edf1;
+            --radius:14px;
+        }
+        body{background:#f6f7f9;color:var(--ink);font-family:system-ui,-apple-system,'Segoe UI',Roboto}
+        .wrap{max-width:1000px;margin:20px auto;padding:0 12px}
+        .shell{display:grid;grid-template-columns:320px 1fr;gap:16px}
+        @media (max-width: 991.98px){.shell{grid-template-columns:1fr}}
+
+        /* ===== LEFT: panel xanh MBBank ===== */
+        .side{
+            background:linear-gradient(135deg, var(--mbbank) 0%, #0056d6 100%);
+            color:#fff;border-radius:var(--radius);
+            min-height:520px;display:flex;flex-direction:column;padding:18px 16px;
+        }
+        .side .title{font-weight:800;opacity:.95}
+        .side .timer{font-size:34px;font-weight:900;margin-top:6px}
+        .divider-light{border-color:rgba(255,255,255,.25);margin:12px 0}
+        .kv{display:flex;align-items:flex-start;gap:10px;margin:12px 0}
+        .kv i{font-size:18px;line-height:1.2;opacity:.9}
+        .kv .v{font-weight:700}
+        .order-code{font-weight:800;letter-spacing:.3px}
+        /* Nút quay lại ở đáy panel */
+        .back-btn{
+            margin-top:auto;display:inline-flex;align-items:center;gap:6px;
+            color:#fff;text-decoration:none;font-weight:700;
+            background:rgba(255,255,255,.12);border-radius:999px;padding:8px 12px;
+            transition:background .2s,transform .2s;
+        }
+        .back-btn:hover{background:rgba(255,255,255,.18);transform:translateY(-1px)}
+
+        /* ===== RIGHT: khung QR ===== */
+        .qr-panel{background:#fff;border-radius:var(--radius);border:1px solid var(--line);padding:18px}
+        .qr-head{display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+        .qr-head .mbbank-logo{
+            font-size:24px;
+            font-weight:900;
+            color:var(--mbbank);
+            display:flex;
+            align-items:center;
+            gap:8px;
+        }
+        .qr-head .mbbank-logo i{font-size:32px}
+        .qr-title{font-weight:800;text-align:center;color:var(--mbbank);margin:10px 0 6px}
+        .qr-box{border:2px solid var(--mbbank);border-radius:12px;padding:14px;text-align:center;background:#fff}
+        .qr-img{width:280px;height:280px;object-fit:contain;border-radius:8px;display:block;margin:8px auto}
+        .qr-hint{color:var(--muted);font-size:14px}
+        .actions{margin-top:14px}
+        
+        /* Loading animation */
+        .loading-spinner{
+            display:inline-block;
+            width:280px;
+            height:280px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        .spinner-border{
+            color:var(--mbbank);
+        }
+        
+        /* Payment status check */
+        .status-check{
+            margin-top:15px;
+            padding:12px;
+            background:#f0f9ff;
+            border-radius:8px;
+            text-align:center;
+            color:var(--mbbank);
+            font-size:14px;
+        }
+        .status-check i{
+            animation:pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse{
+            0%, 100%{opacity:1}
+            50%{opacity:.4}
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header-customer :: customerHeader}"></div>
+<div class="wrap">
+
+    <div class="shell">
+        <!-- ===== LEFT ===== -->
+        <aside class="side">
+            <div class="title">Đơn hàng hết hạn sau</div>
+            <div id="countdown" class="timer">10:00</div>
+
+            <hr class="divider-light"/>
+
+            <div class="kv">
+                <i class="bi bi-building"></i>
+                <div>
+                    <div class="small" style="opacity:.85">Nhà cung cấp</div>
+                    <div class="v">UTeaDrink</div>
+                </div>
+            </div>
+
+            <div class="kv">
+                <i class="bi bi-cash-coin"></i>
+                <div>
+                    <div class="small" style="opacity:.85">Số tiền</div>
+                    <div class="v" th:text="${amount != null} ? ${#numbers.formatDecimal(amount,0,'COMMA',0,'POINT')} + 'đ' : '—'">0đ</div>
+                </div>
+            </div>
+
+            <div class="kv">
+                <i class="bi bi-receipt"></i>
+                <div>
+                    <div class="small" style="opacity:.85">Thông tin</div>
+                    <div class="v">
+                        Thanh toán
+                        <span th:text="'[' + ${#numbers.formatDecimal(amount,0,'COMMA',0,'POINT')} + 'đ]'">[0đ]</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="kv">
+                <i class="bi bi-hash"></i>
+                <div>
+                    <div class="small" style="opacity:.85">Đơn hàng</div>
+                    <div class="order-code" th:text="${orderCode}">ORD-XXXXXX</div>
+                </div>
+            </div>
+
+            <hr class="divider-light"/>
+            <a th:href="@{/customer/checkout}" class="back-btn">
+                <i class="bi bi-arrow-left-short"></i> Quay lại
+            </a>
+        </aside>
+
+        <!-- ===== RIGHT ===== -->
+        <section class="qr-panel">
+            <div class="qr-head">
+                <div class="mbbank-logo">
+                    <i class="bi bi-bank2"></i>
+                    <span>MBBank - PayOS</span>
+                </div>
+            </div>
+
+            <h5 class="qr-title">Quét mã QR để thanh toán</h5>
+
+            <div class="qr-box mt-2">
+                <!-- QR Code thực từ PayOS -->
+                <div th:if="${qrCodeUrl != null and qrCodeUrl != ''}">
+                    <img class="qr-img" th:src="${qrCodeUrl}" alt="QR MBBank PayOS" id="qrImage">
+                    <div class="qr-hint mt-2">
+                        <i class="bi bi-qr-code-scan"></i>
+                        Sử dụng App <strong>MBBank</strong> hoặc ứng dụng ngân hàng hỗ trợ QR PayOS để quét mã thanh toán.
+                    </div>
+                </div>
+                
+                <!-- Lỗi khi không tạo được QR -->
+                <div th:if="${qrCodeUrl == null or qrCodeUrl == ''}" class="text-center p-4">
+                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 48px;"></i>
+                    <p class="mt-3 text-muted">
+                        Tính năng thanh toán PayOS đang trong quá trình phát triển.<br>
+                        Vui lòng chọn phương thức thanh toán khác.
+                    </p>
+                    <a th:href="@{/customer/checkout}" class="btn btn-primary mt-2">
+                        <i class="bi bi-arrow-left"></i> Quay lại chọn phương thức khác
+                    </a>
+                </div>
+            </div>
+
+            <!-- Trạng thái kiểm tra thanh toán -->
+            <div class="status-check" id="paymentStatus">
+                <i class="bi bi-hourglass-split"></i>
+                Đang chờ xác nhận thanh toán...
+            </div>
+
+            <div th:if="${error != null}" class="alert alert-danger mt-3 mb-0">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span th:text="${error}">Thanh toán thất bại. Vui lòng thử lại.</span>
+            </div>
+            
+            <!-- Link thanh toán trực tiếp (optional) -->
+            <div th:if="${checkoutUrl != null}" class="mt-3 text-center">
+                <a th:href="${checkoutUrl}" target="_blank" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                    Mở trang thanh toán
+                </a>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    // Đếm ngược 10:00
+    (function () {
+        var s = 10 * 60, el = document.getElementById('countdown');
+        if (!el) return;
+        function tick() {
+            var m = String(Math.floor(s / 60)).padStart(2, '0');
+            var ss = String(s % 60).padStart(2, '0');
+            el.textContent = m + ':' + ss;
+            if (s > 0) { s--; setTimeout(tick, 1000); } else { el.textContent = 'Hết hạn'; }
+        }
+        tick();
+    })();
+
+    // Tự động kiểm tra trạng thái thanh toán mỗi 3 giây
+    (function() {
+        var orderCode = /*[[${orderCode}]]*/ '';
+        if (!orderCode) return;
+        
+        var checkCount = 0;
+        var maxChecks = 100; // Kiểm tra tối đa 100 lần (5 phút)
+        
+        function checkPaymentStatus() {
+            checkCount++;
+            if (checkCount > maxChecks) {
+                document.getElementById('paymentStatus').innerHTML = 
+                    '<i class="bi bi-clock-history"></i> Phiên thanh toán đã hết hạn. Vui lòng thử lại.';
+                return;
+            }
+            
+            // Gọi API kiểm tra trạng thái
+            fetch('/customer/pay/mbbank/' + orderCode + '/check-status', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'PAID') {
+                    // Thanh toán thành công - chuyển hướng
+                    document.getElementById('paymentStatus').innerHTML = 
+                        '<i class="bi bi-check-circle-fill text-success"></i> Thanh toán thành công! Đang chuyển hướng...';
+                    setTimeout(() => {
+                        window.location.href = '/customer/orders/thank-you?order=' + orderCode;
+                    }, 1000);
+                } else if (data.status === 'FAILED') {
+                    document.getElementById('paymentStatus').innerHTML = 
+                        '<i class="bi bi-x-circle-fill text-danger"></i> Thanh toán thất bại.';
+                } else {
+                    // Tiếp tục kiểm tra
+                    setTimeout(checkPaymentStatus, 3000);
+                }
+            })
+            .catch(err => {
+                console.error('Error checking payment status:', err);
+                // Tiếp tục kiểm tra dù có lỗi
+                setTimeout(checkPaymentStatus, 3000);
+            });
+        }
+        
+        // Bắt đầu kiểm tra sau 3 giây
+        setTimeout(checkPaymentStatus, 3000);
+    })();
+</script>
+</body>
+</html>
+

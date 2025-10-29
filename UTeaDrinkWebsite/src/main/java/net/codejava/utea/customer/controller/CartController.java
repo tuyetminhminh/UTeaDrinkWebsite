@@ -106,7 +106,8 @@ public class CartController {
         var u = currentUser(user);
         var p = productRepo.findById(productId).orElseThrow();
 
-        if (p.getCategory() != null && p.getCategory().getId() == 2L) {
+        // Danh mục Bánh (id=3) => không có size và topping
+        if (p.getCategory() != null && p.getCategory().getId() == 3L) {
             variantId = null;
             toppingIds = null;
         }

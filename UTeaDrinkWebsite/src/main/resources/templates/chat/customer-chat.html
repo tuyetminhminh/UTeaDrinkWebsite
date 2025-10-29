@@ -8,131 +8,206 @@
 
     <!-- Bootstrap CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root{
-            --bg:#f5f7fb;
-            --grad1:#e9efff;
-            --grad2:#f7fbff;
-            --card:#ffffff;
-            --muted:#6b7280;
-            --text:#0f172a;
-            --primary:#4f46e5;      /* indigo-600 */
-            --primary-soft:#eef2ff;
-            --me:#dbeafe;           /* blue-100 */
-            --other:#f3f4f6;        /* gray-100 */
-            --border:rgba(15, 23, 42, .08);
-            --shadow:0 10px 30px rgba(2,6,23,.08);
+            --bg: #f8fafc;
+            --grad1: #e0e7ff;
+            --grad2: #fef3c7;
+            --card: #ffffff;
+            --muted: #64748b;
+            --text: #0f172a;
+            --primary: #ff7b00;
+            --primary-dark: #e56b00;
+            --primary-soft: #fff4e6;
+            --me-bg: linear-gradient(135deg, #fff4e6 0%, #ffe8cc 100%);
+            --me-border: rgba(255, 123, 0, 0.2);
+            --other-bg: #f8fafc;
+            --other-border: rgba(71, 85, 105, 0.12);
+            --border: rgba(148, 163, 184, 0.15);
+            --shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+            --shadow-sm: 0 4px 20px rgba(15, 23, 42, 0.08);
         }
 
-        html,body{height:100%;}
+        html,body{height:100%; font-family: 'Inter', -apple-system, sans-serif;}
         body{
             margin:0;
             background:
-                    radial-gradient(1200px 1200px at 90% -300px, var(--grad1), transparent 50%),
-                    radial-gradient(900px 900px at -150px 40%, var(--grad2), transparent 50%),
-                    var(--bg);
+                radial-gradient(1400px 1400px at 100% -250px, var(--grad1), transparent 55%),
+                radial-gradient(1000px 1000px at -100px 60%, var(--grad2), transparent 55%),
+                var(--bg);
             color:var(--text);
         }
 
         .chat-shell{
-            max-width: 980px; margin: 24px auto; padding: 0;
+            max-width: 1000px; margin: 32px auto; padding: 0;
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 18px; box-shadow: var(--shadow);
+            border-radius: 24px; 
+            box-shadow: var(--shadow);
             display: grid; grid-template-rows: auto 1fr auto;
-            height: calc(100vh - 48px);
+            height: calc(100vh - 64px);
             overflow: hidden;
-            min-height: 0;   /* cho phép phần messages cuộn */
+            min-height: 0;
         }
 
         .head{
-            padding: 16px 18px;
+            padding: 20px 24px;
             border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; gap: 12px;
-            background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.7));
-            backdrop-filter: blur(6px);
+            display: flex; align-items: center; gap: 14px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.92));
+            backdrop-filter: blur(12px);
         }
-        .title{font-weight:700; margin:0;}
-        .state{color: var(--muted);}
+        .title{
+            font-weight: 700; 
+            font-size: 1.125rem;
+            margin: 0;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .state{color: var(--muted); font-size: 0.875rem;}
 
         .messages{
-            padding: 18px 18px 8px;
+            padding: 24px;
             overflow: auto;
-            display: flex; flex-direction: column; gap: 10px;
-            background: linear-gradient(180deg, #fff, #fafbff);
+            display: flex; flex-direction: column; gap: 14px;
+            background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
             min-height: 0;
             position: relative;
         }
 
-        .msg{ display:flex; gap:10px; }
+        .msg{ display:flex; gap:12px; animation: slideIn 0.3s ease; }
         .msg.me{ justify-content: flex-end; }
+        
+        @keyframes slideIn{
+            from{ opacity: 0; transform: translateY(8px); }
+            to{ opacity: 1; transform: translateY(0); }
+        }
+        
         .bubble{
-            max-width: 72%;
-            padding: 10px 12px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: var(--other);
-            box-shadow: 0 6px 18px rgba(2,6,23,.06);
-            animation: pop .2s ease;
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            background: var(--other-bg);
+            border: 1px solid var(--other-border);
+            box-shadow: var(--shadow-sm);
+            position: relative;
         }
         .msg.me .bubble{
-            background: var(--me);
-            border-color: rgba(99,102,241,.25);
+            background: var(--me-bg);
+            border-color: var(--me-border);
+            box-shadow: 0 4px 20px rgba(255, 123, 0, 0.15);
         }
-        .bubble small{ display:block; color: var(--muted); margin-top: 6px; }
+        .bubble small{ 
+            display:block; 
+            color: var(--muted); 
+            margin-top: 8px; 
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
 
         .status{
-            align-self:center; font-size: 12px; color: var(--muted);
-            padding: 6px 10px; border-radius: 999px;
-            background: #fff; border: 1px dashed var(--border);
-            margin: 6px 0 10px;
+            align-self:center; 
+            font-size: 12px; 
+            color: var(--muted);
+            padding: 8px 14px; 
+            border-radius: 999px;
+            background: rgba(255,255,255,0.9); 
+            border: 1px dashed var(--border);
+            margin: 8px 0 12px;
+            backdrop-filter: blur(8px);
         }
-
-        @keyframes pop{ from{ transform:scale(.98); opacity:.7 } to{ transform:scale(1); opacity:1 } }
 
         .composer{
-            padding: 14px; border-top: 1px solid var(--border);
-            background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.7));
-            backdrop-filter: blur(6px);
-            display: grid; grid-template-columns: 1fr auto; gap: 10px;
+            padding: 20px 24px; 
+            border-top: 1px solid var(--border);
+            background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.92));
+            backdrop-filter: blur(12px);
+            display: grid; grid-template-columns: 1fr auto; gap: 12px;
         }
         .input-wrap{
-            display:flex; align-items:center; gap:10px;
-            background:#fff; border:1px solid var(--border); border-radius:12px; padding: 8px 12px;
+            display:flex; align-items:center; gap:12px;
+            background:#fff; 
+            border:1px solid var(--border); 
+            border-radius:16px; 
+            padding: 10px 16px;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+            transition: all 0.2s ease;
+        }
+        .input-wrap:focus-within{
+            border-color: var(--primary);
+            box-shadow: 0 4px 20px rgba(255, 123, 0, 0.15);
         }
         .form-input{
-            border: none; outline: none; width:100%;
-            font-size: 15px; background: transparent;
+            border: none; 
+            outline: none; 
+            width:100%;
+            font-size: 15px; 
+            background: transparent;
+            color: var(--text);
         }
         .btn-send{
-            border: 1px solid rgba(79,70,229,.25);
-            background: linear-gradient(135deg, var(--primary), #6d5cff);
-            color:#fff; font-weight:600;
-            border-radius:12px; padding:10px 16px;
-            box-shadow: 0 8px 20px rgba(79,70,229,.25);
+            border: none;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color:#fff; 
+            font-weight:600;
+            border-radius:16px; 
+            padding: 12px 24px;
+            box-shadow: 0 8px 24px rgba(255, 123, 0, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
         }
-        .btn-send:disabled{ opacity:.65; filter: grayscale(.4); box-shadow:none; }
+        .btn-send:hover:not(:disabled){
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(255, 123, 0, 0.4);
+        }
+        .btn-send:active:not(:disabled){
+            transform: translateY(0);
+        }
+        .btn-send:disabled{ 
+            opacity:.5; 
+            filter: grayscale(.6); 
+            box-shadow:none;
+            cursor: not-allowed;
+        }
 
-        /* nút xuống cuối */
         .jump-bottom{
             position: absolute;
-            right: 16px; bottom: 78px;
+            right: 24px; bottom: 96px;
             display: none;
             border-radius: 999px;
             background: var(--primary-soft);
             color: var(--primary);
-            border: 1px solid rgba(79,70,229,.25);
-            box-shadow: 0 4px 14px rgba(99,102,241,.18);
+            border: 1px solid var(--me-border);
+            box-shadow: 0 6px 20px rgba(255, 123, 0, 0.2);
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .jump-bottom:hover{
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 123, 0, 0.3);
         }
 
-        /* đẹp hơn chút cho thanh cuộn */
-        .messages::-webkit-scrollbar{ width: 8px; height: 8px; }
-        .messages::-webkit-scrollbar-thumb{ background: rgba(15,23,42,.15); border-radius: 999px; }
+        .messages::-webkit-scrollbar{ width: 10px; }
+        .messages::-webkit-scrollbar-track{ background: transparent; }
+        .messages::-webkit-scrollbar-thumb{ 
+            background: rgba(148, 163, 184, 0.25); 
+            border-radius: 999px; 
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        .messages::-webkit-scrollbar-thumb:hover{ 
+            background: rgba(255, 123, 0, 0.3);
+            background-clip: padding-box;
+        }
     </style>
 </head>
 <body>
-<th:block th:replace="~{fragments/header :: header}"></th:block>
+<div th:replace="~{fragments/header-customer :: customerHeader}"></div>
 <div style="height:40px"></div>
 <div class="chat-shell">
     <!-- Header -->

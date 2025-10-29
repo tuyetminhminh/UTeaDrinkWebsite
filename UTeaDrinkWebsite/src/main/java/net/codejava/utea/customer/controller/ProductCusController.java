@@ -19,7 +19,10 @@ import net.codejava.utea.manager.entity.ShopBanner;
 import net.codejava.utea.manager.repository.ShopBannerRepository;
 import net.codejava.utea.catalog.entity.Topping;
 import net.codejava.utea.catalog.service.ToppingService;
+import net.codejava.utea.engagement.service.ViewedProductService;
+import net.codejava.utea.common.security.CustomUserDetails;
 import org.springframework.data.domain.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -43,7 +46,7 @@ public class ProductCusController {
     private final ObjectMapper om = new ObjectMapper();
     private final ShopBannerRepository bannerRepo;
     private final ToppingService toppingService;
-    private static final long BAKERY_CAT_ID = 2L;
+    private final ViewedProductService viewedProductService;
 
     // ------------------- MENU -------------------
     @GetMapping("/menu")
@@ -183,10 +186,16 @@ public class ProductCusController {
                                 @RequestParam(value = "rating", required = false) Integer rating,  // lọc sao
                                 @RequestParam(value = "rp", defaultValue = "0") int reviewPage,    // trang review
                                 @RequestParam(value = "back", required = false) String back,       // link quay lại
+                                @AuthenticationPrincipal CustomUserDetails userDetails,             // user đã đăng nhập
                                 Model model) throws JsonProcessingException {
 
         Product product = productRepo.findByIdAndStatus(id, "AVAILABLE")
                 .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại hoặc đã ẩn"));
+
+        // ✅ Track viewing (chỉ khi đã đăng nhập)
+        if (userDetails != null && userDetails.getUser() != null) {
+            viewedProductService.trackView(userDetails.getUser().getId(), id);
+        }
 
         // Biến thể theo giá tăng dần
         List<ProductVariant> variants = variantRepo.findByProduct_IdOrderByPriceAsc(id);
@@ -238,7 +247,9 @@ public class ProductCusController {
         List<Integer> rpPages = new ArrayList<>();
         for (int i = 0; i < totalRp; i++) rpPages.add(i);
 
-        boolean isBakery = product.getCategory() != null && product.getCategory().getId() == BAKERY_CAT_ID;
+        // ✅ Check theo TÊN category thay vì ID (an toàn hơn)
+        boolean isBakery = product.getCategory() != null && 
+                          "Bánh".equalsIgnoreCase(product.getCategory().getName());
         java.util.List<Topping> toppings = java.util.Collections.emptyList();
         if (!isBakery && product.getShop() != null) {
             toppings = toppingService.getToppingsForShop(product.getShop().getId());
@@ -270,6 +281,54 @@ public class ProductCusController {
 
         return "customer/product";
     }
+
+    // ------------------- RECENTLY VIEWED PAGE -------------------
+    @GetMapping("/recently-viewed")
+    public String recentlyViewed(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                  @RequestParam(value = "page", defaultValue = "0") int page,
+                                  Model model) {
+        
+        // Kiểm tra đăng nhập
+        if (userDetails == null || userDetails.getUser() == null) {
+            return "redirect:/login";
+        }
+
+        Long userId = userDetails.getUser().getId();
+        
+        // Lấy danh sách sản phẩm đã xem (phân trang 12 sản phẩm/trang)
+        final int PAGE_SIZE = 12;
+        Pageable pageable = PageRequest.of(page, PAGE_SIZE);
+        Page<net.codejava.utea.engagement.entity.ViewedProduct> viewedPage = 
+            viewedProductService.getRecentlyViewed(userId, pageable);
+        
+        // Lấy products từ ViewedProduct
+        List<Product> products = viewedPage.getContent().stream()
+                .map(net.codejava.utea.engagement.entity.ViewedProduct::getProduct)
+                .filter(p -> p != null && "AVAILABLE".equals(p.getStatus()))
+                .toList();
+        
+        // Lấy rating và sold count cho từng product
+        Map<Long, Double> ratingMap = new java.util.HashMap<>();
+        Map<Long, Integer> soldMap = new java.util.HashMap<>();
+        
+        for (Product p : products) {
+            Double rating = reviewService.avgRating(p.getId());
+            ratingMap.put(p.getId(), rating);
+            
+            // Sold count từ product
+            soldMap.put(p.getId(), p.getSoldCount() != null ? p.getSoldCount() : 0);
+        }
+        
+        model.addAttribute("products", products);
+        model.addAttribute("ratingMap", ratingMap);
+        model.addAttribute("soldMap", soldMap);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", viewedPage.getTotalPages());
+        model.addAttribute("totalItems", viewedPage.getTotalElements());
+        
+        return "customer/recently-viewed";
+    }
+
     @GetMapping("/search.json")
     @ResponseBody
     public Map<String, Object> searchJson(

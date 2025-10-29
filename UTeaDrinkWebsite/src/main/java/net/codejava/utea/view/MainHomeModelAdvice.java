@@ -65,8 +65,8 @@ public class MainHomeModelAdvice {
     }
 
     @ModelAttribute("size")
-    public int size(@RequestParam(value = "size", defaultValue = "8") int size) {
-        return (size <= 0) ? 8 : size;
+    public int size(@RequestParam(value = "size", defaultValue = "12") int size) {
+        return (size <= 0) ? 12 : size;
     }
 
     @ModelAttribute("selectedCategoryId")

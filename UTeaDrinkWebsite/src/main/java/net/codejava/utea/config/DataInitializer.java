@@ -351,7 +351,7 @@ public class DataInitializer implements CommandLineRunner {
         ProductCategory sinhTo = categoryRepo.findByName("Sinh tố").orElse(null);
         ProductCategory traTraiCay = categoryRepo.findByName("Trà trái cây").orElse(null);
 
-        // ============ TRÀ SỮA (11 sản phẩm) ============
+     // ============ TRÀ SỮA (11 sản phẩm) ============
         createProduct(shop, traSua,
                 "Trà sữa truyền thống",
                 "Hương vị trà sữa truyền thống đi kèm trân châu đường đen",
@@ -363,7 +363,7 @@ public class DataInitializer implements CommandLineRunner {
                 "Trà matcha sữa",
                 "Matcha đậm vị, hòa quyện sữa tươi ngọt nhẹ.",
                 new BigDecimal("45000"),
-                "https://res-console.cloudinary.com/dhmh2ekqy/thumbnails/v1/image/upload/v1761610557/TWF0Y2hhLVRlYS1MYXR0ZS13aXRoLU1hdGNoYS1KZWxseV96aXZ0eGI=/preview",
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761610557/Matcha-Tea-Latte-with-Matcha-Jelly_zivtxb.png",
                 "Matcha-Tea-Latte-with-Matcha-Jelly_zivtxb");
 
         createProduct(shop, traSua,
@@ -408,12 +408,12 @@ public class DataInitializer implements CommandLineRunner {
                 "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1760013924/trasua1_mtufkn.png",
                 "trasua1_mtufkn");
 
-        /*createProduct(shop, traSua,
-                "Matcha latte",
-                "Hương matcha latte ngọt dịu kết hợp với sữa gấu tạo hương vị khó tả",
+        createProduct(shop, traSua,
+                "Trà sữa smoothie",
+                "Dâu chua ngọt dịu, sắc hồng bắt mắt, thơm trái cây tự nhiên, càng ngon với thạch",
                 new BigDecimal("45000"),
-                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1760013914/matcha_latte_dfuacy.png",
-                "matcha_latte_dfuacy");*/
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761582414/utea/products/37/prod_37_img_1761582407900_1.png",
+                "utea/products/37/prod_37_img_1761582407900_1");
 
         createProduct(shop, traSua,
                 "Trà sữa bạc hà",
@@ -427,36 +427,73 @@ public class DataInitializer implements CommandLineRunner {
                 "Cà phê sữa đá",
                 "Cà phê phin truyền thống pha cùng sữa đặc thơm béo.",
                 new BigDecimal("32000"),
-                "https://res-console.cloudinary.com/dhmh2ekqy/thumbnails/v1/image/upload/v1761610835/SExDX05ld19sb2dvXzUuMV9Qcm9kdWN0c19fUEhJTl9TVUFEQV9qZWhpMnk=/preview",
-                "HLC_New_logo_5.1_Products__PHIN_SUADA_jehi2y");
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761610738/HLC_New_logo_5.1_Products__PHIN_SUADA_hsnohh.jpg",
+                "HLC_New_logo_5.1_Products__PHIN_SUADA_hsnohh");
 
         createProduct(shop, caPhe,
                 "Cà phê đen đá",
                 "Cà phê phin đen nguyên chất, đậm đà, mạnh mẽ",
                 new BigDecimal("25000"),
-                "https://res-console.cloudinary.com/dhmh2ekqy/thumbnails/v1/image/upload/v1761610951/SExDX05ld19sb2dvXzUuMV9Qcm9kdWN0c19fUEhJTl9ERU5fREFfdGQ0cWxx/preview",
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761610951/HLC_New_logo_5.1_Products__PHIN_DEN_DA_td4qlq.png",
                 "HLC_New_logo_5.1_Products__PHIN_DEN_DA_td4qlq");
 
         createProduct(shop, caPhe,
                 "Bạc xỉu",
                 "Cà phê sữa ngọt ngào, thơm béo, phù hợp cho người thích vị ngọt",
                 new BigDecimal("35000"),
-                "https://res-console.cloudinary.com/dhmh2ekqy/thumbnails/v1/image/upload/v1761611030/YmFjLXhpdV9pa2xoNHM=/preview",
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761611030/bac-xiu_iklh4s.png",
                 "bac-xiu_iklh4s");
 
         createProduct(shop, caPhe,
                 "Cà phê trứng",
                 "Cà phê trứng truyền thống Hà Nội, béo ngậy, thơm ngon",
                 new BigDecimal("45000"),
-                "https://res-console.cloudinary.com/dhmh2ekqy/thumbnails/v1/image/upload/v1761611209/Y2FfcGhlX3RydW5nX2RhX3RvNmFxbg==/preview",
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761611209/ca_phe_trung_da_to6aqn.png",
                 "ca_phe_trung_da_to6aqn");
 
         createProduct(shop, caPhe,
                 "Cappuccino",
                 "Cà phê espresso kết hợp sữa tươi và foam mịn màng",
                 new BigDecimal("45000"),
-                "https://res-console.cloudinary.com/dhmh2ekqy/thumbnails/v1/image/upload/v1761610835/SExDX05ld19sb2dvXzUuMV9Qcm9kdWN0c19fUEhJTl9TVUFEQV9qZWhpMnk=/preview",
-                "HLC_New_logo_5.1_Products__PHIN_SUADA_jehi2y");
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761640520/PAUL-Coffee-Iced-Cappuccino_qwqx3r.png",
+                "PAUL-Coffee-Iced-Cappuccino_qwqx3r");
+
+
+
+        createProduct(shop, caPhe,
+                "Cà phê muối",
+                "Espresso và kem sữa mặn ngọt cân bằng; lớp muối nhẹ làm bật hương cà, béo mịn nhưng không ngấy",
+                new BigDecimal("32000"),
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761644681/Quan-ca-phe-quan-7-mo-24h-Bamos-Coffee-co-Acoustic-To-chuc-su-kien-boi-bai-tarot5-1_azjbvw.png",
+                "Quan-ca-phe-quan-7-mo-24h-Bamos-Coffee-co-Acoustic-To-chuc-su-kien-boi-bai-tarot5-1_azjbvw");
+
+        createProduct(shop, caPhe,
+                "Cà phê hạnh nhân",
+                "Hương espresso đậm quyện vị bùi của sữa hạnh nhân, hậu vị thanh, ít béo, dễ chịu cả ngày.",
+                new BigDecimal("25000"),
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761644662/HLC_New_logo_5.1_Products__PHINDI_HANH_NHAN_ot8tee.jpg",
+                "HLC_New_logo_5.1_Products__PHINDI_HANH_NHAN_ot8tee");
+
+        createProduct(shop, caPhe,
+                "Espresso",
+                "Espresso pha loãng với nước nóng, vị sáng rõ, nhẹ đắng, hậu vị sạch—lựa chọn “tỉnh táo mà không nặng sữa",
+                new BigDecimal("35000"),
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761644682/Quan-ca-phe-quan-7-mo-24h-Bamos-Coffee-co-Acoustic-To-chuc-su-kien-boi-bai-tarot21_arffy4.png",
+                "Quan-ca-phe-quan-7-mo-24h-Bamos-Coffee-co-Acoustic-To-chuc-su-kien-boi-bai-tarot21_arffy4");
+
+        createProduct(shop, caPhe,
+                "Cà phê cốt dừa",
+                "Espresso cùng cốt dừa xay mát; thơm nhiệt đới, béo mà không ngấy",
+                new BigDecimal("45000"),
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761645096/cafe_dua_8dd8c0fa674f48a0bf53f8196547552e_master_xsusuw.png",
+                "cafe_dua_8dd8c0fa674f48a0bf53f8196547552e_master_xsusuw");
+
+        createProduct(shop, caPhe,
+                "Caramel Macchiato",
+                "Sữa êm, espresso rót lên, caramel thơm bơ; ngọt mặn hài hòa.",
+                new BigDecimal("45000"),
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761644680/Quan-ca-phe-quan-7-mo-24h-Bamos-Coffee-co-Acoustic-To-chuc-su-kien-boi-bai-tarot1-1_rscb2a.png",
+                "Quan-ca-phe-quan-7-mo-24h-Bamos-Coffee-co-Acoustic-To-chuc-su-kien-boi-bai-tarot1-1_rscb2a");
 
         // ============ BÁNH (11 sản phẩm) ============
         createProduct(shop, banh,
@@ -533,45 +570,80 @@ public class DataInitializer implements CommandLineRunner {
                 "Bánh bông lan trứng muối",
                 "Bánh bông lan mềm mịn kết hợp nhân trứng muối béo ngậy",
                 new BigDecimal("42000"),
-                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1760042334/banh_su_kem_nea1hj.png",
-                "banh_bong_lan_trung_muoi");
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761637877/MDA1MTg1MDU_eqbzg7.jpg",
+                "MDA1MTg1MDU_eqbzg7");
 
         // ============ SINH TỐ (5 sản phẩm) ============
         createProduct(shop, sinhTo,
                 "Sinh tố bơ",
                 "Sinh tố bơ đậm đà, béo ngậy, bổ dưỡng",
                 new BigDecimal("35000"),
-                "https://res-console.cloudinary.com/dhmh2ekqy/thumbnails/v1/image/upload/v1761612529/MjRfbGxmeWtq/preview",
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761612529/24_llfykj.png",
                 "24_llfykj");
 
         createProduct(shop, sinhTo,
                 "Sinh tố dâu",
                 "Sinh tố dâu tươi ngon, ngọt tự nhiên, sảng khoái",
                 new BigDecimal("32000"),
-                "https://res-console.cloudinary.com/dhmh2ekqy/thumbnails/v1/image/upload/v1761612513/ZGF1Ml9iMmY0ZGE4NjhjNDM0N2ZkOTQyYWE4OTZjNzU0Yzk1Y19vdnd5MXE=/preview",
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761612513/dau2_b2f4da868c4347fd942aa896c754c95c_ovwy1q.png",
                 "dau2_b2f4da868c4347fd942aa896c754c95c_ovwy1q");
 
         createProduct(shop, sinhTo,
                 "Sinh tố xoài",
                 "Sinh tố xoài thơm ngon, mát lạnh, giàu vitamin",
                 new BigDecimal("32000"),
-                "https://res-console.cloudinary.com/dhmh2ekqy/thumbnails/v1/image/upload/v1761611636/eG9haS1zaW5odG9fYTNlZTc1MGZiMzJmNDEwMDg1MTIzYjJiMmJjMjVkMTBfYmprcnd4/preview",
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761611636/xoai-sinhto_a3ee750fb32f410085123b2b2bc25d10_bjkrwx.png",
                 "xoai-sinhto_a3ee750fb32f410085123b2b2bc25d10_bjkrwx");
 
         createProduct(shop, sinhTo,
                 "Sinh tố dưa hấu",
                 "Sinh tố dưa hấu mát lạnh, giải nhiệt tuyệt vời",
                 new BigDecimal("30000"),
-                "https://res-console.cloudinary.com/dhmh2ekqy/thumbnails/v1/image/upload/v1761611747/cG5ndHJlZS1qdWljeS13YXRlcm1lbG9uLXNtb290aGllLWluLWEtdGFsbC1nbGFzcy13aXRoLW1pbnQtbGVhZi1wbmctaW1hZ2VfMjEwNzQ4MzJfbHFkcHkz/preview",
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761611747/pngtree-juicy-watermelon-smoothie-in-a-tall-glass-with-mint-leaf-png-image_21074832_lqdpy3.png",
                 "pngtree-juicy-watermelon-smoothie-in-a-tall-glass-with-mint-leaf-png-image_21074832_lqdpy3");
 
         createProduct(shop, sinhTo,
                 "Sinh tố sapoche",
                 "Sinh tố sapoche béo ngậy, thơm ngon, bổ dưỡng",
                 new BigDecimal("35000"),
-                "https://res-console.cloudinary.com/dhmh2ekqy/thumbnails/v1/image/upload/v1761611838/c2luaHRvLXNhcG9jaGVfMDE0MjAwZTM3MDljNDQ1MGEyOTg5MTczZDk1MWQ5ZDRfZmtja2Zs/preview",
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761611838/sinhto-sapoche_014200e3709c4450a2989173d951d9d4_fkckfl.png",
                 "sinhto-sapoche_014200e3709c4450a2989173d951d9d4_fkckfl");
 
+
+        createProduct(shop, sinhTo,
+                "Sinh tố mãng cầu",
+                "Sinh tố mãng cầu mát lạnh, thơm dịu, vị chua ngọt hài hòa, sánh mịn và béo nhẹ—uống một ngụm là tỉnh người",
+                new BigDecimal("35000"),
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761637850/mangcau_026c13c5e9aa4562ad41d77daa19fdbb_ev5g4q.png",
+                "mangcau_026c13c5e9aa4562ad41d77daa19fdbb_ev5g4q");
+
+        createProduct(shop, sinhTo,
+                "Sinh tố việt quất",
+                "Sinh tố việt quất tím mướt, chua nhẹ, ngọt thanh, thơm lừng và mịn sánh—uống vào mát người, tỉnh vị giác.",
+                new BigDecimal("32000"),
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761637838/sinh-to-viet-quat_mmycd6.png",
+                "sinh-to-viet-quat_mmycd6");
+
+        createProduct(shop, sinhTo,
+                "Sinh tố chuối",
+                "Sinh tố chuối sánh mịn, thơm ngậy, ngọt dịu tự nhiên—uống một hơi là no nhẹ và tràn năng lượng.",
+                new BigDecimal("32000"),
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761637862/sinhto-chuoi_2cae15fae32342adabf3ca2af104cb5b_mkprby.png",
+                "sinhto-chuoi_2cae15fae32342adabf3ca2af104cb5b_mkprby");
+
+        createProduct(shop, sinhTo,
+                "Sinh tố thanh long",
+                "Sinh tố thanh long mát rượi, ngọt thanh, hơi thơm hoa quả nhiệt đới; đỏ thì rực rỡ bắt mắt, trắng thì nhẹ nhàng, cực dễ uống.",
+                new BigDecimal("30000"),
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761643516/sinhto-thanhlong-1024_e89fa4797ceb48d3a05c381dd8ab9121_zfi0y3.png",
+                "sinhto-thanhlong-1024_e89fa4797ceb48d3a05c381dd8ab9121_zfi0y3");
+
+        createProduct(shop, sinhTo,
+                "Sinh tố đu đủ",
+                "Sinh tố đu đủ mượt sánh, thơm ngọt tự nhiên, béo nhẹ và mát lạnh—uống vào là “dịu bụng”, dễ chịu.",
+                new BigDecimal("35000"),
+                "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1761643801/sinhto-dudu_e8f5a7b3b86f4668b52a2c0393aaa86e_master_zsssxc.png",
+                "sinhto-dudu_e8f5a7b3b86f4668b52a2c0393aaa86e_master_zsssxc");
         // ============ TRÀ TRÁI CÂY (10 sản phẩm) ============
         createProduct(shop, traTraiCay,
                 "Trà chanh nhiệt đới",
@@ -643,6 +715,7 @@ public class DataInitializer implements CommandLineRunner {
                 "https://res.cloudinary.com/dhmh2ekqy/image/upload/v1760013917/tra5_ekeiow.png",
                 "tra_nhiet_doi");
     }
+
 
     private void createProduct(Shop shop, ProductCategory category, String name,
                                String description, BigDecimal basePrice, String imageUrl, String publicId) {

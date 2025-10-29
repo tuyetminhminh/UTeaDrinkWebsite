@@ -468,7 +468,11 @@ body:not(.has-breadcrumbs) .nav-reveal {
     if (hasBC) body.classList.add('has-breadcrumbs');
   })();
 </script>
-	<script
-		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<!-- Bootstrap JS -->
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	
+	<!-- Header script (theme toggle) -->
+	<div th:replace="~{fragments/header-admin :: headerScript}"></div>
 </body>
 </html>
