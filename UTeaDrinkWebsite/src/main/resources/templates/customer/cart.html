@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Giỏ hàng</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/customer.css}" />
+    <style>
+        :root{ --brand:#111; --accent:#0a0a0a; --header-h:80px; }
+        body.page-with-header{ margin:0; font-family:system-ui,Segoe UI,Roboto,Arial; padding-top:var(--header-h); background:#fff; }
+        .wrap{max-width:1040px;margin:0 auto;padding:20px 16px 120px}
+        .title{font-size:36px;font-weight:900;text-align:center;letter-spacing:.5px;margin:10px 0 6px;text-transform:uppercase}
+        .list{display:flex;flex-direction:column;gap:12px}
+        .item{display:grid;grid-template-columns:34px 96px 1fr auto;gap:12px;align-items:center;border:1px solid #eee;border-radius:14px;padding:12px;background:#fff}
+        .thumb{width:96px;height:96px;border-radius:10px;object-fit:cover;background:#fafafa;border:1px solid #f0f0f0}
+        .name{font-weight:800;margin-bottom:6px;color:#222;}
+        .inline-controls{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+        .sel{width:18px;height:18px}
+        .qty{display:flex;align-items:center;gap:8px}
+        .qty button{width:28px;height:28px;border:1px solid #ddd;background:#fff;border-radius:6px}
+        .qty input{width:54px;height:28px;border:1px solid #ddd;border-radius:6px;text-align:center}
+        .price{font-weight:800;white-space:nowrap}
+        .btn-remove{padding:6px 10px;border:1px solid #e5e5e5;border-radius:10px;background:#fff;color:#e03131;font-weight:700;font-size:14px;line-height:1;cursor:pointer}
+        .btn-remove:hover{ background:#fff5f5; border-color:#ffc9c9 }
+        .btn-remove:focus{ outline:none; box-shadow:0 0 0 3px rgba(224,49,49,.15) }
+        .billbar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #eee;z-index:50}
+        .bill-inner{max-width:1040px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:12px 16px}
+        .bill-sum{margin-left:auto;text-align:right}
+        .btn-order{background:#000;color:#fff;border:none;border-radius:12px;font-weight:900;padding:12px 18px;cursor:pointer}
+        .empty{border:1px dashed #ddd;border-radius:16px;padding:22px;text-align:center}
+        @media (max-width:720px){.item{grid-template-columns:28px 80px 1fr auto}}
+        .pill{border:1px solid #ddd;border-radius:999px;padding:8px 12px;display:inline-flex;align-items:center;gap:8px;margin:6px;cursor:pointer}
+        .pill.active{background:#111;color:#fff;border-color:#111}
+    </style>
+</head>
+<body class="page-with-header">
+<div th:replace="~{fragments/header-customer :: customerHeader}"></div>
+<div style="height:20px"></div>
+
+<main class="wrap" th:with="hasItems=${items != null and !#lists.isEmpty(items)}">
+    <h1 class="title">GIỎ HÀNG</h1>
+
+    <div th:if="${msg}" class="alert alert-success" role="alert" th:text="${msg}">Đã thêm vào giỏ hàng.</div>
+
+    <div th:if="${!hasItems}" class="empty">
+        Giỏ hàng trống.
+        <a th:href="@{/customer/menu}" style="font-weight:800">Tiếp tục mua hàng</a>
+    </div>
+
+    <div th:if="${hasItems}">
+        <div class="list" id="cartList">
+            <div class="item"
+                 th:each="item : ${items}"
+                 th:attr="data-id=${item.id},
+                          data-unit=${item.unitPrice},
+                          data-qty=${item.quantity},
+                          data-selected=${item.selected}">
+                <div>
+                    <form th:action="@{/customer/cart/select}" method="post" class="selectForm">
+                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <input type="hidden" name="itemId" th:value="${item.id}"/>
+                        <input type="hidden" name="selected" th:value="${!item.selected}"/>
+                        <input class="sel" type="checkbox" th:checked="${item.selected}" onchange="toggleSelect(this)"/>
+                    </form>
+                </div>
+
+                <img class="thumb" th:src="${item.product.mainImageUrl}" th:alt="${item.product.name}"/>
+
+                <div>
+                    <div class="name" th:text="${item.product.name}">Tên sản phẩm</div>
+
+                    <div class="inline-controls">
+                        <form th:if="${item.variant != null
+                                      and variantOptions != null
+                                      and variantOptions[item.id] != null
+                                      and item.product != null
+                                      and item.product.category != null
+                                      and item.product.category.id != 3}"
+                              th:action="@{/customer/cart/change-variant}" method="post"
+                              style="display:flex;align-items:center;gap:8px">
+                            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <input type="hidden" name="itemId" th:value="${item.id}"/>
+                            <select name="newVariantId" class="form-select form-select-sm" onchange="this.form.submit()" style="width:160px">
+                                <option th:each="v : ${variantOptions[item.id]}"
+                                        th:value="${v.id}"
+                                        th:selected="${item.variant.id == v.id}"
+                                        th:text="${v.size}">Size</option>
+                            </select>
+                        </form>
+
+                        <form th:action="@{/customer/cart/update}" method="post" class="qty">
+                            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <input type="hidden" name="itemId" th:value="${item.id}"/>
+                            <button type="button" onclick="bump(this,-1)">−</button>
+                            <input class="q" type="number" name="quantity" th:value="${item.quantity}" min="1"/>
+                            <button type="button" onclick="bump(this,1)">+</button>
+                        </form>
+
+                        <button type="button"
+                                class="btn btn-outline-dark btn-sm"
+                                th:if="${item.product != null
+                                       and item.product.category != null
+                                       and item.product.category.id != 3}"
+                                data-bs-toggle="modal"
+                                th:attr="data-bs-target=${'#topModal-' + item.id}"
+                                style="border-radius:10px">
+                            Chỉnh topping
+                        </button>
+
+                        <form th:action="@{/customer/cart/remove}" method="post">
+                            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <input type="hidden" name="itemId" th:value="${item.id}"/>
+                            <button type="submit" class="btn-remove">Xóa</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="price"
+                     th:text="${#numbers.formatDecimal(item.unitPrice * item.quantity,0,'COMMA',0,'POINT')} + ' đ'">0 đ</div>
+            </div>
+        </div>
+    </div>
+
+    <div th:each="item : ${items}" class="modal fade" th:id="${'topModal-' + item.id}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:14px">
+                <div class="modal-header">
+                    <h5 class="modal-title">Topping cho: <span th:text="${item.product.name}">SP</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <form th:action="@{/customer/cart/change-toppings}" method="post">
+                    <div class="modal-body">
+                        <input type="hidden" name="itemId" th:value="${item.id}"/>
+                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <div class="top-wrap"
+                             style="max-height:260px; overflow:auto; border:1px solid #eee; border-radius:12px; padding:10px"
+                             th:attr="data-init=${item.toppingsJson},
+                                      data-shop=${item.product != null && item.product.shop != null ? item.product.shop.id : 0}">
+                            <div class="small text-muted">Đang tải topping...</div>
+                        </div>
+                        <div class="mt-2 small text-muted">* Tổng tiền sẽ cập nhật sau khi lưu.</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-dark" type="submit" style="border-radius:10px">Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="billbar" th:if="${items != null and !#lists.isEmpty(items)}">
+    <div class="bill-inner">
+        <div style="display:flex;align-items:center;gap:8px">
+            <input id="selAll2" type="checkbox"/>
+            <label for="selAll2">Chọn tất cả</label>
+        </div>
+        <div class="bill-sum">
+            <div style="font-size:13px;color:#666">Tạm tính (đã chọn)</div>
+            <div id="sumSelected" style="font-weight:900;font-size:22px"
+                 th:text="${#numbers.formatDecimal(subtotalSelected,0,'COMMA',0,'POINT')} + ' đ'">0 đ</div>
+        </div>
+        <form th:action="@{/customer/checkout}" method="get">
+            <button class="btn-order" type="submit">ĐẶT HÀNG</button>
+        </form>
+    </div>
+</div>
+
+<form id="selectAllForm" th:action="@{/customer/cart/select-all}" method="post" style="display:none">
+    <input type="hidden" name="selected" id="selAllHidden" value="true"/>
+    <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+
+<!-- LƯU Ý: dùng th:utext để JSON KHÔNG bị escape -->
+<script id="topsMapData" type="application/json" th:utext="${topsDataByShopJson}">{}</script>
+
+<script>
+    (function(){
+        const list = document.getElementById('cartList'); if(!list) return;
+        const items = [...list.querySelectorAll('.item')];
+        const sumBox = document.getElementById('sumSelected');
+        const fmt = v => (v||0).toLocaleString('vi-VN')+' đ';
+
+        function lineTotal(it){
+            const unit = Number(it.dataset.unit || '0');
+            const qty  = Number(it.querySelector('.q')?.value || it.dataset.qty || '1');
+            return unit * qty;
+        }
+        function calc(){
+            let s=0;
+            items.forEach(it=>{
+                if(it.querySelector('.sel')?.checked) s += lineTotal(it);
+            });
+            sumBox.textContent = fmt(s);
+        }
+        items.forEach(it=>{
+            it.querySelector('.sel')?.addEventListener('change', calc);
+            it.querySelector('.q')?.addEventListener('change', calc);
+        });
+        const barAll=document.getElementById('selAll2');
+        if(barAll){
+            barAll.checked = items.length>0 && items.every(it=>it.querySelector('.sel')?.checked);
+            barAll.addEventListener('change', ()=>{
+                const checked = barAll.checked;
+                items.forEach(it=>{ const cb=it.querySelector('.sel'); if(cb) cb.checked=checked; });
+                document.getElementById('selAllHidden').value = checked ? 'true' : 'false';
+                document.getElementById('selectAllForm').submit();
+            });
+        }
+        window.bump = function(btn,delta){
+            const form=btn.closest('form'); const input=form.querySelector('.q');
+            input.value=Math.max(1, parseInt(input.value||'1',10)+delta);
+            calc();
+            form.submit();
+        };
+        window.toggleSelect = function(cb){
+            cb.closest('.selectForm').submit();
+        };
+        calc();
+    })();
+
+    document.addEventListener('shown.bs.modal', function (ev) {
+        const modal = ev.target;
+        const box   = modal.querySelector('.top-wrap');
+        if (!box) return;
+
+        if (typeof window.__TOPS_MAP__ === 'undefined') {
+            try {
+                const raw = document.getElementById('topsMapData')?.textContent || '{}';
+                window.__TOPS_MAP__ = JSON.parse(raw);
+            } catch (e) { window.__TOPS_MAP__ = {}; }
+        }
+
+        const shopId = Number(box.getAttribute('data-shop') || '0');
+        const list = (window.__TOPS_MAP__ && window.__TOPS_MAP__[shopId]) ? window.__TOPS_MAP__[shopId] : [];
+
+        const selected = new Set();
+        try {
+            const init = box.getAttribute('data-init');
+            if (init && init.trim()) JSON.parse(init).forEach(o => selected.add(String(o.id)));
+        } catch (_) {}
+
+        if (!list.length) {
+            box.innerHTML = '<div class="text-muted">Không có topping.</div>';
+            return;
+        }
+
+        const fmt = v => (Number(v)||0).toLocaleString('vi-VN') + ' đ';
+        const tops = list.slice().sort((a,b) => Number(b.id) - Number(a.id));
+        box.innerHTML = tops.map(t => {
+            const checked = selected.has(String(t.id));
+            return `
+        <label class="pill ${checked ? 'active':''}">
+          <input type="checkbox" name="toppingIds" value="${t.id}" ${checked ? 'checked':''}/>
+          <span>${t.name}</span>
+          <span style="opacity:.7;font-weight:600"> + ${fmt(t.price)}</span>
+        </label>
+      `;
+        }).join('');
+
+        box.addEventListener('change', (e)=>{
+            if(e.target && e.target.type === 'checkbox'){
+                e.target.closest('label.pill')?.classList.toggle('active', e.target.checked);
+            }
+        });
+    });
+</script>
+
+<div style="height:90px"></div>
+</body>
+</html>

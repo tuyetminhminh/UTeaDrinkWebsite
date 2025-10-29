@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Dashboard - UTea</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+            padding-top: 70px; /* Để tránh bị header đè */
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 25px;
+            min-height: calc(100vh - 70px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-content.expanded {
+            margin-left: 70px;
+        }
+
+        /* Stats Cards */
+        .stats-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-color);
+        }
+
+        .stats-card .icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+
+        .stats-card h6 {
+            color: #8492a6;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stats-card h2 {
+            color: #2d3748;
+            font-weight: 700;
+            margin-bottom: 5px;
+            font-size: 28px;
+        }
+
+        .stats-card .trend {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .trend.up {
+            color: #48bb78;
+        }
+
+        .trend.down {
+            color: #f56565;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+        }
+
+        .quick-actions h5 {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        .action-btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.3s;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        /* Review Overview */
+        .review-overview {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .review-stat-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            height: 100%;
+        }
+
+        .review-stat-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .review-stat-info {
+            flex: 1;
+        }
+
+        .review-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .review-stat-label {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 2px;
+        }
+
+        .review-rating-bars {
+            width: 100%;
+        }
+
+        .rating-bar-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .rating-bar-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .rating-bar-item .stars {
+            font-size: 12px;
+            width: 40px;
+            flex-shrink: 0;
+        }
+
+        .rating-bar-item .bar {
+            flex: 1;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .rating-bar-item .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            transition: width 0.3s;
+        }
+
+        .rating-bar-item .count {
+            font-size: 11px;
+            color: #718096;
+            width: 30px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* Table */
+        .data-table {
+            background: #fff;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .data-table h5 {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .table {
+            margin: 0;
+        }
+
+        .table thead th {
+            background: #f7fafc;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none;
+            padding: 15px;
+        }
+
+        .table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            color: #4a5568;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            font-weight: 500;
+            font-size: 11px;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            height: 100%;
+        }
+
+        .chart-container h5 {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #a0aec0;
+        }
+
+        .loading i {
+            font-size: 32px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            body.sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div th:replace="~{fragments/header-manager :: managerHeader}"></div>
+
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/manager-sidebar :: sidebar('home')}"></div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="mb-1" style="font-weight: 700; color: #2d3748; font-size: 24px;">Dashboard</h2>
+                <p class="text-muted mb-0" style="font-size: 13px;">Tổng quan hoạt động cửa hàng của bạn</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/manager/revenue" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-chart-bar"></i> Báo cáo
+                </a>
+                <a href="/manager/orders" class="btn btn-primary btn-sm">
+                    <i class="fas fa-shopping-bag"></i> Đơn hàng
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-3 mb-3">
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card" style="--accent-color: #667eea;">
+                    <div class="icon" style="background: rgba(102, 126, 234, 0.1); color: #667eea;">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h6>Tổng đơn hàng</h6>
+                    <h2 id="totalOrders">--</h2>
+                    <div class="trend">
+                        <span id="totalOrdersTrend">Tất cả thời gian</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card" style="--accent-color: #48bb78;">
+                    <div class="icon" style="background: rgba(72, 187, 120, 0.1); color: #48bb78;">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <h6>Doanh thu hôm nay</h6>
+                    <h2 id="todayRevenue">--</h2>
+                    <div class="trend up">
+                        <i class="fas fa-arrow-up"></i> <span id="revenueTrend">--</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card" style="--accent-color: #ed8936;">
+                    <div class="icon" style="background: rgba(237, 137, 54, 0.1); color: #ed8936;">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h6>Đơn đang giao</h6>
+                    <h2 id="deliveringOrders">--</h2>
+                    <div class="trend">
+                        <span id="deliveringTrend">--</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stats-card" style="--accent-color: #4299e1;">
+                    <div class="icon" style="background: rgba(66, 153, 225, 0.1); color: #4299e1;">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <h6>Tổng sản phẩm</h6>
+                    <h2 id="totalProducts">--</h2>
+                    <div class="trend">
+                        <span id="productsTrend">Đang bán</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <h5><i class="fas fa-bolt"></i> Thao tác nhanh</h5>
+            <div class="row g-2">
+                <div class="col-lg-3 col-md-6">
+                    <a href="/manager/orders?status=NEW" class="btn btn-warning action-btn text-white w-100">
+                    <i class="fas fa-bell"></i> Đơn chờ xác nhận
+                </a>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <a href="/manager/orders?status=DELIVERING" class="btn btn-info action-btn text-white w-100">
+                        <i class="fas fa-truck"></i> Đơn đang giao
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <a href="/manager/promotions" class="btn btn-success action-btn w-100">
+                        <i class="fas fa-gift"></i> Quản lý khuyến mãi
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <a href="/manager/vouchers" class="btn btn-primary action-btn w-100">
+                        <i class="fas fa-ticket-alt"></i> Quản lý mã giảm giá
+                    </a>
+                </div>
+            </div>
+            <div class="row g-2 mt-2">
+                <div class="col-lg-6 col-md-6">
+                    <a th:href="@{/chat/manager/inbox}" class="btn btn-secondary action-btn position-relative w-100">
+                        <i class="fas fa-comment-dots"></i> Tin nhắn khách hàng
+                        <span id="chatBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display:none; font-size:10px;">
+                            0
+                        </span>
+                    </a>
+                </div>
+                <div class="col-lg-6 col-md-6">
+                    <a href="/manager/orders" class="btn btn-outline-primary action-btn w-100">
+                        <i class="fas fa-list"></i> Xem tất cả đơn hàng
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Overview -->
+        <div class="review-overview mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 style="font-size: 15px; font-weight: 600; margin: 0;">
+                    <i class="fas fa-star" style="color: #fbbf24;"></i> Đánh giá của khách hàng
+                </h5>
+                <a href="/manager/reviews" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+            </div>
+            <div class="row g-2">
+                <div class="col-md-3">
+                    <div class="review-stat-card">
+                        <div class="review-stat-icon" style="background: rgba(251, 191, 36, 0.1); color: #fbbf24;">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="review-stat-info">
+                            <div class="review-stat-value" id="avgRating">--</div>
+                            <div class="review-stat-label">Đánh giá TB</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="review-stat-card">
+                        <div class="review-stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="review-stat-info">
+                            <div class="review-stat-value" id="totalReviews">--</div>
+                            <div class="review-stat-label">Tổng đánh giá</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="review-stat-card" style="flex-direction: column; align-items: stretch;">
+                        <div class="review-rating-bars" id="ratingBars">
+                            <div class="rating-bar-item">
+                                <span class="stars">5⭐</span>
+                                <div class="bar"><div class="fill" style="width: 0%"></div></div>
+                                <span class="count">0</span>
+                            </div>
+                            <div class="rating-bar-item">
+                                <span class="stars">4⭐</span>
+                                <div class="bar"><div class="fill" style="width: 0%"></div></div>
+                                <span class="count">0</span>
+                            </div>
+                            <div class="rating-bar-item">
+                                <span class="stars">3⭐</span>
+                                <div class="bar"><div class="fill" style="width: 0%"></div></div>
+                                <span class="count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-3 mb-3">
+            <div class="col-lg-7">
+                <div class="chart-container">
+                    <h5><i class="fas fa-chart-area"></i> Doanh thu 7 ngày gần đây</h5>
+                    <canvas id="revenueChart" height="70"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="chart-container">
+                    <h5><i class="fas fa-chart-pie"></i> Trạng thái đơn hàng</h5>
+                    <canvas id="orderStatusChart" height="280"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Load dashboard data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardStats();
+            initCharts();
+        });
+
+        // Load Dashboard Statistics
+        function loadDashboardStats() {
+            // Load Today's Revenue
+            fetch('/manager/revenue/api/today')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Revenue API Response:', data);
+                    console.log('totalRevenue type:', typeof data.totalRevenue);
+                    console.log('totalRevenue value:', data.totalRevenue);
+                    
+                    // Today's Revenue
+                    document.getElementById('todayRevenue').textContent = 
+                        formatCurrency(data.totalRevenue || 0);
+                    
+                    // Trend
+                    const trend = data.trend || 0;
+                    document.getElementById('revenueTrend').textContent = 
+                        `${trend > 0 ? '+' : ''}${trend}% so với hôm qua`;
+                })
+                .catch(error => {
+                    console.error('Error loading revenue stats:', error);
+                    document.getElementById('todayRevenue').textContent = formatCurrency(0);
+                    document.getElementById('revenueTrend').textContent = '--';
+                });
+
+            // Load TOTAL Orders (all time)
+            fetch('/manager/orders/api/total-count')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('totalOrders').textContent = data.total || 0;
+                })
+                .catch(error => {
+                    console.error('Error loading total orders:', error);
+                    document.getElementById('totalOrders').textContent = '0';
+                });
+
+            // Load Total Products
+            fetch('/manager/products/api/count')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Product Count API Response:', data);
+                    console.log('total type:', typeof data.total);
+                    console.log('total value:', data.total);
+                    
+                    document.getElementById('totalProducts').textContent = data.total || 0;
+                })
+                .catch(error => {
+                    console.error('Error loading product count:', error);
+                    document.getElementById('totalProducts').textContent = '0';
+                });
+
+            // Load Delivering Orders
+            fetch('/manager/orders/api/delivering-count')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('deliveringOrders').textContent = data.count || 0;
+                    document.getElementById('deliveringTrend').textContent = `${data.count || 0} đơn`;
+                })
+                .catch(error => {
+                    console.error('Error loading delivering count:', error);
+                    document.getElementById('deliveringOrders').textContent = '0';
+                    document.getElementById('deliveringTrend').textContent = '0 đơn';
+                });
+
+            // Load Review Stats
+            fetch('/manager/reviews/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    // Average Rating
+                    const avgRating = data.averageRating || 0;
+                    document.getElementById('avgRating').textContent = avgRating.toFixed(1) + '⭐';
+                    
+                    // Total Reviews
+                    document.getElementById('totalReviews').textContent = data.totalReviews || 0;
+                    
+                    // Rating Bars
+                    const ratingCounts = data.ratingCounts || {};
+                    const total = data.totalReviews || 1; // Avoid division by zero
+                    
+                    // Update rating bars (5, 4, 3 stars only for compact display)
+                    [5, 4, 3].forEach((star, index) => {
+                        const count = ratingCounts[star] || 0;
+                        const percentage = (count / total) * 100;
+                        const bars = document.querySelectorAll('.rating-bar-item');
+                        if (bars[index]) {
+                            bars[index].querySelector('.fill').style.width = percentage + '%';
+                            bars[index].querySelector('.count').textContent = count;
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading review stats:', error);
+                    document.getElementById('avgRating').textContent = '--';
+                    document.getElementById('totalReviews').textContent = '--';
+                });
+        }
+
+        // Initialize Charts
+        let revenueChart, orderStatusChart;
+
+        function initCharts() {
+            // Revenue Chart (7 days)
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            revenueChart = new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: getLast7Days(),
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: [1200000, 1900000, 1500000, 2200000, 1800000, 2400000, 2100000],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Order Status Chart
+            const statusCtx = document.getElementById('orderStatusChart').getContext('2d');
+            orderStatusChart = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Mới', 'Đã xác nhận', 'Đang giao', 'Hoàn thành'],
+                    datasets: [{
+                        data: [5, 8, 12, 25],
+                        backgroundColor: [
+                            '#667eea',
+                            '#4299e1',
+                            '#ed8936',
+                            '#48bb78'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Load real data for charts
+            loadChartData();
+        }
+
+        function loadChartData() {
+            // Load 7-day revenue data
+            fetch('/manager/revenue/api/last7days')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('7-Day Revenue API Response:', data);
+                    if (data.labels && data.values) {
+                        console.log('Labels:', data.labels);
+                        console.log('Values:', data.values);
+                        
+                        revenueChart.data.labels = data.labels;
+                        revenueChart.data.datasets[0].data = data.values;
+                        revenueChart.update();
+                        
+                        console.log('Chart updated successfully!');
+                    } else {
+                        console.warn('No labels or values in response');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading chart data:', error);
+                    // Keep showing placeholder data on error
+                });
+
+            // Load order status distribution
+            fetch('/manager/orders/api/status-distribution')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Order Status Distribution API Response:', data);
+                    if (data.labels && data.values) {
+                        orderStatusChart.data.labels = data.labels;
+                        orderStatusChart.data.datasets[0].data = data.values;
+                        orderStatusChart.update();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading status chart:', error);
+                    // Keep showing placeholder data on error
+                });
+        }
+
+        // Utility Functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', { 
+                style: 'currency', 
+                currency: 'VND' 
+            }).format(amount);
+        }
+
+        function formatDateTime(dateString) {
+            return new Date(dateString).toLocaleString('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getLast7Days() {
+            const days = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                days.push(date.toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' }));
+            }
+            return days;
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'NEW': 'primary',
+                'CONFIRMED': 'info',
+                'PREPARING': 'warning',
+                'DELIVERING': 'secondary',
+                'DELIVERED': 'success',
+                'CANCELED': 'danger',
+                'RETURNED': 'dark',
+                'REFUNDED': 'secondary'
+            };
+            return colors[status] || 'secondary';
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                'NEW': 'Mới',
+                'CONFIRMED': 'Đã xác nhận',
+                'PREPARING': 'Đang chuẩn bị',
+                'DELIVERING': 'Đang giao',
+                'DELIVERED': 'Đã giao',
+                'CANCELED': 'Đã hủy',
+                'RETURNED': 'Trả hàng',
+                'REFUNDED': 'Hoàn tiền'
+            };
+            return texts[status] || status;
+        }
+
+        function confirmOrder(orderId) {
+            if (confirm('Xác nhận đơn hàng này?')) {
+                fetch(`/manager/orders/${orderId}/confirm`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Đã xác nhận đơn hàng!');
+                    loadRecentOrders();
+                    loadDashboardStats();
+                })
+                .catch(error => {
+                    console.error('Error confirming order:', error);
+                    alert('Có lỗi xảy ra. Vui lòng thử lại.');
+                });
+            }
+        }
+
+        // Auto refresh every 30 seconds
+        setInterval(() => {
+            loadDashboardStats();
+            loadRecentOrders();
+        }, 30000);
+    </script>
+    
+    <!-- Chat unread count updater -->
+    <script>
+        // Cập nhật số tin nhắn chưa đọc
+        async function updateChatBadge(){
+            try{
+                const res = await fetch('/api/chat/manager/unread-count');
+                const data = await res.json();
+                const badge = document.getElementById('chatBadge');
+                if(badge && data.unreadCount > 0){
+                    badge.textContent = data.unreadCount > 99 ? '99+' : data.unreadCount;
+                    badge.style.display = 'inline-block';
+                } else if(badge){
+                    badge.style.display = 'none';
+                }
+            }catch(e){
+                console.log('Cannot fetch chat unread count:', e);
+            }
+        }
+        
+        // Cập nhật ngay khi tải trang
+        updateChatBadge();
+        
+        // Cập nhật mỗi 30 giây
+        setInterval(updateChatBadge, 30000);
+    </script>
+</body>
+</html>

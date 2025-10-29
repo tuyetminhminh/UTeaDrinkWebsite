@@ -2,3 +2,7 @@
 # IDE
 .idea/
 *.iml
+target/
+*.env
+bin/
+

@@ -1,0 +1,346 @@
+<!-- src/main/resources/templates/chat/customer-chat.html -->
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Hỗ trợ khách hàng</title>
+
+    <!-- Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root{
+            --bg: #f8fafc;
+            --grad1: #e0e7ff;
+            --grad2: #fef3c7;
+            --card: #ffffff;
+            --muted: #64748b;
+            --text: #0f172a;
+            --primary: #ff7b00;
+            --primary-dark: #e56b00;
+            --primary-soft: #fff4e6;
+            --me-bg: linear-gradient(135deg, #fff4e6 0%, #ffe8cc 100%);
+            --me-border: rgba(255, 123, 0, 0.2);
+            --other-bg: #f8fafc;
+            --other-border: rgba(71, 85, 105, 0.12);
+            --border: rgba(148, 163, 184, 0.15);
+            --shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+            --shadow-sm: 0 4px 20px rgba(15, 23, 42, 0.08);
+        }
+
+        html,body{height:100%; font-family: 'Inter', -apple-system, sans-serif;}
+        body{
+            margin:0;
+            background:
+                radial-gradient(1400px 1400px at 100% -250px, var(--grad1), transparent 55%),
+                radial-gradient(1000px 1000px at -100px 60%, var(--grad2), transparent 55%),
+                var(--bg);
+            color:var(--text);
+        }
+
+        .chat-shell{
+            max-width: 1000px; margin: 32px auto; padding: 0;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px; 
+            box-shadow: var(--shadow);
+            display: grid; grid-template-rows: auto 1fr auto;
+            height: calc(100vh - 64px);
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .head{
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 14px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.92));
+            backdrop-filter: blur(12px);
+        }
+        .title{
+            font-weight: 700; 
+            font-size: 1.125rem;
+            margin: 0;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .state{color: var(--muted); font-size: 0.875rem;}
+
+        .messages{
+            padding: 24px;
+            overflow: auto;
+            display: flex; flex-direction: column; gap: 14px;
+            background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
+            min-height: 0;
+            position: relative;
+        }
+
+        .msg{ display:flex; gap:12px; animation: slideIn 0.3s ease; }
+        .msg.me{ justify-content: flex-end; }
+        
+        @keyframes slideIn{
+            from{ opacity: 0; transform: translateY(8px); }
+            to{ opacity: 1; transform: translateY(0); }
+        }
+        
+        .bubble{
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            background: var(--other-bg);
+            border: 1px solid var(--other-border);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+        .msg.me .bubble{
+            background: var(--me-bg);
+            border-color: var(--me-border);
+            box-shadow: 0 4px 20px rgba(255, 123, 0, 0.15);
+        }
+        .bubble small{ 
+            display:block; 
+            color: var(--muted); 
+            margin-top: 8px; 
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .status{
+            align-self:center; 
+            font-size: 12px; 
+            color: var(--muted);
+            padding: 8px 14px; 
+            border-radius: 999px;
+            background: rgba(255,255,255,0.9); 
+            border: 1px dashed var(--border);
+            margin: 8px 0 12px;
+            backdrop-filter: blur(8px);
+        }
+
+        .composer{
+            padding: 20px 24px; 
+            border-top: 1px solid var(--border);
+            background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.92));
+            backdrop-filter: blur(12px);
+            display: grid; grid-template-columns: 1fr auto; gap: 12px;
+        }
+        .input-wrap{
+            display:flex; align-items:center; gap:12px;
+            background:#fff; 
+            border:1px solid var(--border); 
+            border-radius:16px; 
+            padding: 10px 16px;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+            transition: all 0.2s ease;
+        }
+        .input-wrap:focus-within{
+            border-color: var(--primary);
+            box-shadow: 0 4px 20px rgba(255, 123, 0, 0.15);
+        }
+        .form-input{
+            border: none; 
+            outline: none; 
+            width:100%;
+            font-size: 15px; 
+            background: transparent;
+            color: var(--text);
+        }
+        .btn-send{
+            border: none;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color:#fff; 
+            font-weight:600;
+            border-radius:16px; 
+            padding: 12px 24px;
+            box-shadow: 0 8px 24px rgba(255, 123, 0, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .btn-send:hover:not(:disabled){
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(255, 123, 0, 0.4);
+        }
+        .btn-send:active:not(:disabled){
+            transform: translateY(0);
+        }
+        .btn-send:disabled{ 
+            opacity:.5; 
+            filter: grayscale(.6); 
+            box-shadow:none;
+            cursor: not-allowed;
+        }
+
+        .jump-bottom{
+            position: absolute;
+            right: 24px; bottom: 96px;
+            display: none;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            color: var(--primary);
+            border: 1px solid var(--me-border);
+            box-shadow: 0 6px 20px rgba(255, 123, 0, 0.2);
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .jump-bottom:hover{
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 123, 0, 0.3);
+        }
+
+        .messages::-webkit-scrollbar{ width: 10px; }
+        .messages::-webkit-scrollbar-track{ background: transparent; }
+        .messages::-webkit-scrollbar-thumb{ 
+            background: rgba(148, 163, 184, 0.25); 
+            border-radius: 999px; 
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        .messages::-webkit-scrollbar-thumb:hover{ 
+            background: rgba(255, 123, 0, 0.3);
+            background-clip: padding-box;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header-customer :: customerHeader}"></div>
+<div style="height:40px"></div>
+<div class="chat-shell">
+    <!-- Header -->
+    <div class="head">
+        <h4 class="title flex-grow-1 m-0">Chat với Quản lý</h4>
+        <small id="connState" class="state">Đang kết nối…</small>
+    </div>
+
+    <!-- Messages -->
+    <div id="messages" class="messages"></div>
+    <button id="jumpBottom" class="btn btn-sm jump-bottom">
+        Xuống cuối <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-arrow-down-short" viewBox="0 0 16 16">
+        <path fill-rule="evenodd"
+              d="M8 12a.5.5 0 0 0 .5-.5V5.707l2.147 2.147a.5.5 0 0 0 .707-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5A.5.5 0 0 0 8 12"/>
+    </svg>
+    </button>
+
+    <!-- Composer -->
+    <div class="composer">
+        <div class="input-wrap">
+            <input id="messageInput" class="form-input" placeholder="Nhập tin nhắn…"/>
+        </div>
+        <button id="sendBtn" class="btn btn-send" disabled>Gửi</button>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- SockJS + STOMP -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+
+<!-- Thymeleaf inline -->
+<script th:inline="javascript">
+    window.CURRENT_USER_ID = /*[[${me?.id}]]*/ null;
+</script>
+
+<script>
+    (function(){
+        let stomp = null, conversationId = null, connected = false;
+        const $msgs  = document.getElementById('messages');
+        const $input = document.getElementById('messageInput');
+        const $send  = document.getElementById('sendBtn');
+        const $state = document.getElementById('connState');
+        const $jump  = document.getElementById('jumpBottom');
+
+        function setState(t){ $state.textContent = t; }
+        function escapeHtml(s){ return (s||'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+        function timeHHmm(d){ try{ return new Date(d).toLocaleTimeString(); } catch(e){ return ''; } }
+
+        function isAtBottom(){ return Math.abs($msgs.scrollHeight - $msgs.scrollTop - $msgs.clientHeight) < 8; }
+        function scrollToBottom(){ $msgs.scrollTop = $msgs.scrollHeight; }
+
+        $msgs.addEventListener('scroll', ()=>{ $jump.style.display = isAtBottom() ? 'none' : 'inline-flex'; });
+        $jump.addEventListener('click', scrollToBottom);
+
+        function appendSystem(text){
+            const el = document.createElement('div');
+            el.className = 'status';
+            el.textContent = text;
+            $msgs.appendChild(el);
+        }
+
+        function append(msg){
+            const stick = isAtBottom();
+            const me = (msg.senderId === window.CURRENT_USER_ID);
+            const el = document.createElement('div');
+            el.className = 'msg' + (me ? ' me' : '');
+            el.innerHTML = `
+      <div class="bubble">
+        <div>${escapeHtml(msg.content||'')}</div>
+        <small>${timeHHmm(msg.sentAt)}</small>
+      </div>`;
+            $msgs.appendChild(el);
+            if(stick) scrollToBottom();
+        }
+
+        async function ensureConversation(){
+            const res = await fetch('/api/chat/customer/conversation');
+            if(!res.ok) throw new Error('HTTP ' + res.status);
+            const data = await res.json();
+            conversationId = data.id;
+
+            // load history
+            const hx = await fetch(`/api/chat/history?conversationId=${conversationId}`);
+            const list = await hx.json();
+            (list || []).forEach(append);
+            scrollToBottom();
+        }
+
+        function subscribe(){
+            if(!stomp || !conversationId) return;
+            stomp.subscribe(`/topic/conversation.${conversationId}`, frame=>{
+                try{ append(JSON.parse(frame.body)); }catch(e){ console.error(e); }
+            });
+        }
+
+        function enableSend(en){ $send.disabled = !en; $input.disabled = !en; }
+
+        function connect(){
+            const sock = new SockJS('/ws');
+            stomp = Stomp.over(sock);
+            // stomp.debug = null;
+
+            stomp.connect({}, async ()=>{
+                connected = true; setState('Đã kết nối');
+                try{
+                    await ensureConversation();
+                    subscribe();
+                    enableSend(true);
+                }catch(e){
+                    console.error(e);
+                    appendSystem('Không thể khởi tạo hội thoại. Vui lòng tải lại trang.');
+                }
+            }, err=>{
+                connected = false; setState('Mất kết nối');
+                console.error('STOMP error', err);
+                appendSystem('Mất kết nối realtime – tin nhắn không thể gửi/nhận.');
+                enableSend(false);
+            });
+        }
+
+        function send(){
+            const text = $input.value.trim();
+            if(!text || !stomp || !connected || !conversationId) return;
+            stomp.send('/app/chat.send', {}, JSON.stringify({ conversationId, content: text }));
+            $input.value = ''; $input.focus();
+        }
+
+        $send.addEventListener('click', send);
+        $input.addEventListener('keydown', e=>{ if(e.key==='Enter') send(); });
+
+        connect();
+    })();
+</script>
+</body>
+</html>

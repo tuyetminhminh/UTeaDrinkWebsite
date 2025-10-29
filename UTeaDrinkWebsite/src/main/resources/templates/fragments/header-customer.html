@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+<header th:fragment="customerHeader" class="customer-header">
+    <style>
+        .customer-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            background: linear-gradient(180deg, #1a1a1a 0%, #000000 100%);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+        }
+        
+        /* Main Nav */
+        .customer-main-nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 8px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .customer-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+        
+        .customer-logo:hover {
+            transform: scale(1.03);
+        }
+        
+        .logo-customer-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #ff7b00 0%, #e36d00 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 12px rgba(255, 123, 0, 0.3);
+        }
+        
+        .logo-customer-text {
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.25rem;
+            margin: 0;
+            background: linear-gradient(135deg, #fff 0%, #ff7b00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Navigation Links */
+        .customer-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .customer-nav-link {
+            color: #e5e7eb;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            position: relative;
+            padding: 5px 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .customer-nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #ff7b00;
+            transition: width 0.3s ease;
+        }
+        
+        .customer-nav-link:hover {
+            color: #ff7b00;
+        }
+        
+        .customer-nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .customer-nav-link.active {
+            color: #ff7b00;
+        }
+        
+        .customer-nav-link.active::after {
+            width: 100%;
+        }
+        
+        /* Cart Badge */
+        .cart-badge {
+            position: relative;
+        }
+        
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff7b00;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+        }
+        
+        /* User Section */
+        .customer-user-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .customer-user-dropdown {
+            position: relative;
+        }
+        
+        .customer-user-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .customer-user-btn:hover {
+            background: rgba(255, 123, 0, 0.1);
+            border-color: #ff7b00;
+        }
+        
+        .customer-user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .customer-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: rgba(0, 0, 0, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            min-width: 220px;
+            padding: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1050;
+        }
+        
+        .customer-user-dropdown:hover .customer-dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .customer-dropdown-item {
+            color: #e0e0e0;
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .customer-dropdown-item:hover {
+            background: rgba(255, 123, 0, 0.1);
+            color: #ff7b00;
+        }
+        
+        .customer-dropdown-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 8px 0;
+        }
+        
+        .logout-btn {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #e0e0e0;
+            padding: 10px 14px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(220, 38, 38, 0.1);
+            color: #ef4444;
+        }
+        
+        /* Mobile Menu */
+        .mobile-menu-customer-btn {
+            display: none;
+            background: rgba(255, 123, 0, 0.1);
+            border: 2px solid #ff7b00;
+            color: #ff7b00;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-menu-customer-btn:hover {
+            background: #ff7b00;
+            color: white;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .customer-nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-customer-btn {
+                display: block;
+            }
+            
+            .customer-main-nav {
+                padding: 12px 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .logo-customer-text {
+                font-size: 1.2rem;
+            }
+            
+            .customer-user-name {
+                display: none;
+            }
+        }
+        
+        /* Body padding for fixed header */
+        body {
+            padding-top: 60px;
+        }
+    </style>
+
+    <!-- Main Navigation -->
+    <nav class="customer-main-nav">
+        <!-- Logo -->
+        <a th:href="@{/customer/home}" class="customer-logo">
+            <div class="logo-customer-icon">🍹</div>
+            <h1 class="logo-customer-text">UTeaDrink</h1>
+        </a>
+
+        <!-- Desktop Navigation -->
+        <div class="customer-nav-links">
+            <a th:href="@{/customer/home}" class="customer-nav-link">
+                <i class="bi bi-house-fill"></i>
+                Trang chủ
+            </a>
+            <a th:href="@{/customer/menu}" class="customer-nav-link">
+                <i class="bi bi-cup-hot-fill"></i>
+                Menu
+            </a>
+            <a th:href="@{/customer/orders}" class="customer-nav-link">
+                <i class="bi bi-bag-check-fill"></i>
+                Đơn hàng
+            </a>
+            <a th:href="@{/customer/vouchers}" class="customer-nav-link">
+                <i class="bi bi-gift-fill"></i>
+                Voucher
+            </a>
+            <a th:href="@{/customer/cart}" class="customer-nav-link cart-badge">
+                <i class="bi bi-cart3" style="font-size: 1.2rem;"></i>
+                Giỏ hàng
+                <span class="cart-count" th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}">0</span>
+            </a>
+        </div>
+
+        <!-- User Section -->
+        <div class="customer-user-section">
+            <div class="customer-user-dropdown">
+                <div class="customer-user-btn">
+                    <i class="bi bi-person-circle" style="font-size: 1.2rem; color: #ff7b00;"></i>
+                    <span class="customer-user-name" th:text="${#authentication.principal.displayName}">User</span>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                
+                <div class="customer-dropdown-menu">
+                    <a th:href="@{/customer/account}" class="customer-dropdown-item">
+                        <i class="bi bi-person-circle"></i>
+                        Tài khoản
+                    </a>
+                    <a th:href="@{/customer/orders}" class="customer-dropdown-item">
+                        <i class="bi bi-receipt"></i>
+                        Đơn hàng của tôi
+                    </a>
+                    <a th:href="@{/customer/vouchers}" class="customer-dropdown-item">
+                        <i class="bi bi-ticket-perforated"></i>
+                        Kho voucher
+                    </a>
+                    <a th:href="@{/customer/recently-viewed}" class="customer-dropdown-item">
+                        <i class="bi bi-eye-fill"></i>
+                        Đã xem gần đây
+                    </a>
+                    <a th:href="@{/chat/customer}" class="customer-dropdown-item">
+                        <i class="bi bi-chat-dots-fill"></i>
+                        Hỗ trợ
+                    </a>
+                    <div class="customer-dropdown-divider"></div>
+                    <form th:action="@{/logout}" method="post" style="margin: 0;">
+                        <button type="submit" class="logout-btn">
+                            <i class="bi bi-box-arrow-right"></i>
+                            Đăng xuất
+                        </button>
+                </form>
+            </div>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button class="mobile-menu-customer-btn">
+                <i class="bi bi-list" style="font-size: 1.5rem;"></i>
+            </button>
+        </div>
+    </nav>
+</header>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

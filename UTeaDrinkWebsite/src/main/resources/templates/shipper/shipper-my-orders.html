@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn của tôi - UTea Shipper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --text-primary: #5D4037;
+            --text-secondary: #8D6E63;
+            --border-soft: #E0E0E0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #FFF9E6 0%, #FFF3E0 50%, #FFECB3 100%);
+            min-height: 100vh;
+            padding: 12px;
+            padding-top: 70px;
+        }
+
+        .container-fluid {
+            max-width: 1200px;
+        }
+
+        .header-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border-soft);
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: #F5F5F5;
+            font-size: 12px;
+        }
+
+        .back-btn:hover {
+            background: #EEEEEE;
+            color: var(--text-primary);
+        }
+
+        .header-card h2 {
+            color: var(--text-primary);
+            font-weight: 700;
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .tabs-container {
+            background: white;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border-soft);
+        }
+
+        .custom-tabs {
+            display: flex;
+            gap: 8px;
+            border-bottom: 2px solid #F5F5F5;
+        }
+
+        .custom-tab {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            font-size: 12px;
+        }
+
+        .custom-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .custom-tab.active {
+            color: var(--text-primary);
+            border-bottom-color: #81C784;
+            background: #F9FBF9;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .tab-content-area {
+            display: none;
+        }
+
+        .tab-content-area.active {
+            display: block;
+        }
+
+        .order-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .order-item {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-soft);
+        }
+
+        .order-item:hover {
+            transform: translateX(2px);
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .order-item.delivering {
+            border-left: 4px solid #81C784;
+        }
+
+        .order-item.delivered {
+            border-left: 4px solid #64B5F6;
+        }
+
+        .order-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .order-code {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .status-delivering {
+            background: #E8F5E9;
+            color: #2E7D32;
+            border: 1px solid #C8E6C9;
+        }
+
+        .status-delivered {
+            background: #E3F2FD;
+            color: #1565C0;
+            border: 1px solid #BBDEFB;
+        }
+
+        .order-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .detail-group {
+            padding: 10px;
+            background: #FAFAFA;
+            border-radius: 8px;
+            border: 1px solid #F5F5F5;
+        }
+
+        .detail-label {
+            color: var(--text-secondary);
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        .detail-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .detail-value i {
+            color: #81C784;
+            margin-right: 4px;
+            font-size: 11px;
+        }
+
+        .timeline {
+            background: #F5F5F5;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+        }
+
+        .timeline-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .timeline-icon.success {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .timeline-icon.primary {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+
+        .timeline-icon.gray {
+            background: #E0E0E0;
+            color: #9E9E9E;
+        }
+
+        .timeline-text {
+            flex: 1;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .timeline-time {
+            color: var(--text-secondary);
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-pickup {
+            background: #64B5F6;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s;
+            font-size: 11px;
+        }
+
+        .btn-pickup:hover {
+            background: #42A5F5;
+            transform: translateY(-1px);
+        }
+
+        .btn-complete {
+            background: #81C784;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s;
+            font-size: 11px;
+        }
+
+        .btn-complete:hover {
+            background: #66BB6A;
+            transform: translateY(-1px);
+        }
+
+        .proof-section {
+            background: #E8F5E9;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            border: 1px solid #C8E6C9;
+        }
+
+        .proof-label {
+            color: #2E7D32;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .proof-image {
+            max-width: 150px;
+            border-radius: 6px;
+            margin-top: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-state {
+            background: white;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            color: #E0E0E0;
+            margin-bottom: 14px;
+        }
+
+        .empty-state h4 {
+            color: var(--text-primary);
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        .modal-header {
+            background: #F5F5F5;
+            border-radius: 12px 12px 0 0;
+            padding: 14px 18px;
+            border: none;
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 18px;
+        }
+
+        .form-label {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .form-control, .form-select {
+            border: 1px solid var(--border-soft);
+            border-radius: 8px;
+            padding: 8px 12px;
+            transition: all 0.3s;
+            font-size: 12px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #81C784;
+            box-shadow: 0 0 0 0.15rem rgba(129, 199, 132, 0.15);
+        }
+
+        /* Shop Map Styles */
+        .shop-map-container {
+            background: #F5F5F5;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .map-header {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .map-header i {
+            color: #E65100;
+            font-size: 13px;
+        }
+
+        .btn-directions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #4285F4 0%, #0F9D58 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            font-size: 11px;
+            margin-top: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 6px rgba(66, 133, 244, 0.3);
+            cursor: pointer;
+        }
+
+        .btn-directions:hover {
+            background: linear-gradient(135deg, #3367D6 0%, #0D7D46 100%);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(66, 133, 244, 0.4);
+        }
+
+        .btn-directions i {
+            font-size: 11px;
+        }
+
+        .map-iframe {
+            width: 100%;
+            height: 180px;
+            border: none;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .location-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .location-status.loading {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+
+        .location-status.success {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .location-status.error {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        .directions-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Full Screen Map Modal */
+        .fullscreen-map-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .fullscreen-map-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-map-content {
+            background: white;
+            border-radius: 12px;
+            width: 95%;
+            height: 90%;
+            max-width: 1200px;
+            overflow: hidden;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .fullscreen-map-header {
+            background: linear-gradient(135deg, #4285F4 0%, #0F9D58 100%);
+            color: white;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .fullscreen-map-header h5 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fullscreen-map-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 18px;
+        }
+
+        .fullscreen-map-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .fullscreen-map-body {
+            flex: 1;
+            position: relative;
+        }
+
+        .fullscreen-map-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+<!-- Header Fragment -->
+<div th:replace="~{fragments/header-shipper :: shipperHeader}"></div>
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="header-card">
+        <a href="/shipper/home" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+        </a>
+        <h2><i class="fas fa-clipboard-list me-2"></i> Đơn hàng của tôi</h2>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs-container">
+        <div class="custom-tabs">
+            <button class="custom-tab active" data-tab="delivering">
+                <i class="fas fa-shipping-fast me-2"></i>
+                Đang giao (<span id="deliveringCount">0</span>)
+            </button>
+            <button class="custom-tab" data-tab="delivered">
+                <i class="fas fa-check-circle me-2"></i>
+                Đã giao (<span id="deliveredCount">0</span>)
+            </button>
+        </div>
+    </div>
+
+    <!-- Delivering Tab -->
+    <div class="tab-content-area active" id="delivering-content">
+        <div class="order-list" id="deliveringList"></div>
+    </div>
+
+    <!-- Delivered Tab -->
+    <div class="tab-content-area" id="delivered-content">
+        <div class="order-list" id="deliveredList"></div>
+    </div>
+</div>
+
+<!-- Fullscreen Directions Map Modal -->
+<div class="fullscreen-map-modal" id="directionsMapModal">
+    <div class="fullscreen-map-content">
+        <div class="fullscreen-map-header">
+            <h5>
+                <i class="fas fa-route"></i>
+                Chỉ đường đến cửa hàng
+            </h5>
+            <button class="fullscreen-map-close" onclick="closeDirectionsMap()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="fullscreen-map-body">
+            <iframe id="directionsMapIframe" allowfullscreen></iframe>
+        </div>
+    </div>
+</div>
+
+<!-- Complete Delivery Modal -->
+<div class="modal fade" id="completeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" style="font-size: 15px;"><i class="fas fa-check-circle me-2"></i> Hoàn thành giao hàng</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="completeForm">
+                    <input type="hidden" id="completeOrderId">
+                    <input type="hidden" id="proofImage">
+
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú giao hàng</label>
+                        <textarea class="form-control" id="deliveryNote" rows="2"
+                                  placeholder="VD: Đã giao tận tay khách hàng"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ảnh bằng chứng giao hàng</label>
+
+                        <!-- Camera Preview -->
+                        <div id="cameraContainer" style="display: none; margin-bottom: 12px;">
+                            <video id="cameraPreview" autoplay playsinline style="width: 100%; max-height: 300px; border-radius: 8px; background: #000;"></video>
+                            <canvas id="photoCanvas" style="display: none;"></canvas>
+                        </div>
+
+                        <!-- Image Preview -->
+                        <div id="imagePreview" style="display: none; margin-bottom: 12px;">
+                            <img id="previewImg" src="" alt="Preview" style="width: 100%; max-height: 300px; border-radius: 8px; object-fit: contain; background: #f0f0f0;">
+                        </div>
+
+                        <!-- Upload Status -->
+                        <div id="uploadStatus" style="display: none; padding: 10px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; font-weight: 600;"></div>
+
+                        <!-- Camera Buttons -->
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="button" class="btn btn-sm" id="btnOpenCamera"
+                                    style="background: linear-gradient(135deg, #4285F4 0%, #0F9D58 100%); color: white; border: none; font-size: 11px; padding: 8px 12px; border-radius: 6px;">
+                                <i class="fas fa-camera me-1"></i> Mở camera
+                            </button>
+                            <button type="button" class="btn btn-sm" id="btnTakePhoto"
+                                    style="background: #81C784; color: white; border: none; font-size: 11px; padding: 8px 12px; border-radius: 6px; display: none;">
+                                <i class="fas fa-circle me-1"></i> Chụp ảnh
+                            </button>
+                            <button type="button" class="btn btn-sm" id="btnRetake"
+                                    style="background: #FFB74D; color: white; border: none; font-size: 11px; padding: 8px 12px; border-radius: 6px; display: none;">
+                                <i class="fas fa-redo me-1"></i> Chụp lại
+                            </button>
+                            <button type="button" class="btn btn-sm" id="btnUpload"
+                                    style="background: #64B5F6; color: white; border: none; font-size: 11px; padding: 8px 12px; border-radius: 6px; display: none;">
+                                <i class="fas fa-upload me-1"></i> Upload ảnh
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal" style="font-size: 12px;" onclick="stopCamera()">Hủy</button>
+                        <button type="submit" class="btn btn-complete flex-grow-1" id="btnSubmitComplete">
+                            <i class="fas fa-check me-2"></i> Hoàn thành
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    const shipperId = /*[[${shipperId}]]*/ 0;
+
+    // Tab switching
+    document.querySelectorAll('.custom-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.custom-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content-area').forEach(c => c.classList.remove('active'));
+
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.tab + '-content').classList.add('active');
+        });
+    });
+
+    // Load delivering orders
+    async function loadDeliveringOrders() {
+        try {
+            const response = await fetch(`/shipper/api/my-orders/delivering?shipperId=${shipperId}`);
+            const orders = await response.json();
+
+            document.getElementById('deliveringCount').textContent = orders.length;
+            const container = document.getElementById('deliveringList');
+
+            if (orders.length === 0) {
+                container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-box-open"></i>
+                            <h4>Chưa có đơn hàng đang giao</h4>
+                            <p>Hãy nhận đơn mới để bắt đầu!</p>
+                        </div>
+                    `;
+                return;
+            }
+
+            container.innerHTML = orders.map(order => {
+                const assignedTime = order.assignedAt ? new Date(order.assignedAt).toLocaleString('vi-VN') : 'N/A';
+                const pickedUpTime = order.pickedUpAt ? new Date(order.pickedUpAt).toLocaleString('vi-VN') : null;
+
+                return `
+                        <div class="order-item delivering">
+                            <div class="order-top">
+                                <div class="order-code">${order.orderCode}</div>
+                                <span class="status-badge status-delivering">
+                                    <i class="fas fa-truck-fast me-1"></i> Đang giao
+                                </span>
+                            </div>
+
+                            <div class="order-details">
+                                <div class="detail-group">
+                                    <div class="detail-label">Cửa hàng</div>
+                                    <div class="detail-value">
+                                        <i class="fas fa-store"></i> ${order.shopName || 'N/A'}<br>
+                                        <small><i class="fas fa-phone"></i> ${order.shopPhone || 'N/A'}</small><br>
+                                        ${order.shopAddress ? `<small><i class="fas fa-map-marker-alt"></i> ${order.shopAddress}</small>` : ''}
+                                    </div>
+                                </div>
+                                ${order.shopAddress ? `
+                                <div class="detail-group" style="grid-column: 1 / -1;">
+                                    <div class="shop-map-container">
+                                        <div class="map-header">
+                                            <i class="fas fa-map-marked-alt"></i> Vị trí lấy hàng
+                                        </div>
+                                        <iframe
+                                            class="map-iframe"
+                                            frameborder="0"
+                                            referrerpolicy="no-referrer-when-downgrade"
+                                            src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(order.shopAddress)}&zoom=15"
+                                            allowfullscreen>
+                                        </iframe>
+                                        <div class="directions-buttons">
+                                            <button class="btn-directions" onclick="getDirectionsFromMyLocation('${encodeURIComponent(order.shopAddress)}', ${order.orderId})">
+                                                <i class="fas fa-location-arrow"></i> Chỉ đường từ vị trí tôi
+                                            </button>
+                                            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.shopAddress)}"
+                                               target="_blank"
+                                               class="btn-directions"
+                                               style="text-decoration: none;">
+                                                <i class="fas fa-external-link-alt"></i> Mở Google Maps
+                                            </a>
+                                        </div>
+                                        <div id="location-status-${order.orderId}"></div>
+                                    </div>
+                                </div>
+                                ` : ''}
+                                <div class="detail-group">
+                                    <div class="detail-label">Khách hàng</div>
+                                    <div class="detail-value">
+                                        <i class="fas fa-user"></i> ${order.customerName || 'N/A'}<br>
+                                        <small>${order.customerPhone || 'N/A'}</small>
+                                    </div>
+                                </div>
+                                <div class="detail-group">
+                                    <div class="detail-label">Địa chỉ giao</div>
+                                    <div class="detail-value">
+                                        <i class="fas fa-map-marker-alt"></i> ${order.deliveryAddress || 'N/A'}
+                                    </div>
+                                </div>
+                                <div class="detail-group">
+                                    <div class="detail-label">Tổng tiền</div>
+                                    <div class="detail-value">
+                                        <i class="fas fa-money-bill-wave"></i> ${(order.total || 0).toLocaleString()}₫
+                                        <br><small>Phí ship: ${(order.shippingFee || 0).toLocaleString()}₫</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div class="timeline-icon success">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                    <div class="timeline-text">Đã nhận đơn</div>
+                                    <div class="timeline-time">${assignedTime}</div>
+                                </div>
+                                ${pickedUpTime ? `
+                                <div class="timeline-item">
+                                    <div class="timeline-icon success">
+                                        <i class="fas fa-box"></i>
+                                    </div>
+                                    <div class="timeline-text">Đã lấy hàng</div>
+                                    <div class="timeline-time">${pickedUpTime}</div>
+                                </div>
+                                ` : `
+                                <div class="timeline-item">
+                                    <div class="timeline-icon gray">
+                                        <i class="fas fa-box"></i>
+                                    </div>
+                                    <div class="timeline-text">Chưa lấy hàng</div>
+                                </div>
+                                `}
+                                <div class="timeline-item">
+                                    <div class="timeline-icon gray">
+                                        <i class="fas fa-flag-checkered"></i>
+                                    </div>
+                                    <div class="timeline-text">Hoàn thành giao hàng</div>
+                                </div>
+                            </div>
+
+                            <div class="action-buttons">
+                                ${!pickedUpTime ? `
+                                <button class="btn btn-pickup" onclick="confirmPickup(${order.orderId})">
+                                    <i class="fas fa-box me-2"></i> Đã lấy hàng
+                                </button>
+                                ` : ''}
+                                <button class="btn btn-complete" onclick="openCompleteModal(${order.orderId})">
+                                    <i class="fas fa-check-circle me-2"></i> Hoàn thành giao hàng
+                                </button>
+                            </div>
+                        </div>
+                    `;
+            }).join('');
+        } catch (error) {
+            console.error('Error loading delivering orders:', error);
+        }
+    }
+
+    // Load delivered orders
+    async function loadDeliveredOrders() {
+        try {
+            const response = await fetch(`/shipper/api/my-orders/delivered?shipperId=${shipperId}`);
+            const orders = await response.json();
+
+            document.getElementById('deliveredCount').textContent = orders.length;
+            const container = document.getElementById('deliveredList');
+
+            if (orders.length === 0) {
+                container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-check-circle"></i>
+                            <h4>Chưa có đơn hàng đã giao</h4>
+                            <p>Hoàn thành đơn đầu tiên của bạn!</p>
+                        </div>
+                    `;
+                return;
+            }
+
+            container.innerHTML = orders.map(order => {
+                const deliveredTime = order.deliveredAt ? new Date(order.deliveredAt).toLocaleString('vi-VN') : 'N/A';
+
+                let noteData = {};
+                if (order.deliveryNote) {
+                    try {
+                        noteData = JSON.parse(order.deliveryNote);
+                    } catch (e) {
+                        noteData = { deliveryNote: order.deliveryNote };
+                    }
+                }
+
+                return `
+                        <div class="order-item delivered">
+                            <div class="order-top">
+                                <div class="order-code">${order.orderCode}</div>
+                                <span class="status-badge status-delivered">
+                                    <i class="fas fa-check-circle me-1"></i> Đã giao
+                                </span>
+                            </div>
+
+                            <div class="order-details">
+                                <div class="detail-group">
+                                    <div class="detail-label">Khách hàng</div>
+                                    <div class="detail-value">
+                                        <i class="fas fa-user"></i> ${order.customerName || 'N/A'}
+                                    </div>
+                                </div>
+                                <div class="detail-group">
+                                    <div class="detail-label">Hoàn thành lúc</div>
+                                    <div class="detail-value">
+                                        <i class="fas fa-clock"></i> ${deliveredTime}
+                                    </div>
+                                </div>
+                                <div class="detail-group">
+                                    <div class="detail-label">Thu nhập</div>
+                                    <div class="detail-value">
+                                        <i class="fas fa-coins"></i> ${(order.shippingFee || 0).toLocaleString()}₫
+                                    </div>
+                                </div>
+                            </div>
+
+                            ${noteData.deliveryNote || noteData.proofImage ? `
+                            <div class="proof-section">
+                                <div class="proof-label">
+                                    <i class="fas fa-clipboard-check me-2"></i> Ghi chú giao hàng
+                                </div>
+                                ${noteData.deliveryNote ? `<p class="mb-2" style="font-size: 12px;">${noteData.deliveryNote}</p>` : ''}
+                                ${noteData.proofImage ? `
+                                    <img src="${noteData.proofImage}" class="proof-image" alt="Ảnh bằng chứng">
+                                ` : ''}
+                            </div>
+                            ` : ''}
+                        </div>
+                    `;
+            }).join('');
+        } catch (error) {
+            console.error('Error loading delivered orders:', error);
+        }
+    }
+
+    // Confirm pickup
+    async function confirmPickup(orderId) {
+        try {
+            const response = await fetch(`/shipper/api/orders/${orderId}/confirm-pickup`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ shipperId: shipperId })
+            });
+
+            if (response.ok) {
+                alert('✅ Xác nhận đã lấy hàng thành công!');
+                loadDeliveringOrders();
+            } else {
+                alert('❌ Lỗi khi xác nhận lấy hàng');
+            }
+        } catch (error) {
+            console.error('Error confirming pickup:', error);
+        }
+    }
+
+    // Camera variables
+    let videoStream = null;
+    let capturedImageBlob = null;
+
+    // Open complete modal
+    function openCompleteModal(orderId) {
+        document.getElementById('completeOrderId').value = orderId;
+        document.getElementById('deliveryNote').value = '';
+        document.getElementById('proofImage').value = '';
+
+        // Reset camera state
+        stopCamera();
+        document.getElementById('cameraContainer').style.display = 'none';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('uploadStatus').style.display = 'none';
+        document.getElementById('btnOpenCamera').style.display = 'inline-block';
+        document.getElementById('btnTakePhoto').style.display = 'none';
+        document.getElementById('btnRetake').style.display = 'none';
+        document.getElementById('btnUpload').style.display = 'none';
+        capturedImageBlob = null;
+
+        new bootstrap.Modal(document.getElementById('completeModal')).show();
+    }
+
+    // Stop camera
+    function stopCamera() {
+        if (videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
+            videoStream = null;
+        }
+    }
+
+    // Open camera
+    document.getElementById('btnOpenCamera').addEventListener('click', async function() {
+        try {
+            const video = document.getElementById('cameraPreview');
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'environment', // Use back camera on mobile
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                }
+            });
+
+            videoStream = stream;
+            video.srcObject = stream;
+
+            document.getElementById('cameraContainer').style.display = 'block';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('btnOpenCamera').style.display = 'none';
+            document.getElementById('btnTakePhoto').style.display = 'inline-block';
+            document.getElementById('btnRetake').style.display = 'none';
+            document.getElementById('btnUpload').style.display = 'none';
+
+            showStatus('success', 'Camera đã sẵn sàng');
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            showStatus('error', 'Không thể mở camera: ' + error.message);
+        }
+    });
+
+    // Take photo
+    document.getElementById('btnTakePhoto').addEventListener('click', function() {
+        const video = document.getElementById('cameraPreview');
+        const canvas = document.getElementById('photoCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size to video size
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        // Draw video frame to canvas
+        ctx.drawImage(video, 0, 0);
+
+        // Convert canvas to blob
+        canvas.toBlob(function(blob) {
+            capturedImageBlob = blob;
+
+            // Show preview
+            const previewImg = document.getElementById('previewImg');
+            previewImg.src = URL.createObjectURL(blob);
+
+            document.getElementById('cameraContainer').style.display = 'none';
+            document.getElementById('imagePreview').style.display = 'block';
+            document.getElementById('btnTakePhoto').style.display = 'none';
+            document.getElementById('btnRetake').style.display = 'inline-block';
+            document.getElementById('btnUpload').style.display = 'inline-block';
+
+            stopCamera();
+            showStatus('success', 'Đã chụp ảnh thành công');
+        }, 'image/jpeg', 0.8);
+    });
+
+    // Retake photo
+    document.getElementById('btnRetake').addEventListener('click', function() {
+        capturedImageBlob = null;
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('btnOpenCamera').style.display = 'inline-block';
+        document.getElementById('btnRetake').style.display = 'none';
+        document.getElementById('btnUpload').style.display = 'none';
+        document.getElementById('proofImage').value = '';
+        showStatus('info', 'Hãy chụp ảnh mới');
+    });
+
+    // Upload photo
+    document.getElementById('btnUpload').addEventListener('click', async function() {
+        if (!capturedImageBlob) {
+            showStatus('error', 'Chưa có ảnh để upload');
+            return;
+        }
+
+        const orderId = document.getElementById('completeOrderId').value;
+        const formData = new FormData();
+        formData.append('image', capturedImageBlob, 'proof_' + orderId + '.jpg');
+        formData.append('orderId', orderId);
+
+        try {
+            showStatus('loading', 'Đang upload ảnh...');
+            document.getElementById('btnUpload').disabled = true;
+
+            const response = await fetch('/shipper/api/upload-proof-image', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                document.getElementById('proofImage').value = result.imageUrl;
+                showStatus('success', 'Upload ảnh thành công! ✓');
+                document.getElementById('btnUpload').style.display = 'none';
+                document.getElementById('btnRetake').style.display = 'none';
+            } else {
+                showStatus('error', result.error || 'Lỗi upload ảnh');
+                document.getElementById('btnUpload').disabled = false;
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            showStatus('error', 'Lỗi kết nối: ' + error.message);
+            document.getElementById('btnUpload').disabled = false;
+        }
+    });
+
+    // Show status message
+    function showStatus(type, message) {
+        const statusDiv = document.getElementById('uploadStatus');
+        statusDiv.style.display = 'block';
+        statusDiv.textContent = message;
+
+        if (type === 'success') {
+            statusDiv.style.background = '#E8F5E9';
+            statusDiv.style.color = '#2E7D32';
+        } else if (type === 'error') {
+            statusDiv.style.background = '#FFEBEE';
+            statusDiv.style.color = '#C62828';
+        } else if (type === 'loading') {
+            statusDiv.style.background = '#FFF3E0';
+            statusDiv.style.color = '#E65100';
+        } else {
+            statusDiv.style.background = '#E3F2FD';
+            statusDiv.style.color = '#1565C0';
+        }
+
+        // Auto hide after 3 seconds (except loading)
+        if (type !== 'loading') {
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        }
+    }
+
+    // Handle complete form
+    document.getElementById('completeForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const orderId = document.getElementById('completeOrderId').value;
+        const deliveryNote = document.getElementById('deliveryNote').value;
+        const proofImage = document.getElementById('proofImage').value;
+
+        try {
+            const response = await fetch(`/shipper/api/orders/${orderId}/complete-delivery`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    shipperId: shipperId,
+                    deliveryNote: deliveryNote,
+                    proofImage: proofImage
+                })
+            });
+
+            if (response.ok) {
+                alert('✅ Hoàn thành giao hàng thành công!');
+                bootstrap.Modal.getInstance(document.getElementById('completeModal')).hide();
+                loadDeliveringOrders();
+                loadDeliveredOrders();
+            } else {
+                alert('❌ Lỗi khi hoàn thành giao hàng');
+            }
+        } catch (error) {
+            console.error('Error completing delivery:', error);
+        }
+    });
+
+    // Load data on page load
+    window.addEventListener('DOMContentLoaded', () => {
+        loadDeliveringOrders();
+        loadDeliveredOrders();
+    });
+
+    // Get directions from current location
+    async function getDirectionsFromMyLocation(destinationAddress, orderId) {
+        const statusDiv = document.getElementById(`location-status-${orderId}`);
+
+        // Check if geolocation is supported
+        if (!navigator.geolocation) {
+            statusDiv.innerHTML = '<div class="location-status error"><i class="fas fa-exclamation-circle"></i> Trình duyệt không hỗ trợ GPS</div>';
+            return;
+        }
+
+        // Show loading
+        statusDiv.innerHTML = '<div class="location-status loading"><i class="fas fa-spinner fa-spin"></i> Đang lấy vị trí của bạn...</div>';
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const accuracy = position.coords.accuracy;
+
+                // Log để debug
+                console.log('📍 Vị trí hiện tại:', {
+                    lat: lat,
+                    lng: lng,
+                    accuracy: accuracy + 'm',
+                    timestamp: new Date(position.timestamp).toLocaleTimeString()
+                });
+
+                statusDiv.innerHTML = `<div class="location-status success">
+                    <i class="fas fa-check-circle"></i> Đã lấy vị trí! (Độ chính xác: ${Math.round(accuracy)}m)<br>
+                    <small style="opacity:0.7">Tọa độ: ${lat.toFixed(6)}, ${lng.toFixed(6)}</small>
+                </div>`;
+
+                // Open fullscreen map with directions
+                showDirectionsMap(lat, lng, decodeURIComponent(destinationAddress));
+
+                // Clear status after 3 seconds
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                }, 3000);
+            },
+            (error) => {
+                let errorMsg = 'Không thể lấy vị trí';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMsg = 'Bạn đã từ chối quyền truy cập vị trí. Vui lòng cho phép GPS trong cài đặt trình duyệt';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMsg = 'Vị trí không khả dụng. Hãy đảm bảo GPS được bật và bạn ở nơi có tín hiệu';
+                        break;
+                    case error.TIMEOUT:
+                        errorMsg = 'Hết thời gian chờ lấy vị trí. Thử lại hoặc di chuyển ra ngoài trời';
+                        break;
+                }
+                console.error('❌ Lỗi GPS:', error);
+                statusDiv.innerHTML = `<div class="location-status error"><i class="fas fa-exclamation-circle"></i> ${errorMsg}</div>`;
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 20000,
+                maximumAge: 5000
+            }
+        );
+    }
+
+    // Show fullscreen directions map
+    function showDirectionsMap(originLat, originLng, destination) {
+        const modal = document.getElementById('directionsMapModal');
+        const iframe = document.getElementById('directionsMapIframe');
+
+        // Build directions URL
+        const directionsUrl = `https://www.google.com/maps/embed/v1/directions?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&origin=${originLat},${originLng}&destination=${encodeURIComponent(destination)}&mode=driving&zoom=14`;
+
+        iframe.src = directionsUrl;
+        modal.classList.add('active');
+
+        // Close on background click
+        modal.onclick = function(event) {
+            if (event.target === modal) {
+                closeDirectionsMap();
+            }
+        };
+    }
+
+    // Close directions map
+    function closeDirectionsMap() {
+        const modal = document.getElementById('directionsMapModal');
+        const iframe = document.getElementById('directionsMapIframe');
+
+        modal.classList.remove('active');
+        iframe.src = '';
+    }
+
+    // Close on ESC key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeDirectionsMap();
+        }
+    });
+</script>
+</body>
+</html>

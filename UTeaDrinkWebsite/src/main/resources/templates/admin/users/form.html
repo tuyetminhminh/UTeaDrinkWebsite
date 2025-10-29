@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin-layout :: adminLayout(~{::title}, ~{::content})}">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${form.id==null? 'Thêm người dùng' : 'Sửa người dùng'}">User</title>
+</head>
+<body>
+<div th:fragment="content" class="container-fluid p-0">
+
+    <style>
+        .role-select-card {
+            display: block;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s ease-in-out;
+        }
+        .role-select-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--elevation);
+        }
+        /* Ẩn radio button gốc đi */
+        .role-select input[type="radio"] {
+            display: none;
+        }
+        /* Style cho thẻ được chọn */
+        .role-select input[type="radio"]:checked + .role-select-card {
+            border-color: var(--brand);
+            background-color: rgba(255, 123, 0, .1);
+            box-shadow: 0 0 0 3px rgba(255, 123, 0, .3);
+        }
+        .role-select-card .icon {
+            font-size: 1.75rem;
+            margin-bottom: .5rem;
+        }
+    </style>
+
+    <div th:replace="~{fragments/breadcrumbs :: bc(
+    'Trang chủ', @{/admin/home}, 'Người dùng', @{/admin/users},
+    ${form.id} == null ? 'Thêm' : 'Sửa')}"></div>
+
+    <h3 class="fw-bold mb-3" th:text="${form.id==null? 'Thêm người dùng' : 'Sửa người dùng'}"></h3>
+
+    <form th:object="${form}"
+      th:action="(${form.id == null}) ? @{/admin/users} : @{/admin/users/{id}(id=${form.id})}"
+      method="post"
+      class="row g-4">
+      <div th:if="${#fields.hasGlobalErrors()}" class="col-12"> <div class="alert alert-danger mb-0">
+            <ul class="mb-0">
+                <li th:each="e : ${#fields.globalErrors()}" th:text="${e}">Lỗi</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card-lite p-3 h-100">
+            <div class="card-body row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Email *</label>
+                    <input class="form-control" th:field="*{email}">
+                    <div class="text-danger small" th:errors="*{email}"></div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Username</label>
+                    <input class="form-control" th:field="*{username}">
+                    <div class="text-danger small" th:errors="*{username}"></div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Họ tên</label>
+                    <input class="form-control" th:field="*{fullName}">
+                </div>
+                <div class="col-md-6" th:if="${form.id==null}">
+                    <label class="form-label">Mật khẩu *</label>
+                    <input type="password" class="form-control" th:field="*{password}">
+                    <div class="form-text">Mật khẩu phải có ít nhất 4 ký tự.</div>
+                    <div class="text-danger small" th:errors="*{password}"></div>
+                </div>
+                <div class="col-md-6" th:if="${form.id!=null}">
+                    <label class="form-label">Mật khẩu mới</label>
+                    <input type="password" class="form-control" th:field="*{password}">
+                    <div class="form-text">Để trống nếu không muốn thay đổi.</div>
+                    <div class="text-danger small" th:errors="*{password}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card-lite p-3 h-100">
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select class="form-select" th:field="*{status}">
+                        <option value="ACTIVE">ACTIVE</option>
+                        <option value="LOCKED">LOCKED</option>
+                        <option value="PENDING">PENDING</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Vai trò *</label>
+                    <div class="row g-2 role-select">
+                        <div th:each="r : ${rolesAll}" th:if="${#lists.contains({'ADMIN', 'CUSTOMER', 'MANAGER', 'SHIPPER'}, r.code)}" class="col-6">
+                            <input type="radio" class="form-check-input" th:id="${'role_'+r.code}"
+                                   th:value="${r.code}" th:field="*{roleCode}">
+                            <label class="role-select-card" th:for="${'role_'+r.code}">
+                                <div class="icon"
+                                     th:classappend="${r.code=='ADMIN'}? 'bi-shield-lock' :
+                                                      (${r.code=='MANAGER'}? 'bi-person-video3' :
+                                                      (${r.code=='SHIPPER'}? 'bi-bicycle' : 'bi-person'))">
+                                </div>
+                                <div class="fw-bold" th:text="${r.code}"></div>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="text-danger small" th:errors="*{roleCode}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 d-flex gap-2"> <button class="btn btn-primary">Lưu</button>
+        <a class="btn btn-outline-secondary" th:href="@{/admin/users}">Hủy</a>
+    </div>
+</form>
+</div>
+</body>
+</html>

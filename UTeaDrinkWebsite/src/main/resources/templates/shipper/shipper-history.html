@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch sử giao hàng - UTea Shipper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --text-primary: #5D4037;
+            --text-secondary: #8D6E63;
+            --border-soft: #E0E0E0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #FFF9E6 0%, #FFF3E0 50%, #FFECB3 100%);
+            min-height: 100vh;
+            padding: 12px;
+            padding-top: 70px;
+        }
+
+        .container-fluid {
+            max-width: 1200px;
+        }
+
+        .header-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border-soft);
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: #F5F5F5;
+            font-size: 12px;
+        }
+
+        .back-btn:hover {
+            background: #EEEEEE;
+            color: var(--text-primary);
+        }
+
+        .header-card h1 {
+            color: var(--text-primary);
+            font-weight: 700;
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .stat-box {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-soft);
+        }
+
+        .stat-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .stat-box.yellow {
+            border-left: 3px solid #FFD54F;
+        }
+
+        .stat-box.yellow .stat-icon {
+            background: #FFF9E6;
+            color: #F9A825;
+        }
+
+        .stat-box.green {
+            border-left: 3px solid #81C784;
+        }
+
+        .stat-box.green .stat-icon {
+            background: #E8F5E9;
+            color: #43A047;
+        }
+
+        .stat-box.orange {
+            border-left: 3px solid #FFB74D;
+        }
+
+        .stat-box.orange .stat-icon {
+            background: #FFF3E0;
+            color: #FB8C00;
+        }
+
+        .stat-box.blue {
+            border-left: 3px solid #64B5F6;
+        }
+
+        .stat-box.blue .stat-icon {
+            background: #E3F2FD;
+            color: #1E88E5;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .stat-extra {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #F5F5F5;
+            font-size: 12px;
+            font-weight: 600;
+            color: #43A047;
+        }
+
+        .chart-section {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border-soft);
+        }
+
+        .section-title {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: #81C784;
+            font-size: 14px;
+        }
+
+        .history-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .history-table th {
+            background: #F5F5F5;
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 10px 12px;
+            border: none;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.3px;
+        }
+
+        .history-table td {
+            padding: 10px 12px;
+            vertical-align: middle;
+            color: var(--text-secondary);
+            border-bottom: 1px solid #F5F5F5;
+            font-size: 12px;
+        }
+
+        .history-table tbody tr {
+            transition: all 0.2s;
+        }
+
+        .history-table tbody tr:hover {
+            background: #FAFAFA;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            color: #E0E0E0;
+            margin-bottom: 14px;
+        }
+
+        .empty-state h4 {
+            color: var(--text-primary);
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+<!-- Header Fragment -->
+<div th:replace="~{fragments/header-shipper :: shipperHeader}"></div>
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="header-card">
+        <a href="/shipper/home" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+        </a>
+        <h1><i class="fas fa-clock-rotate-left me-2"></i> Lịch sử giao hàng</h1>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="stats-row">
+        <div class="stat-box yellow">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <div class="stat-value" th:text="${stats.todayOrders ?: 0}">0</div>
+            <div class="stat-label">Hôm nay</div>
+            <div class="stat-extra">
+                <i class="fas fa-coins me-1"></i>
+                <span th:text="${#numbers.formatDecimal(stats.todayEarnings ?: 0, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
+            </div>
+        </div>
+
+        <div class="stat-box green">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-week"></i>
+            </div>
+            <div class="stat-value" th:text="${stats.weekOrders ?: 0}">0</div>
+            <div class="stat-label">Tuần này</div>
+            <div class="stat-extra">
+                <i class="fas fa-coins me-1"></i>
+                <span th:text="${#numbers.formatDecimal(stats.weekEarnings ?: 0, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
+            </div>
+        </div>
+
+        <div class="stat-box orange">
+            <div class="stat-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="stat-value" th:text="${stats.monthOrders ?: 0}">0</div>
+            <div class="stat-label">Tháng này</div>
+            <div class="stat-extra">
+                <i class="fas fa-coins me-1"></i>
+                <span th:text="${#numbers.formatDecimal(stats.monthEarnings ?: 0, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
+            </div>
+        </div>
+
+        <div class="stat-box blue">
+            <div class="stat-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-value" th:text="${stats.completedOrders ?: 0}">0</div>
+            <div class="stat-label">Tổng cộng</div>
+            <div class="stat-extra">
+                <i class="fas fa-coins me-1"></i>
+                <span th:text="${#numbers.formatDecimal(stats.totalEarnings ?: 0, 0, 'COMMA', 0, 'POINT')} + '₫'">0₫</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Chart -->
+    <div class="chart-section">
+        <h3 class="section-title">
+            <i class="fas fa-chart-area"></i>
+            Biểu đồ doanh thu 7 ngày gần nhất
+        </h3>
+        <canvas id="revenueChart" height="80"></canvas>
+    </div>
+
+    <!-- History Table -->
+    <div class="chart-section">
+        <h3 class="section-title">
+            <i class="fas fa-list"></i>
+            Chi tiết lịch sử giao hàng
+        </h3>
+        <div class="history-table">
+            <table class="table table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>Ngày giờ</th>
+                    <th>Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Thu nhập</th>
+                    <th>Ghi chú</th>
+                </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                <tr th:if="${history == null || history.isEmpty()}">
+                    <td colspan="5" class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h4>Chưa có lịch sử giao hàng</h4>
+                        <p>Bạn chưa giao đơn hàng nào</p>
+                    </td>
+                </tr>
+                <tr th:each="order : ${history}">
+                    <td>
+                        <strong th:text="${#temporals.format(order.deliveredAt, 'dd/MM/yyyy')}">24/10/2025</strong><br>
+                        <small class="text-muted" th:text="${#temporals.format(order.deliveredAt, 'HH:mm')}">14:30</small>
+                    </td>
+                    <td><strong th:text="${order.orderCode}">ORD-001</strong></td>
+                    <td>
+                        <div th:text="${order.customerName}">Khách hàng</div>
+                        <small class="text-muted" th:text="${order.deliveryAddress}">Địa chỉ</small>
+                    </td>
+                    <td><strong class="text-success" th:text="${#numbers.formatDecimal(order.shippingFee, 0, 'COMMA', 0, 'POINT')} + '₫'">15,000₫</strong></td>
+                    <td>
+                        <small th:text="${order.deliveryNote ?: 'Đã giao hàng thành công'}">Ghi chú</small>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    // Stats và history đã được load từ server-side qua Thymeleaf
+    const historyData = /*[[${history}]]*/ [];
+
+    // Render biểu đồ doanh thu 7 ngày gần nhất
+    function renderChart() {
+        try {
+            // Group by date (last 7 days)
+            const last7Days = [];
+            const revenueByDate = {};
+
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+                last7Days.push(dateStr);
+                revenueByDate[dateStr] = 0;
+            }
+
+            historyData.forEach(order => {
+                if (order.deliveredAt) {
+                    const date = new Date(order.deliveredAt);
+                    const dateStr = date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+                    if (revenueByDate[dateStr] !== undefined) {
+                        revenueByDate[dateStr] += order.shippingFee || 0;
+                    }
+                }
+            });
+
+            const chartData = last7Days.map(date => revenueByDate[date]);
+
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: last7Days,
+                    datasets: [{
+                        label: 'Doanh thu (₫)',
+                        data: chartData,
+                        borderColor: '#81C784',
+                        backgroundColor: 'rgba(129, 199, 132, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#66BB6A',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#5D4037',
+                                font: {
+                                    size: 11,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(129, 199, 132, 0.95)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#81C784',
+                            borderWidth: 2,
+                            padding: 8,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Thu nhập: ' + context.parsed.y.toLocaleString() + '₫';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#8D6E63',
+                                font: {
+                                    weight: 'bold',
+                                    size: 10
+                                },
+                                callback: function(value) {
+                                    return value.toLocaleString() + '₫';
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#8D6E63',
+                                font: {
+                                    weight: 'bold',
+                                    size: 10
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error loading chart:', error);
+        }
+    }
+
+    // Render chart khi trang load xong
+    window.addEventListener('DOMContentLoaded', () => {
+        renderChart();
+    });
+</script>
+</body>
+</html>

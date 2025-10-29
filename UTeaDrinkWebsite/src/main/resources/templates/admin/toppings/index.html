@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin-layout :: adminLayout(~{::title}, ~{::content})}">
+<head>
+  <meta charset="UTF-8">
+  <title>Topping</title>
+</head>
+<body>
+<div th:fragment="content" class="container-fluid p-0">
+
+  <div th:replace="~{fragments/breadcrumbs ::
+      bc('Trang chủ', @{/admin/home}, null, null, 'Topping')}"></div>
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="fw-bold">🥤 Quản lý Topping</h3>
+    <a class="btn btn-primary"
+   th:href="@{/admin/toppings/new(page=${pageIndex}, size=${size}, shopId=${shopId}, kw=${kw})}">
+  <i class="bi bi-plus-circle"></i> Thêm topping
+</a>
+
+  </div>
+
+  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+  <!-- Filter -->
+  <form class="row g-2 align-items-end mb-3" method="get" th:action="@{/admin/toppings}">
+    <div class="col-md-3">
+      <label class="form-label">Cửa hàng</label>
+      <select class="form-select" name="shopId">
+        <option th:selected="${shopId==null}" value="">-- Tất cả --</option>
+        <option th:each="s : ${shops}" th:value="${s.id}"
+                th:text="${s.name}" th:selected="${shopId==s.id}"></option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Từ khóa</label>
+      <input class="form-control" name="kw" th:value="${kw}" placeholder="Tên topping...">
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-outline-secondary">Lọc</button>
+    </div>
+    <div class="col-auto">
+      <a class="btn btn-outline-secondary" th:href="@{/admin/toppings}">Xóa lọc</a>
+    </div>
+  </form>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Cửa hàng</th>
+        <th>Tên topping</th>
+        <th>Giá</th>
+        <th>Trạng thái</th>
+        <th style="width:220px">Thao tác</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="t : ${page.content}">
+        <td th:text="${t.id}"></td>
+        <td th:text="${t.shopName != null ? t.shopName : '-'}"></td>
+        <td th:text="${t.name}"></td>
+        <td th:text="${#numbers.formatDecimal(t.price,1,'COMMA',2,'POINT')}"></td>
+        <td>
+          <span th:classappend="${t.status=='ACTIVE'} ? 'badge bg-success' : 'badge bg-secondary'"
+                th:text="${t.status}"></span>
+        </td>
+        <td>
+          <a class="btn btn-sm btn-outline-primary me-1"
+            th:href="@{'/admin/toppings/' + ${t.id} + '/edit'(page=${pageIndex}, size=${size}, shopId=${shopId}, kw=${kw})}">
+            Sửa
+          </a>
+
+          <form class="d-inline" method="post"
+                th:action="@{'/admin/toppings/' + ${t.id} + '/delete'}"
+                onsubmit="return confirm('Xóa topping này?');">
+            <input type="hidden" name="page"   th:value="${pageIndex}">
+            <input type="hidden" name="size"   th:value="${size}">
+            <input type="hidden" name="shopId" th:value="${shopId}">
+            <input type="hidden" name="kw"     th:value="${kw}">
+            <button class="btn btn-sm btn-outline-danger">Xóa</button>
+          </form>
+
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-3">
+
+    <!-- Pagination -->
+    <nav th:if="${page.totalPages > 1}" aria-label="Page navigation">
+      <ul class="pagination mb-0">
+        <li class="page-item" th:classappend="${pageIndex==1}? 'disabled'">
+          <a class="page-link"
+            th:href="@{/admin/toppings(page=${pageIndex-1}, size=${size}, shopId=${shopId}, kw=${kw})}">«</a>
+        </li>
+
+        <li class="page-item"
+            th:each="i : ${#numbers.sequence(1, page.totalPages)}"
+            th:classappend="${i==pageIndex}? 'active'">
+          <a class="page-link" th:text="${i}"
+            th:href="@{/admin/toppings(page=${i}, size=${size}, shopId=${shopId}, kw=${kw})}"></a>
+        </li>
+
+        <li class="page-item" th:classappend="${pageIndex==page.totalPages}? 'disabled'">
+          <a class="page-link"
+            th:href="@{/admin/toppings(page=${pageIndex+1}, size=${size}, shopId=${shopId}, kw=${kw})}">»</a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Page size selector -->
+    <form th:action="@{/admin/toppings}" method="get" class="d-flex align-items-center gap-2">
+      <input type="hidden" name="shopId" th:value="${shopId}">
+      <input type="hidden" name="kw"     th:value="${kw}">
+      <input type="hidden" name="page"   value="1">
+
+      <label for="topPageSize" class="form-label mb-0 text-nowrap">Số dòng/trang:</label>
+      <select id="topPageSize" class="form-select form-select-sm" name="size"
+              style="width:auto" onchange="this.form.submit()">
+        <option th:each="s : ${sizes}"
+                th:value="${s}" th:text="${s}" th:selected="${s == size}"></option>
+      </select>
+    </form>
+
+  </div>
+
+
+</div>
+</body>
+</html>

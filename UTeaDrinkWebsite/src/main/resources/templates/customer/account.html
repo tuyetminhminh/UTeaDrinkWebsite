@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý tài khoản</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f5f5f5;
+            padding-top: 70px;
+        }
+
+        .account-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            color: #333;
+            font-weight: 600;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .info-card h5 {
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .info-item {
+            display: flex;
+            padding: 0.5rem 0;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #666;
+            min-width: 90px;
+        }
+
+        .info-value {
+            color: #333;
+        }
+
+        .btn-change-password {
+            background: #333;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .btn-change-password:hover {
+            background: #555;
+        }
+
+        .address-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 1rem;
+            height: 100%;
+        }
+
+        .badge-default {
+            background: #28a745;
+            padding: 0.25rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .btn-action {
+            padding: 0.4rem 0.8rem;
+            border-radius: 5px;
+            font-size: 0.85rem;
+        }
+
+        /* Password Input Styling */
+        .password-input-group {
+            position: relative;
+        }
+
+        .password-input-group input {
+            padding-right: 45px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        .password-toggle:hover {
+            color: #333;
+        }
+
+        /* Password Strength Meter */
+        .password-strength-meter {
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .password-strength-text {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .strength-weak {
+            background: #dc3545;
+            color: #dc3545;
+        }
+
+        .strength-medium {
+            background: #ffc107;
+            color: #ffc107;
+        }
+
+        .strength-strong {
+            background: #28a745;
+            color: #28a745;
+        }
+
+        /* Modal */
+        .modal-content {
+            border-radius: 8px;
+        }
+
+        .modal-header {
+            background: #333;
+            color: #fff;
+            border-radius: 8px 8px 0 0;
+            padding: 1rem;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .modal-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 0.6rem 0.8rem;
+        }
+
+        .form-control:focus {
+            border-color: #333;
+            box-shadow: 0 0 0 0.2rem rgba(51, 51, 51, 0.15);
+        }
+
+        .alert {
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header-customer :: customerHeader}"></div>
+<div class="container account-container py-4">
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <h3 class="page-title">Quản lý tài khoản</h3>
+
+    <div class="info-card mb-3">
+        <h5>Thông tin đăng nhập</h5>
+        
+        <div class="info-item">
+            <span class="info-label">Họ tên:</span>
+            <span class="info-value" th:text="${user.fullName}"></span>
+        </div>
+        
+        <div class="info-item">
+            <span class="info-label">Email:</span>
+            <span class="info-value" th:text="${user.email}"></span>
+        </div>
+
+        <div class="mt-3">
+            <button class="btn btn-change-password w-100" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                Đổi mật khẩu
+            </button>
+        </div>
+    </div>
+
+    <!-- Sổ địa chỉ -->
+    <div class="info-card">
+        <h5>Sổ địa chỉ</h5>
+
+        <div th:if="${#lists.isEmpty(addresses)}" class="alert alert-info">
+            Bạn chưa có địa chỉ nào. Hãy thêm địa chỉ mới bên dưới.
+        </div>
+
+        <div class="row g-3 mb-3" th:each="a : ${addresses}">
+            <div class="col-md-6">
+                <div class="address-card">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <strong th:text="${a.receiverName}"></strong>
+                        <span th:if="${a.default}" class="badge badge-default">Mặc định</span>
+                    </div>
+                    
+                    <div class="mb-1 small" th:text="${a.phone}"></div>
+                    <div class="mb-1 small" th:text="${a.line}"></div>
+                    <div class="mb-2 text-muted small" th:text="${a.ward + ', ' + a.district + ', ' + a.province}"></div>
+
+                    <div class="d-flex gap-2">
+                        <form th:action="@{|/customer/account/addresses/${a.id}/default|}" method="post" class="flex-grow-1">
+                            <button th:if="${!a.default}" class="btn btn-outline-dark btn-action btn-sm w-100">
+                                Đặt mặc định
+                            </button>
+                        </form>
+                        <form th:action="@{|/customer/account/addresses/${a.id}/delete|}" method="post" onsubmit="return confirm('Xóa địa chỉ này?');">
+                            <button class="btn btn-outline-danger btn-action btn-sm">Xóa</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-3">
+
+        <h6 class="mb-3">Thêm địa chỉ mới</h6>
+        <form th:action="@{/customer/account/addresses}" method="post" th:object="${addressForm}">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Họ tên người nhận</label>
+                    <input class="form-control" th:field="*{receiverName}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Số điện thoại</label>
+                    <input class="form-control" th:field="*{phone}">
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Số nhà / Đường</label>
+                    <input class="form-control" th:field="*{line}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Phường/Xã</label>
+                    <input class="form-control" th:field="*{ward}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Quận/Huyện</label>
+                    <input class="form-control" th:field="*{district}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tỉnh/Thành phố</label>
+                    <input class="form-control" th:field="*{province}">
+                </div>
+                <div class="col-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" th:field="*{default}" id="isDefault">
+                        <label class="form-check-label" for="isDefault">Đặt làm địa chỉ mặc định</label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <button class="btn btn-dark px-4">Lưu địa chỉ</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal đổi mật khẩu -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" th:action="@{/customer/account/change-password}" method="post" id="changePasswordForm">
+            <div class="modal-header">
+                <h5 class="modal-title">Đổi mật khẩu</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Mật khẩu hiện tại -->
+                <div class="mb-3">
+                    <label class="form-label">Mật khẩu hiện tại</label>
+                    <div class="password-input-group">
+                        <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('currentPassword', this)">
+                            <i class="bi bi-eye-fill"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mật khẩu mới -->
+                <div class="mb-3">
+                    <label class="form-label">Mật khẩu mới</label>
+                    <div class="password-input-group">
+                        <input type="password" class="form-control" id="newPassword" name="newPassword" 
+                               required minlength="8" oninput="checkPasswordStrength(this.value)">
+                        <button type="button" class="password-toggle" onclick="togglePassword('newPassword', this)">
+                            <i class="bi bi-eye-fill"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Password Strength Meter -->
+                    <div class="password-strength-meter">
+                        <div class="password-strength-bar" id="strengthBar"></div>
+                    </div>
+                    <div class="password-strength-text" id="strengthText"></div>
+                    
+                    <small class="text-muted d-block mt-2" style="font-size: 0.8rem;">
+                        Mật khẩu phải có ít nhất 8 ký tự (chữ hoa, chữ thường, số, ký tự đặc biệt)
+                    </small>
+                </div>
+
+                <!-- Xác nhận mật khẩu -->
+                <div class="mb-3">
+                    <label class="form-label">Xác nhận mật khẩu mới</label>
+                    <div class="password-input-group">
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" 
+                               required oninput="checkPasswordMatch()">
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword', this)">
+                            <i class="bi bi-eye-fill"></i>
+                        </button>
+                    </div>
+                    <small class="text-danger d-none" id="passwordMismatch" style="font-size: 0.8rem;">
+                        ❌ Mật khẩu không khớp!
+                    </small>
+                    <small class="text-success d-none" id="passwordMatch" style="font-size: 0.8rem;">
+                        ✓ Mật khẩu khớp!
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-change-password w-100">
+                    Cập nhật mật khẩu
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Toggle password visibility
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+        const icon = button.querySelector('i');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye-fill');
+            icon.classList.add('bi-eye-slash-fill');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash-fill');
+            icon.classList.add('bi-eye-fill');
+        }
+    }
+
+    // Check password strength
+    function checkPasswordStrength(password) {
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+        
+        if (!password) {
+            strengthBar.style.width = '0%';
+            strengthText.textContent = '';
+            strengthBar.className = 'password-strength-bar';
+            strengthText.className = 'password-strength-text';
+            return;
+        }
+
+        let strength = 0;
+        let feedback = [];
+
+        // Check length
+        if (password.length >= 8) strength++;
+        if (password.length >= 12) strength++;
+        
+        // Check for lowercase
+        if (/[a-z]/.test(password)) strength++;
+        
+        // Check for uppercase
+        if (/[A-Z]/.test(password)) strength++;
+        
+        // Check for numbers
+        if (/\d/.test(password)) strength++;
+        
+        // Check for special characters
+        if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) strength++;
+
+        // Calculate percentage
+        const percentage = (strength / 6) * 100;
+        strengthBar.style.width = percentage + '%';
+
+        // Set strength level
+        if (strength < 3) {
+            strengthBar.className = 'password-strength-bar strength-weak';
+            strengthText.className = 'password-strength-text strength-weak';
+            strengthText.textContent = '❌ Yếu - Không an toàn';
+        } else if (strength < 5) {
+            strengthBar.className = 'password-strength-bar strength-medium';
+            strengthText.className = 'password-strength-text strength-medium';
+            strengthText.textContent = '⚠️ Trung bình - Nên cải thiện';
+        } else {
+            strengthBar.className = 'password-strength-bar strength-strong';
+            strengthText.className = 'password-strength-text strength-strong';
+            strengthText.textContent = '✅ Mạnh - An toàn';
+        }
+    }
+
+    // Check password match
+    function checkPasswordMatch() {
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const mismatch = document.getElementById('passwordMismatch');
+        const match = document.getElementById('passwordMatch');
+
+        if (!confirmPassword) {
+            mismatch.classList.add('d-none');
+            match.classList.add('d-none');
+            return;
+        }
+
+        if (newPassword === confirmPassword) {
+            mismatch.classList.add('d-none');
+            match.classList.remove('d-none');
+        } else {
+            match.classList.add('d-none');
+            mismatch.classList.remove('d-none');
+        }
+    }
+
+    // Form validation
+    document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (newPassword !== confirmPassword) {
+            e.preventDefault();
+            alert('Mật khẩu xác nhận không khớp!');
+            return false;
+        }
+
+        if (newPassword.length < 8) {
+            e.preventDefault();
+            alert('Mật khẩu phải có ít nhất 8 ký tự!');
+            return false;
+        }
+    });
+</script>
+</body>
+</html>

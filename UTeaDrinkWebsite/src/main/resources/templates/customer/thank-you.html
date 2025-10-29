@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Cảm ơn bạn!</title>
+
+    <!-- Bootstrap & Icons (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet"/>
+
+    <style>
+        :root{ --bg:#f6f7f9; --ink:#0f172a; --muted:#6b7280; --line:#e9edf1; --radius:16px }
+        html,body{height:100%}
+        body{background:var(--bg); color:var(--ink); font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial}
+        .wrap{max-width:720px; margin-inline:auto; padding:24px 12px}
+        .hero{
+            background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+            box-shadow:0 12px 28px rgba(15,23,42,.06); padding:28px
+        }
+        .check-badge{
+            width:68px; height:68px; border-radius:50%;
+            display:flex; align-items:center; justify-content:center;
+            background:#e9f7ef; color:#0a7a07; font-size:30px; margin-inline:auto
+        }
+        .order-code{
+            display:inline-flex; align-items:center; gap:10px; background:#f8fafc; border:1px dashed #cdd6e0;
+            border-radius:999px; padding:10px 14px; font-weight:800; letter-spacing:.3px
+        }
+        .order-actions .btn{height:48px; border-radius:12px; font-weight:800}
+        .tips{background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:18px}
+        .tip-item{display:flex; gap:12px; align-items:flex-start}
+        .tip-item + .tip-item{margin-top:10px}
+        .tip-item .bi{font-size:1.1rem; color:#111}
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/header-customer :: customerHeader}"></div>
+<div class="container mt-3" th:if="${toastSuccess}">
+    <div class="alert alert-success" th:text="${toastSuccess}"></div>
+</div>
+<div class="container mt-3" th:if="${toastError}">
+    <div class="alert alert-danger" th:text="${toastError}"></div>
+</div>
+<div class="wrap">
+    <div class="hero text-center">
+        <div class="check-badge mb-3">
+            <i class="bi bi-check2"></i>
+        </div>
+        <h2 class="fw-bold mb-2">Cảm ơn bạn đã đặt hàng!</h2>
+        <p class="text-muted mb-3">Chúng tôi đã nhận được đơn của bạn và đang xử lý.</p>
+
+        <!-- MÃ ĐƠN HÀNG -->
+        <div class="order-code mb-3">
+            <i class="bi bi-receipt-cutoff"></i>
+            <span>Mã đơn:</span>
+            <strong id="orderCode" th:text="${orderCode}">ORDER123</strong>
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-1" onclick="copyCode()">
+                <i class="bi bi-clipboard"></i>
+            </button>
+        </div>
+
+        <!-- NÚT HÀNH ĐỘNG -->
+        <div class="order-actions d-flex flex-wrap justify-content-center gap-2 mt-2">
+            <!-- Xem đơn hàng (nếu bạn có trang chi tiết) -->
+            <a class="btn btn-outline-dark px-4"
+               th:href="@{/customer/orders}">
+                Xem đơn hàng
+            </a>
+            <!-- Tiếp tục mua sắm -->
+            <a class="btn btn-dark px-4" th:href="@{/customer/menu}">
+                Tiếp tục mua sắm
+            </a>
+        </div>
+    </div>
+
+    <!-- GỢI Ý BƯỚC TIẾP THEO -->
+    <div class="tips mt-3">
+        <div class="tip-item">
+            <i class="bi bi-bell"></i>
+            <div>
+                <div class="fw-bold">Theo dõi trạng thái</div>
+                <div class="text-muted">Bạn có thể xem tiến trình xử lý đơn hàng trong mục “Đơn mua”.</div>
+            </div>
+        </div>
+        <div class="tip-item">
+            <i class="bi bi-telephone"></i>
+            <div>
+                <div class="fw-bold">Cần hỗ trợ?</div>
+                <div class="text-muted">Liên hệ CSKH nếu bạn muốn chỉnh sửa địa chỉ, số điện thoại hoặc ghi chú giao hàng.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyCode(){
+        const el = document.getElementById('orderCode');
+        if(!el) return;
+        const code = el.textContent.trim();
+        navigator.clipboard?.writeText(code).then(()=>{
+            const btn = event?.currentTarget;
+            if(btn){ btn.innerHTML = '<i class="bi bi-clipboard-check"></i>'; setTimeout(()=>btn.innerHTML='<i class="bi bi-clipboard"></i>',1200); }
+        });
+    }
+</script>
+</body>
+</html>

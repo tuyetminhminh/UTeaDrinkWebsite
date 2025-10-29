@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Shop - UTea Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding-top: 70px;
+        }
+
+        /* Main Content with Sidebar */
+        .shop-container {
+            margin-left: 260px;
+            padding: 20px 30px;
+            min-height: calc(100vh - 70px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .shop-container.expanded {
+            margin-left: 70px;
+        }
+
+        .page-header {
+            margin-bottom: 20px;
+            animation: fadeInDown 0.5s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-header h2 {
+            color: #2d3748;
+            font-weight: 700;
+            margin-bottom: 5px;
+            font-size: 1.75rem;
+        }
+
+        .page-header p {
+            color: #718096;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        /* No Shop Card */
+        .no-shop-card {
+            background: #ffffff;
+            border-radius: 15px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(25, 118, 210, 0.1);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .no-shop-card .icon {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .no-shop-card .icon i {
+            font-size: 38px;
+            color: #0891b2;
+        }
+
+        .no-shop-card h3 {
+            color: #2d3748;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+
+        .no-shop-card p {
+            color: #718096;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        .btn-register-shop {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-register-shop:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.4);
+            color: white;
+        }
+
+        /* Shop Info Card */
+        .shop-card {
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(25, 118, 210, 0.1);
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .shop-card-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            padding: 20px 25px;
+            color: white;
+        }
+
+        .shop-card-header h4 {
+            margin: 0 0 5px 0;
+            font-weight: 700;
+            font-size: 1.35rem;
+        }
+
+        .shop-card-header p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 0.85rem;
+        }
+
+        .shop-card-body {
+            padding: 25px;
+        }
+
+        /* Info Section */
+        .info-section {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-left: 4px solid #0891b2;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .info-section i {
+            font-size: 20px;
+            color: #0891b2;
+            margin-right: 10px;
+        }
+
+        .info-section p {
+            margin: 0;
+            color: #0c4a6e;
+            line-height: 1.5;
+            font-size: 0.85rem;
+        }
+
+        /* Form Elements */
+        .form-label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+        }
+
+        .form-label i {
+            margin-right: 5px;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #0891b2;
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+        }
+
+        .form-control:disabled, .form-control[readonly] {
+            background-color: #f7fafc;
+            cursor: not-allowed;
+        }
+
+        /* Buttons */
+        .btn-save {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.4);
+            color: white;
+        }
+
+        .btn-manage {
+            background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-manage:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(8, 145, 178, 0.3);
+            color: white;
+        }
+
+        .loading-spinner {
+            display: none;
+            margin-left: 6px;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed #e2e8f0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .review-summary {
+            padding-top: 20px;
+            border-top: 2px dashed #e2e8f0;
+        }
+
+        .review-stat-mini {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .review-stat-mini .icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .review-stat-mini .info {
+            flex: 1;
+        }
+
+        .review-stat-mini .value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .review-stat-mini .label {
+            font-size: 11px;
+            color: #718096;
+            margin-top: 2px;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .shop-container {
+                margin-left: 0;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .shop-container {
+                margin-left: 0;
+                padding: 15px;
+            }
+
+            .shop-card-body {
+                padding: 20px 15px;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div th:replace="~{fragments/header-manager :: managerHeader}"></div>
+
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/manager-sidebar :: sidebar('shop')}"></div>
+
+    <!-- Main Content -->
+    <div class="shop-container" id="shopContainer">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h2><i class="fas fa-store-alt"></i> Quản lý Cửa hàng</h2>
+            <p>Cập nhật thông tin và quản lý trang chủ cửa hàng của bạn</p>
+        </div>
+
+        <!-- Alert Container -->
+        <div id="alertContainer"></div>
+
+        <!-- No Shop State -->
+        <div th:if="${!hasShop}" class="no-shop-card">
+            <div class="icon">
+                <i class="fas fa-store-slash"></i>
+            </div>
+            <h3>Bạn chưa đăng ký cửa hàng</h3>
+            <p>
+                Để bắt đầu quản lý sản phẩm và đơn hàng, bạn cần đăng ký một cửa hàng trước.<br>
+                Mỗi tài khoản Manager chỉ được đăng ký <strong>một cửa hàng duy nhất</strong>.
+            </p>
+            <a href="/manager/shop/register" class="btn-register-shop">
+                <i class="fas fa-plus-circle"></i> Đăng ký cửa hàng ngay
+            </a>
+        </div>
+
+        <!-- Shop Info Card -->
+        <div th:if="${hasShop}" class="shop-card">
+            <div class="shop-card-header">
+                <h4><i class="fas fa-store"></i> Thông tin Cửa hàng</h4>
+                <p>Cập nhật thông tin cơ bản của cửa hàng</p>
+            </div>
+
+            <div class="shop-card-body">
+                <!-- Info Section -->
+                <div class="info-section">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-info-circle"></i>
+                        <p>
+                            Thông tin cửa hàng sẽ được hiển thị cho khách hàng. 
+                            Hãy đảm bảo thông tin luôn chính xác và cập nhật.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Shop Form -->
+                <form id="shopForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="shopName" class="form-label">
+                                <i class="fas fa-store"></i> Tên cửa hàng <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="shopName" 
+                                   th:value="${shop?.name}" 
+                                   required
+                                   minlength="3"
+                                   maxlength="200"
+                                   placeholder="Nhập tên cửa hàng">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="shopPhone" class="form-label">
+                                <i class="fas fa-phone"></i> Số điện thoại <span class="text-danger">*</span>
+                            </label>
+                            <input type="tel" 
+                                   class="form-control" 
+                                   id="shopPhone" 
+                                   th:value="${shop?.phone}" 
+                                   required
+                                   pattern="^0[0-9]{9}$"
+                                   maxlength="10"
+                                   placeholder="0901234567">
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label for="shopAddress" class="form-label">
+                                <i class="fas fa-map-marker-alt"></i> Địa chỉ <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="shopAddress" 
+                                   th:value="${shop?.address}" 
+                                   required
+                                   minlength="10"
+                                   maxlength="400"
+                                   placeholder="Nhập địa chỉ cửa hàng">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="shopStatus" class="form-label">
+                                <i class="fas fa-toggle-on"></i> Trạng thái
+                            </label>
+                            <select class="form-select" id="shopStatus">
+                                <option value="OPEN" th:selected="${shop?.status == 'OPEN'}">
+                                    🟢 Đang mở cửa
+                                </option>
+                                <option value="CLOSED" th:selected="${shop?.status == 'CLOSED'}">
+                                    🔴 Đã đóng cửa
+                                </option>
+                                <option value="MAINTENANCE" th:selected="${shop?.status == 'MAINTENANCE'}">
+                                    🟡 Đang bảo trì
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-calendar"></i> Ngày tạo
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   th:value="${shop?.createdAt != null ? #temporals.format(shop.createdAt, 'dd/MM/yyyy HH:mm') : ''}" 
+                                   readonly>
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-save"></i> Lưu thay đổi
+                            <span class="spinner-border spinner-border-sm loading-spinner" role="status"></span>
+                        </button>
+                        <button type="button" class="btn-manage" onclick="window.location.href='/manager/home'">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <a href="/manager/shop/banners" class="btn-manage w-100 text-center">
+                        <i class="fas fa-images"></i> Quản lý Banner
+                    </a>
+                    <a href="/manager/shop/sections" class="btn-manage w-100 text-center">
+                        <i class="fas fa-th-large"></i> Quản lý Section
+                    </a>
+                    <a href="/manager/reviews" class="btn-manage w-100 text-center">
+                        <i class="fas fa-star"></i> Xem đánh giá khách hàng
+                    </a>
+                </div>
+
+                <!-- Shop Reviews Overview -->
+                <div class="review-summary mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 style="font-size: 15px; font-weight: 600; margin: 0;">
+                            <i class="fas fa-star" style="color: #fbbf24;"></i> Đánh giá gần đây
+                        </h5>
+                        <a href="/manager/reviews" class="text-primary" style="font-size: 13px; text-decoration: none;">
+                            Xem tất cả <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <div class="review-stat-mini">
+                                <div class="icon" style="background: rgba(251, 191, 36, 0.1); color: #fbbf24;">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="info">
+                                    <div class="value" id="shopAvgRating">--</div>
+                                    <div class="label">Đánh giá TB</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="review-stat-mini">
+                                <div class="icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                                    <i class="fas fa-comments"></i>
+                                </div>
+                                <div class="info">
+                                    <div class="value" id="shopTotalReviews">--</div>
+                                    <div class="label">Tổng đánh giá</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="review-stat-mini">
+                                <div class="icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
+                                    <i class="fas fa-thumbs-up"></i>
+                                </div>
+                                <div class="info">
+                                    <div class="value" id="shopPositiveRate">--</div>
+                                    <div class="label">Đánh giá tốt</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:if="${hasShop}">
+        const form = document.getElementById('shopForm');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const spinner = form.querySelector('.loading-spinner');
+
+        // Form validation
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+
+            updateShop();
+        });
+
+        function updateShop() {
+            // Show loading
+            submitBtn.disabled = true;
+            spinner.style.display = 'inline-block';
+
+            const data = {
+                name: document.getElementById('shopName').value.trim(),
+                address: document.getElementById('shopAddress').value.trim(),
+                phone: document.getElementById('shopPhone').value.trim(),
+                status: document.getElementById('shopStatus').value
+            };
+
+            fetch('/manager/shop/api/update', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(text || 'Có lỗi xảy ra');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                showAlert('success', '✅ Cập nhật thông tin cửa hàng thành công!');
+                setTimeout(() => location.reload(), 1500);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('danger', '❌ ' + (error.message || 'Có lỗi xảy ra khi cập nhật'));
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                spinner.style.display = 'none';
+            });
+        }
+
+        // Load Review Stats
+        function loadReviewStats() {
+            fetch('/manager/reviews/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    // Average Rating
+                    const avgRating = data.averageRating || 0;
+                    document.getElementById('shopAvgRating').textContent = avgRating.toFixed(1) + '⭐';
+                    
+                    // Total Reviews
+                    document.getElementById('shopTotalReviews').textContent = data.totalReviews || 0;
+                    
+                    // Positive Rate (4-5 stars)
+                    const ratingCounts = data.ratingCounts || {};
+                    const totalReviews = data.totalReviews || 0;
+                    const positiveCount = (ratingCounts[5] || 0) + (ratingCounts[4] || 0);
+                    const positiveRate = totalReviews > 0 ? ((positiveCount / totalReviews) * 100).toFixed(0) : 0;
+                    document.getElementById('shopPositiveRate').textContent = positiveRate + '%';
+                })
+                .catch(error => {
+                    console.error('Error loading review stats:', error);
+                    document.getElementById('shopAvgRating').textContent = '--';
+                    document.getElementById('shopTotalReviews').textContent = '--';
+                    document.getElementById('shopPositiveRate').textContent = '--';
+                });
+        }
+
+        // Load review stats on page load
+        loadReviewStats();
+
+        function showAlert(type, message) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            alertContainer.innerHTML = alertHtml;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Phone number formatting
+        const phoneInput = document.getElementById('shopPhone');
+        phoneInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    </script>
+
+</body>
+</html>

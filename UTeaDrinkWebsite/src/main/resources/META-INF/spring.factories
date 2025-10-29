@@ -1,0 +1,1 @@
+﻿org.springframework.context.ApplicationContextInitializer=net.codejava.utea.config.EnvInitializer

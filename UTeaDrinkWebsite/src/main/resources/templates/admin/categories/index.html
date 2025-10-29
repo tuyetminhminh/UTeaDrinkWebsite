@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	th:replace="~{fragments/admin-layout :: adminLayout(~{::title}, ~{::content})}">
+<head>
+<meta charset="UTF-8">
+<title>📂 Quản lý danh mục</title>
+</head>
+<body>
+
+	<div th:fragment="content">
+
+		<div th:replace="~{fragments/breadcrumbs ::
+		bc('Trang chủ', @{/admin/home},
+			null, null,
+			'Danh mục')
+		}"></div>
+
+		<div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+		<div th:if="${success}" class="alert alert-success"
+			th:text="${success}"></div>
+
+		<div class="d-flex align-items-center justify-content-between mb-3">
+			<h3 class="m-0">📂 Quản lý danh mục</h3>
+			<a class="btn btn-primary"
+				th:href="@{/admin/categories/new(page=${pageIndex},size=${size},q=${q})}">
+				<i class="bi bi-plus-circle"></i> Thêm danh mục
+			</a>
+		</div>
+
+		<form id="filterForm" class="row g-2 align-items-end mb-3"
+			method="get" th:action="@{/admin/categories}">
+			<div class="col-sm-6 col-md-4">
+				<label class="form-label">Từ khóa</label> <input
+					class="form-control" name="q" th:value="${q}"
+					placeholder="Tên danh mục...">
+			</div>
+			<input type="hidden" name="page" value="1">
+			<div class="col-auto">
+				<label class="form-label d-block">&nbsp;</label>
+				<button type="submit" class="btn btn-outline-secondary">Lọc</button>
+			</div>
+			<div class="col-auto">
+				<label class="form-label d-block">&nbsp;</label> <a
+					class="btn btn-outline-dark"
+					th:href="@{/admin/categories(size=${size})}">Reset</a>
+			</div>
+		</form>
+
+		<div class="table-responsive">
+			<table class="table table-striped align-middle">
+				<thead>
+					<tr>
+						<th style="width: 80px">#</th>
+						<th>Tên</th>
+						<th>Mô tả</th>
+						<th style="width: 120px">Trạng thái</th>
+						<th style="width: 240px" class="text-end">Thao tác</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:if="${page==null or #lists.isEmpty(page.content)}">
+						<td colspan="5" class="text-center text-muted">Chưa có danh
+							mục.</td>
+					</tr>
+					<tr th:each="c,i : ${page.content}">
+						<td th:text="${i.index + 1 + (pageIndex-1)*size}"></td>
+						<td th:text="${c.name}"></td>
+						<td th:text="${c.description}">-</td>
+						<td><span
+							th:if="${#strings.equalsIgnoreCase(c.status, 'ACTIVE')}"
+							class="badge bg-success">Kích hoạt</span> <span
+							th:if="${#strings.equalsIgnoreCase(c.status, 'INACTIVE')}"
+							class="badge bg-secondary">Vô hiệu</span></td>
+						<td class="text-end"><a
+							class="btn btn-sm btn-outline-primary"
+							th:href="@{/admin/categories/{id}/edit(id=${c.id}, q=${q}, page=${pageIndex}, size=${size})}">
+								Sửa </a>
+
+							<form th:if="${#strings.equalsIgnoreCase(c.status, 'ACTIVE')}"
+								th:action="@{|/admin/categories/${c.id}/deactivate|}"
+								method="post" class="d-inline">
+								<input th:if="${_csrf!=null}" type="hidden"
+									th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+								<input type="hidden" name="q" th:value="${q}"> <input
+									type="hidden" name="page" th:value="${pageIndex}"> <input
+									type="hidden" name="size" th:value="${size}">
+								<button type="submit" class="btn btn-sm btn-outline-warning">Tắt</button>
+							</form>
+
+							<form th:if="${#strings.equalsIgnoreCase(c.status, 'INACTIVE')}"
+								th:action="@{|/admin/categories/${c.id}/activate|}"
+								method="post" class="d-inline">
+								<input th:if="${_csrf!=null}" type="hidden"
+									th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+								<input type="hidden" name="q" th:value="${q}"> <input
+									type="hidden" name="page" th:value="${pageIndex}"> <input
+									type="hidden" name="size" th:value="${size}">
+								<button type="submit" class="btn btn-sm btn-outline-success">Bật</button>
+							</form>
+
+							<form th:action="@{|/admin/categories/${c.id}/delete|}"
+								method="post" class="d-inline"
+								onsubmit="return confirm('Xóa danh mục này?');">
+								<input th:if="${_csrf!=null}" type="hidden"
+									th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+								<input type="hidden" name="q" th:value="${q}"> <input
+									type="hidden" name="page" th:value="${pageIndex}"> <input
+									type="hidden" name="size" th:value="${size}">
+								<button type="submit" class="btn btn-sm btn-outline-danger">Xóa</button>
+							</form></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-3">
+
+			<!-- Pagination -->
+			<nav th:if="${page.totalPages > 1}" aria-label="Page navigation">
+				<ul class="pagination mb-0">
+				<!-- Prev -->
+				<li class="page-item" th:classappend="${pageIndex==1}? 'disabled'">
+					<a class="page-link"
+					th:href="@{/admin/categories(page=${pageIndex-1}, size=${size}, q=${q})}">«</a>
+				</li>
+
+				<!-- Numbers -->
+				<li class="page-item"
+					th:each="i : ${#numbers.sequence(1, page.totalPages)}"
+					th:classappend="${i==pageIndex}? 'active'">
+					<a class="page-link" th:text="${i}"
+					th:href="@{/admin/categories(page=${i}, size=${size}, q=${q})}"></a>
+				</li>
+
+				<!-- Next -->
+				<li class="page-item" th:classappend="${pageIndex==page.totalPages}? 'disabled'">
+					<a class="page-link"
+					th:href="@{/admin/categories(page=${pageIndex+1}, size=${size}, q=${q})}">»</a>
+				</li>
+				</ul>
+			</nav>
+
+			<!-- Page size selector -->
+			<form th:action="@{/admin/categories}" method="get" class="d-flex align-items-center gap-2">
+				<input type="hidden" name="q"    th:value="${q}">
+				<input type="hidden" name="page" value="1">
+
+				<label for="catPageSize" class="form-label mb-0 text-nowrap">Số dòng/trang:</label>
+				<select id="catPageSize" class="form-select form-select-sm" name="size"
+						style="width:auto" onchange="this.form.submit()">
+				<option th:each="s : ${sizes}" th:value="${s}" th:text="${s}" th:selected="${s == size}"></option>
+				</select>
+			</form>
+
+		</div>
+
+	</div>
+</body>
+</html>

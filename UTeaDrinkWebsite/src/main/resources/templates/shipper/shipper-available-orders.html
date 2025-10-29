@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn hàng khả dụng - UTea Shipper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --text-primary: #5D4037;
+            --text-secondary: #8D6E63;
+            --border-soft: #E0E0E0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #FFF9E6 0%, #FFF3E0 50%, #FFECB3 100%);
+            min-height: 100vh;
+            padding: 12px;
+            padding-top: 70px;
+        }
+
+        .container-fluid {
+            max-width: 1200px;
+        }
+
+        .header-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border-soft);
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: #F5F5F5;
+            font-size: 12px;
+        }
+
+        .back-btn:hover {
+            background: #EEEEEE;
+            color: var(--text-primary);
+        }
+
+        .header-card h1 {
+            color: var(--text-primary);
+            font-weight: 700;
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .refresh-info {
+            background: #E3F2FD;
+            padding: 8px 14px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            color: #1565C0;
+            margin-top: 8px;
+            font-size: 11px;
+        }
+
+        .order-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 14px;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-soft);
+            border-top: 3px solid #64B5F6;
+        }
+
+        .order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .order-code {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .time-badge {
+            background: #FFF3E0;
+            color: #E65100;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            border: 1px solid #FFE0B2;
+        }
+
+        .section-title {
+            color: var(--text-secondary);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .info-section {
+            background: #FAFAFA;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #F5F5F5;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: start;
+            gap: 8px;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-row i {
+            color: #64B5F6;
+            width: 14px;
+            margin-top: 2px;
+            font-size: 12px;
+        }
+
+        .info-row strong {
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .total-section {
+            background: #E8F5E9;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            text-align: center;
+            border: 1px solid #C8E6C9;
+        }
+
+        .total-label {
+            color: #2E7D32;
+            font-size: 10px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .total-amount {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1B5E20;
+        }
+
+        .accept-btn {
+            width: 100%;
+            background: #81C784;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .accept-btn:hover {
+            background: #66BB6A;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 12px rgba(129, 199, 132, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            grid-column: 1/-1;
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            color: #E0E0E0;
+            margin-bottom: 14px;
+        }
+
+        .empty-state h3 {
+            color: var(--text-primary);
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        /* Shop Map Styles */
+        .shop-map-container {
+            background: #F5F5F5;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .map-header {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 11px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .map-header i {
+            color: #E65100;
+            font-size: 12px;
+        }
+
+        .btn-directions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #4285F4 0%, #0F9D58 100%);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 600;
+            font-size: 10px;
+            margin-top: 6px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 6px rgba(66, 133, 244, 0.3);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-directions:hover {
+            background: linear-gradient(135deg, #3367D6 0%, #0D7D46 100%);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(66, 133, 244, 0.4);
+        }
+
+        .btn-directions i {
+            font-size: 10px;
+        }
+
+        .map-iframe {
+            width: 100%;
+            height: 160px;
+            border: none;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .location-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .location-status.loading {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+
+        .location-status.success {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .location-status.error {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+
+        .directions-buttons {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        /* Full Screen Map Modal */
+        .fullscreen-map-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .fullscreen-map-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fullscreen-map-content {
+            background: white;
+            border-radius: 12px;
+            width: 95%;
+            height: 90%;
+            max-width: 1200px;
+            overflow: hidden;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .fullscreen-map-header {
+            background: linear-gradient(135deg, #4285F4 0%, #0F9D58 100%);
+            color: white;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .fullscreen-map-header h5 {
+            margin: 0;
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fullscreen-map-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 18px;
+        }
+
+        .fullscreen-map-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .fullscreen-map-body {
+            flex: 1;
+            position: relative;
+        }
+
+        .fullscreen-map-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+<!-- Header Fragment -->
+<div th:replace="~{fragments/header-shipper :: shipperHeader}"></div>
+
+<div class="container-fluid">
+    <div class="header-card">
+        <a href="/shipper/home" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+        </a>
+        <h1><i class="fas fa-box-open me-2"></i> Đơn hàng khả dụng</h1>
+        <div class="refresh-info">
+            <i class="fas fa-rotate"></i>
+            <span>Tự động cập nhật mỗi 15 giây</span>
+        </div>
+    </div>
+
+    <div class="order-grid" id="ordersContainer">
+        <div class="empty-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <h3>Đang tải đơn hàng...</h3>
+            <p>Vui lòng đợi trong giây lát</p>
+        </div>
+    </div>
+</div>
+
+<!-- Fullscreen Directions Map Modal -->
+<div class="fullscreen-map-modal" id="directionsMapModal">
+    <div class="fullscreen-map-content">
+        <div class="fullscreen-map-header">
+            <h5>
+                <i class="fas fa-route"></i>
+                Chỉ đường đến cửa hàng
+            </h5>
+            <button class="fullscreen-map-close" onclick="closeDirectionsMap()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="fullscreen-map-body">
+            <iframe id="directionsMapIframe" allowfullscreen></iframe>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    const shipperId = /*[[${shipperId}]]*/ 0;
+
+    async function loadOrders() {
+        try {
+            const response = await fetch('/shipper/api/available-orders');
+            const orders = await response.json();
+
+            const container = document.getElementById('ordersContainer');
+
+            if (orders.length === 0) {
+                container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h3>Không có đơn hàng khả dụng</h3>
+                            <p>Tất cả đơn hàng đã được nhận. Hãy kiểm tra lại sau!</p>
+                        </div>
+                    `;
+                return;
+            }
+
+            container.innerHTML = orders.map(order => {
+                const createdTime = new Date(order.createdAt);
+                const now = new Date();
+                const diffMinutes = Math.floor((now - createdTime) / 60000);
+                const timeText = diffMinutes < 60
+                    ? `${diffMinutes} phút trước`
+                    : `${Math.floor(diffMinutes / 60)} giờ trước`;
+
+                return `
+                        <div class="order-card">
+                            <div class="order-header">
+                                <div class="order-code">${order.orderCode}</div>
+                                <div class="time-badge">
+                                    <i class="fas fa-clock me-1"></i> ${timeText}
+                                </div>
+                            </div>
+
+                            <div class="info-section">
+                                <div class="section-title">
+                                    <i class="fas fa-user me-1"></i> KHÁCH HÀNG
+                                </div>
+                                <div class="info-row">
+                                    <i class="fas fa-user"></i>
+                                    <div>
+                                        <strong>${order.customerName}</strong>
+                                        ${order.customerPhone}
+                                    </div>
+                                </div>
+                                <div class="info-row">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <div>${order.customerAddress}</div>
+                                </div>
+                            </div>
+
+                            <div class="info-section">
+                                <div class="section-title">
+                                    <i class="fas fa-store me-1"></i> CỬA HÀNG
+                                </div>
+                                <div class="info-row">
+                                    <i class="fas fa-store"></i>
+                                    <div>
+                                        <strong>${order.shopName}</strong>
+                                        ${order.shopAddress}
+                                    </div>
+                                </div>
+                                ${order.shopAddress ? `
+                                <div class="shop-map-container">
+                                    <div class="map-header">
+                                        <i class="fas fa-map-marked-alt"></i> Vị trí lấy hàng
+                                    </div>
+                                    <iframe
+                                        class="map-iframe"
+                                        frameborder="0"
+                                        referrerpolicy="no-referrer-when-downgrade"
+                                        src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(order.shopAddress)}&zoom=15"
+                                        allowfullscreen>
+                                    </iframe>
+                                    <div class="directions-buttons">
+                                        <button class="btn-directions" onclick="getDirectionsFromMyLocation('${encodeURIComponent(order.shopAddress)}', ${order.orderId})">
+                                            <i class="fas fa-location-arrow"></i> Chỉ đường từ vị trí tôi
+                                        </button>
+                                        <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.shopAddress)}"
+                                           target="_blank"
+                                           class="btn-directions">
+                                            <i class="fas fa-external-link-alt"></i> Mở Google Maps
+                                        </a>
+                                    </div>
+                                    <div id="location-status-${order.orderId}"></div>
+                                </div>
+                                ` : ''}
+                            </div>
+
+                            <div class="total-section">
+                                <div class="total-label">
+                                    <i class="fas fa-box me-1"></i> ${order.itemCount} món
+                                </div>
+                                <div class="total-amount">
+                                    ${order.total.toLocaleString()}₫
+                                </div>
+                                <div class="total-label mt-2">
+                                    <i class="fas fa-motorcycle me-1"></i>
+                                    Phí ship: ${order.shippingFee.toLocaleString()}₫
+                                </div>
+                            </div>
+
+                            <button class="accept-btn" onclick="acceptOrder(${order.orderId})">
+                                <i class="fas fa-hand-holding-heart me-2"></i> Nhận đơn ngay
+                            </button>
+                        </div>
+                    `;
+            }).join('');
+        } catch (error) {
+            console.error('Error loading orders:', error);
+            document.getElementById('ordersContainer').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle text-danger"></i>
+                        <h3>Lỗi tải dữ liệu</h3>
+                        <p>Vui lòng thử lại sau</p>
+                    </div>
+                `;
+        }
+    }
+
+    async function acceptOrder(orderId) {
+        if (!confirm('Bạn có chắc muốn nhận đơn hàng này?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/shipper/api/orders/${orderId}/accept`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ shipperId: shipperId })
+            });
+
+            if (response.ok) {
+                alert('✅ Nhận đơn thành công! Hãy đến lấy hàng và giao cho khách.');
+                loadOrders(); // Reload list
+            } else {
+                const error = await response.text();
+                alert('❌ Lỗi: ' + error);
+            }
+        } catch (error) {
+            console.error('Error accepting order:', error);
+            alert('❌ Có lỗi xảy ra khi nhận đơn');
+        }
+    }
+
+    // Load orders on page load
+    window.addEventListener('DOMContentLoaded', () => {
+        loadOrders();
+        // Auto refresh every 15 seconds
+        setInterval(loadOrders, 15000);
+    });
+
+    // Get directions from current location
+    async function getDirectionsFromMyLocation(destinationAddress, orderId) {
+        const statusDiv = document.getElementById(`location-status-${orderId}`);
+
+        // Check if geolocation is supported
+        if (!navigator.geolocation) {
+            statusDiv.innerHTML = '<div class="location-status error"><i class="fas fa-exclamation-circle"></i> Trình duyệt không hỗ trợ GPS</div>';
+            return;
+        }
+
+        // Show loading
+        statusDiv.innerHTML = '<div class="location-status loading"><i class="fas fa-spinner fa-spin"></i> Đang lấy vị trí của bạn...</div>';
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const accuracy = position.coords.accuracy;
+
+                // Log để debug
+                console.log('📍 Vị trí hiện tại:', {
+                    lat: lat,
+                    lng: lng,
+                    accuracy: accuracy + 'm',
+                    timestamp: new Date(position.timestamp).toLocaleTimeString()
+                });
+
+                statusDiv.innerHTML = `<div class="location-status success">
+                    <i class="fas fa-check-circle"></i> Đã lấy vị trí! (Độ chính xác: ${Math.round(accuracy)}m)<br>
+                    <small style="opacity:0.7">Tọa độ: ${lat.toFixed(6)}, ${lng.toFixed(6)}</small>
+                </div>`;
+
+                // Open fullscreen map with directions
+                showDirectionsMap(lat, lng, decodeURIComponent(destinationAddress));
+
+                // Clear status after 3 seconds
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                }, 3000);
+            },
+            (error) => {
+                let errorMsg = 'Không thể lấy vị trí';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMsg = 'Bạn đã từ chối quyền truy cập vị trí. Vui lòng cho phép GPS trong cài đặt trình duyệt';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMsg = 'Vị trí không khả dụng. Hãy đảm bảo GPS được bật và bạn ở nơi có tín hiệu';
+                        break;
+                    case error.TIMEOUT:
+                        errorMsg = 'Hết thời gian chờ lấy vị trí. Thử lại hoặc di chuyển ra ngoài trời';
+                        break;
+                }
+                console.error('❌ Lỗi GPS:', error);
+                statusDiv.innerHTML = `<div class="location-status error"><i class="fas fa-exclamation-circle"></i> ${errorMsg}</div>`;
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 20000,
+                maximumAge: 5000
+            }
+        );
+    }
+
+    // Show fullscreen directions map
+    function showDirectionsMap(originLat, originLng, destination) {
+        const modal = document.getElementById('directionsMapModal');
+        const iframe = document.getElementById('directionsMapIframe');
+
+        // Build directions URL
+        const directionsUrl = `https://www.google.com/maps/embed/v1/directions?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&origin=${originLat},${originLng}&destination=${encodeURIComponent(destination)}&mode=driving&zoom=14`;
+
+        iframe.src = directionsUrl;
+        modal.classList.add('active');
+
+        // Close on background click
+        modal.onclick = function(event) {
+            if (event.target === modal) {
+                closeDirectionsMap();
+            }
+        };
+    }
+
+    // Close directions map
+    function closeDirectionsMap() {
+        const modal = document.getElementById('directionsMapModal');
+        const iframe = document.getElementById('directionsMapIframe');
+
+        modal.classList.remove('active');
+        iframe.src = '';
+    }
+
+    // Close on ESC key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeDirectionsMap();
+        }
+    });
+</script>
+</body>
+</html>

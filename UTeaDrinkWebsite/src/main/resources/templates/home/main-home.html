@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>🍹 UTeaDrink - Hương vị tươi mát mỗi ngày</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        /* ====== Design tokens: trung tính, nhấn cam cho CTA/giá ====== */
+        :root{
+            --brand:#ff7b00; --brand-600:#e36d00;
+            --ink:#111827; --muted:#6b7280; --card:#fff;
+            --bg1:#f6f7f9; --bg2:#ffffff;
+            --radius:18px; --shadow-sm:0 6px 16px rgba(0,0,0,.06); --shadow-md:0 12px 30px rgba(0,0,0,.10);
+        }
+        html{scroll-behavior:smooth}
+        body{font-family:'Poppins','Segoe UI',system-ui; color:var(--ink); margin:0; background:linear-gradient(180deg,var(--bg1),var(--bg2))}
+        /* Nếu header KHÔNG fixed, bỏ class này; nếu vẫn còn, ép về 0 để không bị dư khoảng */
+        .page-with-header{padding-top:0 !important}
+
+        /* ===== HERO ===== */
+        #heroCarousel{
+            position:relative; 
+            height:100vh; 
+            min-height:600px; 
+            overflow:hidden;
+            background:#111; /* Nền đen để tránh flash trắng */
+        }
+        
+        /* Fix nền trắng khi chuyển slide */
+        .carousel-inner{
+            height:100%;
+            background:#111;
+        }
+        
+        .carousel-item{
+            height:100%;
+            background:#111;
+        }
+        
+        .hero-img{
+            height:100vh; 
+            min-height:600px; 
+            width:100%; 
+            object-fit:cover;
+            /* Hiệu ứng zoom nhẹ vừa phải */
+            animation: gentleZoom 15s ease-in-out infinite alternate;
+            /* Làm mờ ảnh nền */
+            filter: blur(2px) brightness(0.85);
+        }
+        
+        /* Zoom nhẹ nhàng */
+        @keyframes gentleZoom {
+            0% { transform: scale(1.05); }
+            100% { transform: scale(1.13); }
+        }
+        
+        .hero-overlay{
+            position:absolute; inset:0; 
+            /* Overlay tối hơn để chữ nổi bật */
+            background:linear-gradient(180deg,rgba(0,0,0,.5),rgba(0,0,0,.3) 40%,rgba(0,0,0,.65));
+        }
+        
+        .carousel-caption{
+            position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); 
+            max-width:860px; width:92%; text-align:center; z-index:2;
+        }
+        
+        /* Hiệu ứng text fade in nhẹ nhàng */
+        .carousel-item.active .carousel-caption h1{
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+        .carousel-item.active .carousel-caption p{
+            animation: fadeInUp 1s ease-out 0.2s forwards;
+            opacity: 0;
+        }
+        .carousel-item.active .carousel-caption .d-flex{
+            animation: fadeInUp 1.2s ease-out 0.4s forwards;
+            opacity: 0;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .carousel-caption h1{
+            font-size:clamp(32px,5vw,62px); 
+            color:#fff; 
+            font-weight:900;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.7);
+        }
+        
+        .carousel-caption p{
+            color:#f0f0f0; 
+            font-size:clamp(15px,2vw,20px);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+        }
+        
+        .btn-hero{
+            border:none; border-radius:999px; padding:13px 26px; font-weight:800; 
+            background:var(--brand); color:#fff; 
+            box-shadow:0 8px 20px rgba(255,123,0,.35);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        .btn-hero:hover{
+            background:var(--brand-600);
+            transform: translateY(-3px);
+            box-shadow:0 12px 28px rgba(255,123,0,.45);
+        }
+        
+        .btn-ghost{
+            border-radius:999px; padding:13px 26px; font-weight:800; 
+            background:rgba(255,255,255,0.1); 
+            color:#fff; 
+            border:2px solid rgba(255,255,255,.8);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        .btn-ghost:hover{
+            background:rgba(255,255,255,.25);
+            border-color: #fff;
+            transform: translateY(-3px);
+        }
+        
+        .carousel-indicators{
+            margin-bottom: 25px;
+        }
+        .carousel-indicators [data-bs-target]{
+            width:10px;
+            height:10px;
+            border-radius:50%;
+            transition: all 0.3s ease;
+            background:rgba(255,255,255,0.5);
+        }
+        .carousel-indicators [data-bs-target].active {
+            width: 28px;
+            border-radius: 5px;
+            background:rgba(255,255,255,0.95);
+        }
+
+        /* ===== INTRO ===== */
+        #intro{background:#fff; border-radius:20px; padding:44px 28px; margin-top:34px; box-shadow:var(--shadow-sm)}
+        #intro .intro-img{width:100%; max-width:520px; border-radius:16px; box-shadow:var(--shadow-md)}
+        .section-title{font-weight:900; letter-spacing:.2px}
+        .lead-muted{color:#4b5563}
+        .feature-list{display:flex; flex-wrap:wrap; gap:10px; margin-top:10px}
+        .feature-pill{background:#f3f4f6; color:#111; border:1px solid #e7e7e7; border-radius:999px; padding:8px 12px; font-weight:700}
+
+        /* ===== FILTER BAR ===== */
+        #products{padding-top:28px}
+        .filter-bar{position:sticky; top:64px; z-index:10; margin:16px 0 10px; background:#fff; border:1px solid #eee; border-radius:14px; padding:10px 12px; box-shadow:var(--shadow-sm)}
+        .category-bar{display:flex; gap:10px; flex-wrap:wrap}
+        .chip{background:#f4f6f8; border:1px solid #e9ecef; color:#111; padding:8px 14px; border-radius:999px; text-decoration:none; font-weight:700}
+        .chip:hover{background:#eef2f5}
+        .chip.active{background:var(--brand); border-color:var(--brand); color:#fff}
+        .search-wrap{position:relative; min-width:260px}
+        .search-wrap input{width:100%; border:1px solid #e9ecef; border-radius:12px; padding:10px 12px 10px 36px}
+        .search-wrap i{position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#9aa1aa}
+
+        /* ===== PRODUCT GRID ===== */
+        .product-grid{max-width:1240px; margin:14px auto 20px; display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px}
+        .card-prod{background:var(--card); border-radius:16px; padding:12px; text-align:center; box-shadow:var(--shadow-sm); transition:transform .18s, box-shadow .18s}
+        .card-prod:hover{transform:translateY(-3px); box-shadow:var(--shadow-md)}
+        .card-img{aspect-ratio:4/5; border-radius:14px; overflow:hidden; background:#f5f5f6}
+        .card-img img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .35s}
+        .card-prod:hover .card-img img{transform:scale(1.05)}
+        .prod-name{font-weight:800; margin:10px 0 4px; color:#111; min-height:42px}
+        .prod-desc{color:#6b7280; font-size:14px; min-height:40px; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; overflow:hidden}
+        .price{color:var(--brand); font-weight:900; font-size:18px}
+        .btn-primaryx{background:var(--brand); color:#fff; border:none; border-radius:12px; padding:9px 14px; font-weight:800}
+        .btn-primaryx:hover{background:var(--brand-600)}
+
+        /* ===== PAGINATION ===== */
+        .pagination .page-link{border:none; margin:0 4px; border-radius:10px; font-weight:700; color:#111}
+        .pagination .page-link:hover{background:#f4f6f8}
+        .pagination .active .page-link{background:var(--brand); color:#fff}
+
+        /* ===== TESTIMONIALS (carousel 1 thẻ) ===== */
+        #testimonials{ --per:3; --gap:20px; padding:28px 0 6px }
+        @media (max-width: 991.98px){ #testimonials{ --per:2 } }
+        @media (max-width: 575.98px){ #testimonials{ --per:1 } }
+        .t-wrap{ position:relative; padding:0 54px } /* chừa chỗ cho nút điều hướng */
+        .t-viewport{ overflow:hidden }
+        .t-track{
+            display:grid;
+            grid-auto-flow:column;
+            grid-auto-columns: calc((100% - (var(--gap) * (var(--per) - 1))) / var(--per));
+            gap:var(--gap);
+            align-items:stretch;                 /* các cột cùng chiều cao */
+            will-change: transform;
+            transition: transform .45s ease;
+        }
+        .t-card{
+            background:#fff; border:1px solid #eaeaea; border-radius:18px;
+            padding:22px; box-shadow:0 8px 24px rgba(16,24,40,.06);
+            text-align:center; display:flex; flex-direction:column; /* chia khu */
+        }
+        .t-stars{ color:#ffb800; font-size:18px }
+        .t-title{ font-weight:800; margin:10px 0 8px }
+        .t-body{ color:#4b5563; flex:1; display:flex; align-items:center; justify-content:center; min-height:70px }
+        .t-sep{ height:1px; background:#e5e7eb; width:62%; margin:12px auto 10px }
+        .t-footer{ display:flex; align-items:center; justify-content:center; gap:8px; font-weight:700 }
+        .t-nav{
+            position:absolute; top:50%; transform:translateY(-50%);
+            width:44px; height:44px; border-radius:999px; border:none;
+            background:var(--brand); color:#fff;
+            display:flex; align-items:center; justify-content:center;
+            box-shadow:0 10px 24px rgba(255,123,0,.28); cursor:pointer; z-index:2;
+        }
+        .t-nav:hover{ background:var(--brand-600) }
+        .t-nav[disabled]{ background:#e5e7eb; color:#94a3b8; box-shadow:none; cursor:not-allowed }
+        .t-prev{ left:6px } .t-next{ right:6px }
+
+        /* ===== CONTACT + MAP (giữ gọn) ===== */
+        .contact-card{background:#fff; border-radius:18px; padding:22px; box-shadow:var(--shadow-sm)}
+        .locator-card{background:#fff; border-radius:18px; box-shadow:var(--shadow-sm); padding:18px}
+        .store-search{position:relative; margin-bottom:12px}
+        .store-search input{width:100%; border:1px solid #e9ecef; border-radius:12px; padding:10px 12px 10px 36px}
+        .store-search i{position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#9aa1aa}
+        .store-item{border:1px solid #eee; border-radius:12px; padding:12px; margin-bottom:10px; cursor:pointer}
+        .store-item.active{border-color:#ffd6ad; background:#fff8f1}
+        .map-card iframe{width:100%; height:420px; border:0}
+    </style>
+</head>
+<body><!-- KHÔNG dùng class page-with-header để tránh dư khoảng -->
+
+<!-- Header -->
+<div th:replace="~{fragments/header-home :: siteHeader}"></div>
+
+<!-- HERO -->
+<section id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators" th:if="${hasBanners}">
+        <button type="button" data-bs-target="#heroCarousel"
+                th:each="b,idx : ${banners}" th:data-bs-slide-to="${idx.index}"
+                th:classappend="${idx.index == 0} ? ' active'"></button>
+    </div>
+
+    <div class="carousel-inner" th:if="${hasBanners}">
+        <div class="carousel-item" th:each="b,idx : ${banners}" th:classappend="${idx.index == 0} ? ' active'">
+            <img th:src="${b.imageUrl}" class="d-block w-100 hero-img" th:alt="${b.title ?: 'UTeaDrink Banner'}" loading="lazy">
+            <div class="hero-overlay"></div>
+            <div class="carousel-caption" th:if="${b.title}">
+                <h1 th:text="${b.title}">UTeaDrink</h1>
+                <p>Hương vị tươi mát – Năng lượng mỗi ngày 🌿</p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <a href="#products" class="btn btn-hero">Xem menu</a>
+                    <a th:href="@{/login}" class="btn btn-ghost">Đặt ngay</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="carousel-inner" th:if="${!hasBanners}">
+        <div class="carousel-item active">
+            <img src="https://res.cloudinary.com/dhmh2ekqy/image/upload/v1760047323/1-tuan-nen-uong-bao-nhieu-tra-sua-1000x690_slbfnn.jpg" class="d-block w-100 hero-img" alt="UTeaDrink">
+            <div class="hero-overlay"></div>
+            <div class="carousel-caption">
+                <h1>UTeaDrink</h1>
+                <p>Hương vị tươi mát – Năng lượng mỗi ngày 🌿</p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <a href="#products" class="btn btn-hero">Xem menu</a>
+                    <a th:href="@{/login}" class="btn btn-ghost">Đặt ngay</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+    </button>
+</section>
+
+<!-- INTRO (viết lại nội dung) -->
+<section id="intro" class="container">
+    <div class="row align-items-center justify-content-center gx-5">
+        <div class="col-lg-6 text-center">
+            <img src="https://res.cloudinary.com/dhmh2ekqy/image/upload/v1759979120/tra-sua-matcha_anwkom.jpg" alt="Trà sữa matcha" class="intro-img">
+        </div>
+        <div class="col-lg-6 mt-4 mt-lg-0">
+            <h3 class="section-title" style="color:var(--brand)">Về UTeaDrink</h3>
+            <p class="lead-muted">
+                <strong>UTeaDrink</strong> là chuỗi đồ uống trực tuyến hiện đại, kết hợp công thức chuẩn vị với
+                trải nghiệm đặt hàng mượt mà. Chúng tôi chọn nguyên liệu tươi mỗi ngày và giữ trọn hương vị tự nhiên trong từng ly.
+            </p>
+            <p class="lead-muted">
+                Sứ mệnh: <strong>“Tươi mỗi ngày – Hạnh phúc từ hương vị”</strong>. Cam kết chất lượng ổn định, giao nhanh và minh bạch nguồn gốc.
+            </p>
+            <div class="feature-list">
+                <span class="feature-pill"><i class="bi bi-cup-hot"></i> Pha chế chuẩn vị</span>
+                <span class="feature-pill"><i class="bi bi-truck"></i> Giao nhanh 30’</span>
+                <span class="feature-pill"><i class="bi bi-shield-check"></i> An toàn & rõ nguồn gốc</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PRODUCTS -->
+<section id="products" class="container">
+    <div class="text-center">
+        <h3 class="section-title">Sản phẩm</h3>
+    </div>
+
+    <div class="filter-bar d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div class="category-bar" th:if="${categories}">
+            <a th:href="@{/main-home(size=${size})} + ${anchor}" class="chip" th:classappend="${selectedCategoryId == null} ? ' active'">Tất cả</a>
+            <a th:each="c : ${categories}"
+               th:href="@{/main-home(categoryId=${c.id}, page=0, size=${size})} + ${anchor}"
+               class="chip" th:classappend="${selectedCategoryId == c.id} ? ' active'"
+               th:text="${c.name}">Danh mục</a>
+        </div>
+        <div class="search-wrap ms-auto">
+            <i class="bi bi-search"></i>
+            <input id="productSearch" type="text" placeholder="Tìm nhanh theo tên/mô tả…">
+        </div>
+    </div>
+
+    <div id="productGrid" class="product-grid" th:if="${products}">
+        <article th:each="p : ${products}" class="card-prod"
+                 th:attr="data-name=${p.name}, data-desc=${p.description}">
+            <div class="card-img">
+                <img th:src="${(p.images != null and !p.images.isEmpty()) ? p.images.get(0).url : '/images/no-image.png'}"
+                     th:alt="${p.name}" loading="lazy">
+            </div>
+            <div class="prod-name" th:text="${p.name}">Tên SP</div>
+            <div class="prod-desc" th:text="${p.description}">Mô tả ngắn…</div>
+            <div class="price" th:text="${#numbers.formatDecimal(p.basePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</div>
+            <a class="btn btn-primaryx w-100 mt-2" th:href="@{/login}"><i class="bi bi-bag-plus"></i> Thêm vào giỏ </a>
+        </article>
+    </div>
+
+    <div class="text-center text-muted py-4" th:if="${totalPages == 0}">
+        Chưa có sản phẩm phù hợp.
+    </div>
+
+    <div class="d-flex justify-content-center mt-2" th:if="${totalPages > 1}">
+        <nav aria-label="Product pagination">
+            <ul class="pagination">
+                <li class="page-item" th:classappend="${currentPage == 0} ? ' disabled'">
+                    <a class="page-link"
+                       th:href="${selectedCategoryId != null} ?
+                 @{/main-home(categoryId=${selectedCategoryId}, page=${currentPage-1}, size=${size})} + ${anchor} :
+                 @{/main-home(page=${currentPage-1}, size=${size})} + ${anchor}">
+                        «
+                    </a>
+                </li>
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages-1)}"
+                    th:classappend="${i == currentPage} ? ' active'">
+                    <a class="page-link" th:text="${i+1}"
+                       th:href="${selectedCategoryId != null} ?
+                 @{/main-home(categoryId=${selectedCategoryId}, page=${i}, size=${size})} + ${anchor} :
+                 @{/main-home(page=${i}, size=${size})} + ${anchor}"></a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage+1 >= totalPages} ? ' disabled'">
+                    <a class="page-link"
+                       th:href="${selectedCategoryId != null} ?
+                 @{/main-home(categoryId=${selectedCategoryId}, page=${currentPage+1}, size=${size})} + ${anchor} :
+                 @{/main-home(page=${currentPage+1}, size=${size})} + ${anchor}">
+                        »
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</section>
+
+<!-- SHOP SECTIONS (Dynamic sections như customer home) -->
+<div id="shopSectionsContainer" class="container my-5">
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Đang tải...</span>
+        </div>
+    </div>
+</div>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials" class="container"
+         th:if="${reviewCards != null && !#lists.isEmpty(reviewCards)}">
+    <div class="text-center mb-3">
+        <h3 class="section-title">Khách hàng đánh giá</h3>
+    </div>
+
+    <div class="t-wrap">
+        <button id="revPrev" class="t-nav t-prev" type="button" aria-label="Trước">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+
+        <div id="revViewport" class="t-viewport">
+            <div id="revTrack" class="t-track">
+                <article class="t-card" th:each="rc : ${reviewCards}">
+                    <div class="t-stars">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <div class="t-title" th:text="${rc.productName}">Tên sản phẩm</div>
+                    <div class="t-body">
+                        <div th:text="${rc.content}">Nội dung đánh giá…</div>
+                    </div>
+                    <div class="t-sep"></div>
+                    <div class="t-footer"><i class="bi bi-person-circle"></i> Khách hàng</div>
+                </article>
+            </div>
+        </div>
+
+        <button id="revNext" class="t-nav t-next" type="button" aria-label="Sau">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="container">
+    <div class="contact-card">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+            <h4 class="m-0 fw-bold">Liên hệ với chúng tôi</h4>
+            <small class="text-muted">Hỗ trợ 8:00–22:00 mỗi ngày</small>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-6">
+                <div class="mb-1 fw-semibold">Số 1 Võ Văn Ngân, ĐH Sư Phạm Kĩ Thuật, TP.HCM</div>
+                <div class="text-muted">UTeaDrink – Hương vị tươi mát mỗi ngày</div>
+                <div class="mt-2 d-flex flex-wrap gap-2">
+                    <a class="btn btn-outline-secondary btn-sm" href="https://maps.google.com/?q=Số 1 Võ Văn Ngân, Thủ Đức" target="_blank" rel="noopener"><i class="bi bi-geo-alt-fill"></i> Bản đồ</a>
+                    <a class="btn btn-outline-secondary btn-sm" href="tel:0358247942"><i class="bi bi-telephone-fill"></i> 0358 247 942</a>
+                    <a class="btn btn-outline-secondary btn-sm" href="mailto:uteadrink.web@gmail.com"><i class="bi bi-envelope-fill"></i> uteadrink.web@gmail.com</a>
+                </div>
+            </div>
+            <div class="col-lg-6 d-flex align-items-center justify-content-lg-end">
+                <a th:href="@{/login}" class="btn btn-hero"><i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập để đặt hàng</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- STORE LOCATOR -->
+<section id="map" class="container my-3" th:if="${shops}">
+    <div class="locator-card">
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <h5 class="m-0 fw-bold">Cửa hàng gần bạn</h5>
+            <small class="text-muted" th:text="|${shops.size()} chi nhánh|">0 chi nhánh</small>
+        </div>
+        <div class="row g-3">
+            <div class="col-lg-4">
+                <div class="store-search">
+                    <i class="bi bi-search"></i>
+                    <input id="storeSearch" type="text" placeholder="Tìm theo tên, địa chỉ, quận/huyện…">
+                </div>
+                <div id="storeList">
+                    <div class="store-item" th:each="s, idx : ${shops}"
+                         th:attr="data-index=${idx.index}, data-name=${s.name}, data-address=${s.address}, data-phone=${s.phone}"
+                         onclick="selectStore(this)">
+                        <div class="d-flex justify-content-between">
+                            <div class="fw-bold" th:text="${s.name}">Chi nhánh</div>
+                            <span class="badge text-bg-warning" th:text="${idx.index + 1}">1</span>
+                        </div>
+                        <div class="text-muted small mt-1">
+                            <i class="bi bi-geo-alt"></i> <span th:text="${s.address}">Địa chỉ</span><br>
+                            <i class="bi bi-telephone"></i> <span th:text="${s.phone}">SĐT</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="map-card">
+                    <iframe id="mapFrame" src="https://www.google.com/maps?q=Đại%20học%20Sư%20phạm%20Kỹ%20thuật%20TP.HCM&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div th:replace="~{fragments/footer-home :: siteFooter}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Tìm sản phẩm nhanh (client-side)
+    const productSearch = document.getElementById('productSearch');
+    const productGrid = document.getElementById('productGrid');
+    if (productSearch && productGrid){
+        productSearch.addEventListener('input', ()=>{
+            const q = productSearch.value.trim().toLowerCase();
+            [...productGrid.children].forEach(item=>{
+                const hay = ((item.dataset.name||'') + ' ' + (item.dataset.desc||'')).toLowerCase();
+                item.style.display = hay.includes(q) ? '' : 'none';
+            });
+        });
+    }
+
+    // Chọn cửa hàng + cập nhật bản đồ
+    const storeSearch = document.getElementById('storeSearch');
+    const storeListEl = document.getElementById('storeList');
+    if (storeSearch && storeListEl) {
+        storeSearch.addEventListener('input', () => {
+            const q = storeSearch.value.toLowerCase();
+            [...storeListEl.querySelectorAll('.store-item')].forEach(item => {
+                const hay = (item.dataset.name + ' ' + item.dataset.address + ' ' + item.dataset.phone).toLowerCase();
+                item.style.display = hay.includes(q) ? '' : 'none';
+            });
+        });
+    }
+    function selectStore(el, scroll = true){
+        if(!el) return;
+
+        storeListEl.querySelectorAll('.store-item').forEach(i=>i.classList.remove('active'));
+        el.classList.add('active');
+
+        const addr = el.dataset.address || el.dataset.name || '';
+        const url  = 'https://www.google.com/maps?q=' + encodeURIComponent(addr) + '&output=embed';
+        document.getElementById('mapFrame').setAttribute('src', url);
+
+        if (scroll) {
+            const map = document.getElementById('map');
+            map && map.scrollIntoView({behavior:'smooth', block:'start'});
+        }
+    }
+    window.addEventListener('DOMContentLoaded', ()=>{
+        const first = document.querySelector('#storeList .store-item');
+        if (first) selectStore(first, false);
+    });
+</script>
+<script>
+    (function(){
+        const host   = document.getElementById('testimonials');
+        const track  = document.getElementById('revTrack');
+        const prev   = document.getElementById('revPrev');
+        const next   = document.getElementById('revNext');
+        if(!host || !track) return;
+
+        let index = 0;
+
+        function per(){
+            const v = getComputedStyle(host).getPropertyValue('--per');
+            return Math.max(1, parseInt(v || '3', 10));
+        }
+        function step(){
+            const card = track.querySelector('.t-card');
+            if(!card) return 300;
+            const gap = parseInt(getComputedStyle(track).gap || '20', 10);
+            return Math.round(card.getBoundingClientRect().width + gap);
+        }
+        function clamp(){
+            const total = track.children.length;
+            const visible = per();
+            if (index < 0) index = 0;
+            if (index > total - visible) index = Math.max(0, total - visible);
+        }
+        function render(){
+            clamp();
+            const x = index * step();
+            track.style.transform = `translateX(-${x}px)`;
+            const total = track.children.length;
+            const visible = per();
+            prev.disabled = index <= 0;
+            next.disabled = index >= total - visible;
+        }
+
+        prev && prev.addEventListener('click', ()=>{ index -= 1; render(); });
+        next && next.addEventListener('click', ()=>{ index += 1; render(); });
+        window.addEventListener('resize', ()=>{ render(); });
+        render();
+    })();
+    
+    // ========== SHOP SECTIONS ==========
+    // Load shop sections giống như customer-home
+    async function loadShopSections() {
+        try {
+            // Lấy shopId từ controller (nếu có) hoặc dùng default
+            const shopId = /*[[${shopId}]]*/ 1;
+            const response = await fetch(`/api/public/shops/${shopId}/sections`);
+            const sections = await response.json();
+
+            const container = document.getElementById('shopSectionsContainer');
+
+            if (!sections || sections.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = sections.map(section => renderSection(section)).join('');
+        } catch (error) {
+            console.error('Error loading sections:', error);
+            document.getElementById('shopSectionsContainer').innerHTML = '';
+        }
+    }
+    
+    // Render một section với products
+    function renderSection(section) {
+        if (!section.products || section.products.length === 0) return '';
+        
+        const sectionConfig = {
+            'FEATURED': { icon: '🌟', color: '#ffc107', bgColor: '#fff8e1', title: 'Nổi bật' },
+            'NEW_ARRIVALS': { icon: '🆕', color: '#4caf50', bgColor: '#e8f5e9', title: 'Mới ra mắt' },
+            'TOP_SELLING': { icon: '🔥', color: '#f44336', bgColor: '#ffebee', title: 'Bán chạy' },
+            'PROMOTION': { icon: '🎁', color: '#9c27b0', bgColor: '#f3e5f5', title: 'Khuyến mãi' }
+        };
+        
+        const config = sectionConfig[section.sectionType] || { icon: '✨', color: '#2196f3', bgColor: '#e3f2fd', title: section.title };
+        
+        return `
+            <section class="section-guest mb-5">
+                <div class="section-header-guest" style="border-left: 4px solid ${config.color}; background: linear-gradient(90deg, ${config.bgColor} 0%, transparent 100%);">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h2 class="section-title-guest mb-0">
+                            <span class="section-icon-guest">${config.icon}</span>
+                            ${section.title || config.title}
+                        </h2>
+                        <a href="/login" class="btn-view-all-guest">
+                            Đăng nhập để mua <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="products-grid-guest">
+                    ${section.products.slice(0, 4).map(product => renderProductCard(product)).join('')}
+                </div>
+            </section>
+        `;
+    }
+    
+    // Render product card
+    function renderProductCard(product) {
+        const image = product.images && product.images.length > 0 
+            ? product.images[0].url 
+            : 'https://via.placeholder.com/300x300/f5f5f5/999999?text=No+Image';
+        
+        const price = new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(product.basePrice);
+        
+        const rating = product.ratingAvg ? (typeof product.ratingAvg === 'number' ? product.ratingAvg : parseFloat(product.ratingAvg)) : 0;
+        const soldCount = product.soldCount ? parseInt(product.soldCount) : 0;
+        
+        // Render stars
+        let starsHTML = '';
+        if (rating > 0) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            
+            for (let i = 0; i < 5; i++) {
+                if (i < fullStars) {
+                    starsHTML += '<i class="bi bi-star-fill"></i>';
+                } else if (i === fullStars && hasHalfStar) {
+                    starsHTML += '<i class="bi bi-star-half"></i>';
+                } else {
+                    starsHTML += '<i class="bi bi-star"></i>';
+                }
+            }
+        }
+        
+        const ratingDisplay = rating > 0 
+            ? `<div class="product-rating-guest">
+                 <span class="stars-guest">${starsHTML}</span>
+                 <span class="rating-number-guest">${rating.toFixed(1)}</span>
+               </div>`
+            : `<div class="product-rating-guest no-rating">
+                 <i class="bi bi-star-half"></i>
+                 <span class="text-muted">Chưa có đánh giá</span>
+               </div>`;
+        
+        let badge = '';
+        if (soldCount > 100) {
+            badge = '<div class="product-badge-guest hot"><i class="bi bi-fire"></i> Bán chạy</div>';
+        } else if (soldCount > 50) {
+            badge = '<div class="product-badge-guest popular"><i class="bi bi-heart-fill"></i> Yêu thích</div>';
+        }
+        
+        return `
+            <article class="product-card-guest" onclick="location.href='/login'">
+                <div class="product-image-container-guest">
+                    ${badge}
+                    <img src="${image}" 
+                         class="product-thumb-guest" 
+                         alt="${product.name}"
+                         loading="lazy"
+                         onerror="this.src='https://via.placeholder.com/300x300/f5f5f5/999999?text=No+Image'">
+                    <div class="product-overlay-guest">
+                        <button class="btn-add-cart-guest" onclick="event.stopPropagation(); location.href='/login'">
+                            <i class="bi bi-cart-plus"></i> Đăng nhập để mua
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="product-info-guest">
+                    <h3 class="product-name-guest" title="${product.name}">${product.name}</h3>
+                    <div class="product-price-row-guest">
+                        <span class="product-price-guest">${price}</span>
+                    </div>
+                    ${ratingDisplay}
+                    <div class="product-stats-guest">
+                        <span class="sold-count-guest">
+                            <i class="bi bi-cart-check"></i> 
+                            Đã bán: <strong>${soldCount}</strong>
+                        </span>
+                    </div>
+                </div>
+            </article>
+        `;
+    }
+    
+    // Load sections khi trang load
+    document.addEventListener('DOMContentLoaded', loadShopSections);
+</script>
+
+<!-- CSS cho Shop Sections -->
+<style>
+    /* Section Styling */
+    .section-guest {
+        margin-bottom: 3rem;
+    }
+    
+    .section-header-guest {
+        padding: 1.2rem 1.5rem;
+        margin-bottom: 1.8rem;
+        border-radius: 12px;
+    }
+    
+    .section-title-guest {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #1a1a1a;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .section-icon-guest {
+        font-size: 1.8rem;
+        display: inline-block;
+        animation: bounce 2s infinite;
+    }
+    
+    .btn-view-all-guest {
+        padding: 0.5rem 1.5rem;
+        background: var(--brand);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(255, 123, 0, 0.3);
+    }
+    
+    .btn-view-all-guest:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(255, 123, 0, 0.5);
+        background: var(--brand-600);
+        color: white;
+    }
+    
+    /* Products Grid */
+    .products-grid-guest {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+    }
+    
+    @media (max-width: 1200px) {
+        .products-grid-guest {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .products-grid-guest {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .section-title-guest {
+            font-size: 1.4rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .products-grid-guest {
+            gap: 0.75rem;
+        }
+    }
+    
+    /* Product Card */
+    .product-card-guest {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        border: 1px solid rgba(0,0,0,0.04);
+    }
+    
+    .product-card-guest:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 16px 32px rgba(0,0,0,0.15);
+        z-index: 10;
+        border-color: rgba(229, 57, 53, 0.2);
+    }
+    
+    /* Product Image */
+    .product-image-container-guest {
+        position: relative;
+        width: 100%;
+        padding-top: 100%;
+        overflow: hidden;
+        background: #f8f9fa;
+    }
+    
+    .product-thumb-guest {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transition: transform 0.4s ease;
+    }
+    
+    .product-card-guest:hover .product-thumb-guest {
+        transform: scale(1.1);
+    }
+    
+    .product-overlay-guest {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .product-card-guest:hover .product-overlay-guest {
+        opacity: 1;
+    }
+    
+    .btn-add-cart-guest {
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, var(--brand) 0%, var(--brand-600) 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transform: translateY(10px);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(255, 123, 0, 0.4);
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    
+    .product-card-guest:hover .btn-add-cart-guest {
+        transform: translateY(0) scale(1.05);
+        box-shadow: 0 6px 20px rgba(255, 123, 0, 0.6);
+    }
+    
+    .btn-add-cart-guest:hover {
+        background: linear-gradient(135deg, var(--brand-600) 0%, #c55900 100%);
+    }
+    
+    /* Product Badge */
+    .product-badge-guest {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        padding: 0.35rem 0.7rem;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    
+    .product-badge-guest.hot {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+        color: white;
+    }
+    
+    .product-badge-guest.popular {
+        background: linear-gradient(135deg, #ff6347 0%, #ff4500 100%);
+        color: white;
+    }
+    
+    /* Product Info */
+    .product-info-guest {
+        padding: 1rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .product-name-guest {
+        font-weight: 700;
+        font-size: 1.05rem;
+        line-height: 1.4;
+        margin: 0 0 0.5rem;
+        color: #1a1a1a;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 2.9rem;
+        transition: color 0.3s;
+    }
+    
+    .product-card-guest:hover .product-name-guest {
+        color: var(--brand);
+    }
+    
+    .product-price-row-guest {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .product-price-guest {
+        color: var(--brand);
+        font-weight: 800;
+        font-size: 1.25rem;
+        margin: 0;
+    }
+    
+    /* Rating */
+    .product-rating-guest {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin: 0.25rem 0;
+    }
+    
+    .product-rating-guest.no-rating {
+        color: #999;
+        font-style: italic;
+        font-size: 0.8rem;
+    }
+    
+    .stars-guest {
+        color: #ffc107;
+        display: flex;
+        gap: 2px;
+    }
+    
+    .stars-guest i {
+        font-size: 0.85rem;
+    }
+    
+    .rating-number-guest {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.85rem;
+    }
+    
+    /* Product Stats */
+    .product-stats-guest {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: auto;
+        padding-top: 0.75rem;
+        border-top: 1px solid #f0f0f0;
+    }
+    
+    .sold-count-guest {
+        font-size: 0.85rem;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #f8f9fa;
+        padding: 0.35rem 0.7rem;
+        border-radius: 20px;
+    }
+    
+    .sold-count-guest i {
+        color: #4caf50;
+        font-size: 0.8rem;
+    }
+    
+    .sold-count-guest strong {
+        color: #333;
+        font-weight: 700;
+    }
+</style>
+
+</body>
+</html>

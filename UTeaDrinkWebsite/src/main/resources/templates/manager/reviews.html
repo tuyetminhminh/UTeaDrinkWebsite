@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Đánh giá - Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+            padding-top: 70px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 25px;
+            min-height: calc(100vh - 70px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-content.expanded {
+            margin-left: 70px;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: white;
+            border-radius: 10px;
+            padding: 12px 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .page-header h4 {
+            color: #0f172a;
+            margin: 0 0 2px 0;
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .page-header p {
+            color: #64748b;
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .stats-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat-item .number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .stat-item .label {
+            font-size: 13px;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .rating-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
+        }
+
+        .rating-bar .stars {
+            width: 80px;
+            font-size: 14px;
+            color: #fbbf24;
+        }
+
+        .rating-bar .bar {
+            flex: 1;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .rating-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+        }
+
+        .rating-bar .count {
+            width: 60px;
+            text-align: right;
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .review-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rating-stars {
+            color: #fbbf24;
+        }
+
+        .product-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .product-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .filter-bar {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #a0aec0;
+        }
+
+        .pagination {
+            justify-content: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div th:replace="~{fragments/header-manager :: managerHeader}"></div>
+
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/manager-sidebar :: sidebar('reviews')}"></div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h4><i class="fas fa-star text-warning"></i> Quản lý Đánh giá</h4>
+                <p>Xem và quản lý đánh giá từ khách hàng</p>
+            </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="stats-card">
+            <h5 style="font-weight: 600; margin-bottom: 20px;">
+                <i class="fas fa-chart-pie"></i> Thống kê tổng quan
+            </h5>
+            <div id="statsLoading" class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Đang tải thống kê...
+            </div>
+            <div id="statsContent" style="display: none;">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="number" id="totalReviews">0</div>
+                        <div class="label">Tổng đánh giá</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number" id="avgRating">0.0</div>
+                        <div class="label">Rating trung bình</div>
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <h6 style="font-weight: 600; margin-bottom: 15px;">Phân bố đánh giá</h6>
+                <div id="ratingBars"></div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Lọc theo Rating</label>
+                    <select id="filterRating" class="form-select">
+                        <option value="">Tất cả</option>
+                        <option value="5">5 sao ⭐⭐⭐⭐⭐</option>
+                        <option value="4">4 sao ⭐⭐⭐⭐</option>
+                        <option value="3">3 sao ⭐⭐⭐</option>
+                        <option value="2">2 sao ⭐⭐</option>
+                        <option value="1">1 sao ⭐</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
+                    <button class="btn btn-primary w-100" onclick="loadReviews(0)">
+                        <i class="fas fa-filter"></i> Áp dụng
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews List -->
+        <div id="reviewsLoading" class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Đang tải đánh giá...
+        </div>
+        <div id="reviewsList"></div>
+
+        <!-- Pagination -->
+        <nav id="paginationContainer" style="display: none;">
+            <ul class="pagination" id="pagination"></ul>
+        </nav>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentPage = 0;
+        let totalPages = 0;
+
+        // Load stats on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadReviews(0);
+        });
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const res = await fetch('/manager/reviews/api/stats');
+                const stats = await res.json();
+                
+                document.getElementById('totalReviews').textContent = stats.totalReviews || 0;
+                document.getElementById('avgRating').textContent = (stats.averageRating || 0).toFixed(1);
+                
+                // Calculate percentages from ratingCounts
+                const ratingCounts = stats.ratingCounts || {};
+                const total = stats.totalReviews || 0;
+                
+                const getRating = (star) => ratingCounts[star] || 0;
+                const getPercent = (star) => total > 0 ? ((getRating(star) / total) * 100).toFixed(1) : 0;
+                
+                // Build rating bars
+                const barsHTML = `
+                    <div class="rating-bar">
+                        <div class="stars">⭐⭐⭐⭐⭐</div>
+                        <div class="bar"><div class="fill" style="width: ${getPercent(5)}%"></div></div>
+                        <div class="count">${getRating(5)} (${getPercent(5)}%)</div>
+                    </div>
+                    <div class="rating-bar">
+                        <div class="stars">⭐⭐⭐⭐</div>
+                        <div class="bar"><div class="fill" style="width: ${getPercent(4)}%"></div></div>
+                        <div class="count">${getRating(4)} (${getPercent(4)}%)</div>
+                    </div>
+                    <div class="rating-bar">
+                        <div class="stars">⭐⭐⭐</div>
+                        <div class="bar"><div class="fill" style="width: ${getPercent(3)}%"></div></div>
+                        <div class="count">${getRating(3)} (${getPercent(3)}%)</div>
+                    </div>
+                    <div class="rating-bar">
+                        <div class="stars">⭐⭐</div>
+                        <div class="bar"><div class="fill" style="width: ${getPercent(2)}%"></div></div>
+                        <div class="count">${getRating(2)} (${getPercent(2)}%)</div>
+                    </div>
+                    <div class="rating-bar">
+                        <div class="stars">⭐</div>
+                        <div class="bar"><div class="fill" style="width: ${getPercent(1)}%"></div></div>
+                        <div class="count">${getRating(1)} (${getPercent(1)}%)</div>
+                    </div>
+                `;
+                
+                document.getElementById('ratingBars').innerHTML = barsHTML;
+                document.getElementById('statsLoading').style.display = 'none';
+                document.getElementById('statsContent').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                document.getElementById('statsLoading').innerHTML = '<div class="text-danger">Lỗi tải thống kê</div>';
+            }
+        }
+
+        // Load reviews
+        async function loadReviews(page) {
+            currentPage = page;
+            const rating = document.getElementById('filterRating').value;
+            
+            try {
+                document.getElementById('reviewsLoading').style.display = 'block';
+                document.getElementById('reviewsList').innerHTML = '';
+                
+                let url = `/manager/reviews/api/list?page=${page}&size=10`;
+                if (rating) url += `&rating=${rating}`;
+                
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                if (data.content.length === 0) {
+                    document.getElementById('reviewsList').innerHTML = `
+                        <div class="review-card text-center">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Chưa có đánh giá nào</p>
+                        </div>
+                    `;
+                } else {
+                    const reviewsHTML = data.content.map(review => `
+                        <div class="review-card">
+                            <div class="review-header">
+                                <div class="user-info">
+                                    <div>
+                                        <div style="font-weight: 600;">${review.userName}</div>
+                                        <div style="font-size: 13px; color: #718096;">${formatDate(review.createdAt)}</div>
+                                    </div>
+                                </div>
+                                <div class="rating-stars">${'⭐'.repeat(review.rating)}</div>
+                            </div>
+                            
+                            <div class="product-info">
+                                <img src="${review.productImage}" class="product-img" alt="${review.productName}">
+                                <div>
+                                    <div style="font-weight: 600; font-size: 14px;">${review.productName}</div>
+                                    <div style="font-size: 12px; color: #718096;">Sản phẩm #${review.productId}</div>
+                                </div>
+                            </div>
+                            
+                            <div style="color: #4a5568; line-height: 1.6;">
+                                ${review.content || '<i class="text-muted">Không có nội dung</i>'}
+                            </div>
+                            
+                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0;">
+                                <span class="badge bg-secondary">${review.status}</span>
+                                <span class="text-muted ms-2" style="font-size: 13px;">
+                                    <i class="fas fa-thumbs-up"></i> ${review.helpfulCount || 0} hữu ích
+                                </span>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('reviewsList').innerHTML = reviewsHTML;
+                }
+                
+                // Update pagination
+                totalPages = data.totalPages;
+                updatePagination(data);
+                
+                document.getElementById('reviewsLoading').style.display = 'none';
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+                document.getElementById('reviewsLoading').innerHTML = '<div class="text-danger">Lỗi tải danh sách đánh giá</div>';
+            }
+        }
+
+        // Update pagination
+        function updatePagination(data) {
+            if (data.totalPages <= 1) {
+                document.getElementById('paginationContainer').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('paginationContainer').style.display = 'block';
+            
+            let paginationHTML = '';
+            
+            // Previous button
+            if (data.number > 0) {
+                paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="loadReviews(${data.number - 1}); return false;">Trước</a></li>`;
+            }
+            
+            // Page numbers
+            for (let i = 0; i < data.totalPages; i++) {
+                if (i === data.number) {
+                    paginationHTML += `<li class="page-item active"><a class="page-link" href="#">${i + 1}</a></li>`;
+                } else {
+                    paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="loadReviews(${i}); return false;">${i + 1}</a></li>`;
+                }
+            }
+            
+            // Next button
+            if (data.number < data.totalPages - 1) {
+                paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="loadReviews(${data.number + 1}); return false;">Sau</a></li>`;
+            }
+            
+            document.getElementById('pagination').innerHTML = paginationHTML;
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>🍹 UTeaDrink - Đăng nhập</title>
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+            rel="stylesheet">
+
+    <style>
+        /* ===== Toàn bộ nền và bố cục ===== */
+        body {
+            background: linear-gradient(135deg, #ffd9b3, #fff2e6);
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ===== Hiệu ứng bong bóng nền ===== */
+        body::before {
+            content: "";
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, #ffb347 0%, #ffcc33 80%);
+            top: -100px;
+            right: -100px;
+            filter: blur(150px);
+            opacity: 0.5;
+            z-index: 0;
+        }
+
+        body::after {
+            content: "";
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, #ff9966 0%, #ff5e62 90%);
+            bottom: -100px;
+            left: -100px;
+            filter: blur(150px);
+            opacity: 0.5;
+            z-index: 0;
+        }
+
+        /* ===== Card đăng nhập glassmorphism ===== */
+        .card-login {
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px 35px;
+            width: 400px;
+            z-index: 1;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card-login:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ===== Tiêu đề ===== */
+        h3 {
+            font-weight: 700;
+            color: #ff6600;
+            text-shadow: 0 1px 3px rgba(255, 102, 0, 0.2);
+        }
+
+        /* ===== Nút đăng nhập ===== */
+        .btn-orange {
+            background: linear-gradient(90deg, #ff9a3c, #ff6a00);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            padding: 10px 0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-orange:hover {
+            transform: scale(1.03);
+            background: linear-gradient(90deg, #ffb347, #ff8c00);
+        }
+
+        /* ===== Input ===== */
+        .form-control {
+            border-radius: 10px;
+            border: 1px solid #ffd4a3;
+            background: rgba(255, 255, 255, 0.6);
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #ff9900;
+            box-shadow: 0 0 5px rgba(255, 153, 0, 0.4);
+            background: #fff;
+        }
+
+        /* ===== Link và hiệu ứng ===== */
+        a {
+            text-decoration: none;
+            color: #ff6600;
+            font-weight: 500;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* ===== Thông báo ===== */
+        .text-danger, .text-success {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* ===== Nút mắt mật khẩu ===== */
+        #togglePassword {
+            border-radius: 0 10px 10px 0;
+            border-color: #ffd4a3;
+            transition: background-color 0.3s;
+        }
+
+        #togglePassword:hover {
+            background-color: #fff4e6;
+        }
+
+        /* ===== Link trang chủ ===== */
+        .link-home {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 8px 20px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 153, 0, 0.3);
+            border-radius: 8px;
+            color: #ff6600;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .link-home:hover {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: #ff9900;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 102, 0, 0.15);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+<div class="card-login">
+    <h3 class="text-center mb-4">🍹 Đăng nhập UTeaDrink</h3>
+    <form th:action="@{/login}" method="post">
+        <div class="mb-3">
+            <label class="form-label">Email hoặc Tên đăng nhập</label>
+            <input type="text" name="username" class="form-control" required>
+        </div>
+
+        <!-- Ô mật khẩu có nút ẩn/hiện -->
+        <div class="mb-3 position-relative">
+            <label class="form-label">Mật khẩu</label>
+            <div class="input-group">
+                <input type="password" name="password" class="form-control" id="passwordInput" required>
+                <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                    <i class="bi bi-eye-slash" id="eyeIcon"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2 mt-3">
+            <button type="submit" class="btn btn-orange">
+                <i class="bi bi-door-open me-2"></i> Đăng nhập
+            </button>
+        </div>
+
+        <div class="d-grid gap-2 mt-3">
+            <a class="btn btn-outline-dark" href="/oauth2/authorization/google">
+                <i class="bi bi-google me-2"></i> Đăng nhập với Google
+            </a>
+        </div>
+    </form>
+
+    <div class="text-center mt-4">
+        <a th:href="@{/forgot}" class="me-2">Quên mật khẩu?</a> |
+        <a th:href="@{/register}" class="ms-2">Đăng ký tài khoản</a>
+    </div>
+
+    <div class="text-center">
+        <a th:href="@{/}" class="link-home">
+            <i class="bi bi-house-door-fill me-1"></i> Quay về trang chủ
+        </a>
+    </div>
+
+    <p th:if="${error}" class="text-danger text-center mt-3" th:text="${error}"></p>
+    <p th:if="${success}" class="text-success text-center mt-3" th:text="${success}"></p>
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('passwordInput');
+    const eyeIcon = document.getElementById('eyeIcon');
+
+    toggleBtn.addEventListener('click', function () {
+        const isHidden = passwordInput.type === 'password';
+        passwordInput.type = isHidden ? 'text' : 'password';
+        eyeIcon.classList.toggle('bi-eye');
+        eyeIcon.classList.toggle('bi-eye-slash');
+    });
+</script>
+</body>
+</html>

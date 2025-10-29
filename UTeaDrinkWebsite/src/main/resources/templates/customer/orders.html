@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Đơn hàng của tôi</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+    <style>
+        :root{
+            --bg:#f6f7f9; --ink:#0f172a; --muted:#6b7280; --line:#e9edf1; --header-h:72px;
+            --radius:14px; --chip-radius:10px; --elev:0 6px 16px rgba(15,23,42,.05);
+        }
+        body{background:var(--bg);color:var(--ink)}
+        .page-offset{height:var(--header-h)}
+        /* Thu nhỏ bề ngang tổng thể */
+        .wrap{max-width:960px;margin:0 auto 24px;padding:0 12px}
+
+        /* Tiêu đề */
+        .page-title{letter-spacing:.2px}
+
+        /* SORT BAR – ngoài panel */
+        .sort-row{
+            display:flex;justify-content:flex-end;align-items:center;gap:10px;
+            margin:6px 0 12px;
+        }
+        .sort-select{
+            min-width:180px;border:1px solid var(--line);border-radius:10px;box-shadow:none;
+        }
+
+        /* PANEL lọc chỉ chứa chip */
+        .filter-bar{
+            background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--elev);
+            padding:14px 16px;margin-bottom:14px;
+        }
+        .chip-group{display:flex;flex-wrap:wrap;gap:10px}
+        .chip{
+            display:inline-flex;align-items:center;gap:8px;
+            border:1px solid var(--line);border-radius:var(--chip-radius);
+            padding:10px 14px;
+            font-weight:700;font-size:15px;
+            color:#1f2937;background:#fff;text-decoration:none;line-height:1;
+            transition:.15s ease-in-out;
+        }
+        .chip .bi{font-size:1rem;opacity:.95}
+        .chip:hover{background:#f8fafc;transform:translateY(-1px)}
+        .chip:focus-visible{outline:3px solid #94a3b8;outline-offset:2px}
+        .chip.active{background:#111;color:#fff;border-color:#111}
+
+        /* LIST */
+        .order-card{border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--elev)}
+        .order-card .img{width:90px;height:90px;border-radius:12px;overflow:hidden;background:#f1f5f9;flex:0 0 90px}
+        .order-card .img img{width:100%;height:100%;object-fit:cover}
+        .order-card .meta{color:var(--muted);font-size:.95rem}
+        .tag{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.8rem;white-space:nowrap}
+
+        /* Stars */
+        .star-group{display:flex;gap:6px}
+        .star-group input{display:none}
+        .star{font-size:24px;color:#d1d5db;cursor:pointer}
+        .star-group input:checked ~ label .bi-star{color:#f59e0b}
+        .star:hover, .star:hover ~ label .bi-star{color:#f59e0b}
+
+        /* Modal header */
+        .rv-head{display:flex;align-items:center;gap:12px}
+        .rv-img{width:46px;height:46px;border-radius:8px;overflow:hidden;background:#f1f5f9}
+        .rv-img img{width:100%;height:100%;object-fit:cover}
+        .page-head{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:12px;
+            margin: 0 0 12px 0;    /* khoảng dưới khối head */
+        }
+        .sort-select{
+            min-width:180px;
+            border:1px solid var(--line);
+            border-radius:10px;
+            box-shadow:none;
+        }
+        /* Responsive: màn hình nhỏ thì xếp dọc, combobox full width */
+        @media (max-width: 576px){
+            .page-head{ flex-direction:column; align-items:stretch; gap:8px; }
+            .sort-select{ width:100%; }
+        }
+
+    </style>
+</head>
+<body>
+<!-- Header -->
+<div th:replace="~{fragments/header-customer :: customerHeader}"></div>
+<div class="page-offset"></div>
+
+<div class="wrap">
+    <!-- PAGE HEAD: tiêu đề + sắp xếp trên cùng 1 hàng -->
+    <div class="page-head">
+        <h3 class="fw-bold m-0 page-title">Đơn hàng của tôi</h3>
+
+        <form class="d-inline-flex align-items-center gap-2" method="get" th:action="@{/customer/orders}">
+            <input type="hidden" name="filter" th:value="${filter}">
+            <input type="hidden" name="size" th:value="${items != null} ? ${items.size} : 10">
+            <select id="sortSelect" name="sort" class="form-select form-select-sm sort-select"
+                    onchange="this.form.submit()">
+                <option value="newest" th:selected="${sort=='newest'}">Mới nhất</option>
+                <option value="oldest" th:selected="${sort=='oldest'}">Cũ nhất</option>
+            </select>
+        </form>
+    </div>
+
+
+    <!-- PANEL LỌC (chỉ chip) -->
+    <div class="filter-bar">
+        <div class="chip-group">
+            <a class="chip" th:classappend="${filter=='ALL'} ? ' active' : ''"
+               th:href="@{/customer/orders(filter='ALL',sort=${sort})}">
+                <i class="bi bi-list-ul"></i> Tất cả
+            </a>
+            <a class="chip" th:classappend="${filter=='NEW'} ? ' active' : ''"
+               th:href="@{/customer/orders(filter='NEW',sort=${sort})}">
+                <i class="bi bi-clock-history"></i> Mới
+            </a>
+            <a class="chip" th:classappend="${filter=='CONFIRMED'} ? ' active' : ''"
+               th:href="@{/customer/orders(filter='CONFIRMED',sort=${sort})}">
+                <i class="bi bi-check-circle"></i> Đã xác nhận
+            </a>
+            <a class="chip" th:classappend="${filter=='PREPARING'} ? ' active' : ''"
+               th:href="@{/customer/orders(filter='PREPARING',sort=${sort})}">
+                <i class="bi bi-cup-straw"></i> Đang chuẩn bị
+            </a>
+            <a class="chip" th:classappend="${filter=='DELIVERING'} ? ' active' : ''"
+               th:href="@{/customer/orders(filter='DELIVERING',sort=${sort})}">
+                <i class="bi bi-truck"></i> Đang giao
+            </a>
+            <a class="chip" th:classappend="${filter=='DELIVERED'} ? ' active' : ''"
+               th:href="@{/customer/orders(filter='DELIVERED',sort=${sort})}">
+                <i class="bi bi-check2-circle"></i> Đã giao
+            </a>
+            <a class="chip" th:classappend="${filter=='CANCELED'} ? ' active' : ''"
+               th:href="@{/customer/orders(filter='CANCELED',sort=${sort})}">
+                <i class="bi bi-x-circle"></i> Đã hủy
+            </a>
+        </div>
+    </div>
+
+    <!-- LIST -->
+    <div th:if="${items.content.size() > 0}" class="vstack gap-2 mt-2">
+        <div th:each="it : ${items.content}" class="order-card p-3">
+            <div class="d-flex gap-3">
+                <div class="img">
+                    <img th:src="${it.productImageUrl}" th:alt="${it.productName}">
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div class="fw-bold text-truncate" th:text="${it.productName}">Tên sản phẩm</div>
+                        <div class="tag" th:text="${it.orderCode}">ORD-XXXX</div>
+                    </div>
+                    <div class="meta mt-1">
+                        <span th:text="'SL: ' + ${it.quantity}"></span>
+                        <span class="ms-2" th:if="${it.sizeLabel}" th:text="'Size: ' + ${it.sizeLabel}"></span>
+                        <span class="ms-2" th:text="${#temporals.format(it.orderedAt,'dd/MM/yyyy HH:mm')}"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-end mt-2">
+                        <div class="text-muted fw-semibold">
+                            <span th:text="'Thành tiền: ' + ${#numbers.formatDecimal(it.lineTotal,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            <!-- HỦY: NEW | CONFIRMED | PREPARING | DELIVERING -->
+                            <form
+                                    th:if="${it.orderStatus == T(net.codejava.utea.order.entity.enums.OrderStatus).NEW
+                     or it.orderStatus == T(net.codejava.utea.order.entity.enums.OrderStatus).CONFIRMED
+                     or it.orderStatus == T(net.codejava.utea.order.entity.enums.OrderStatus).PREPARING
+                     or it.orderStatus == T(net.codejava.utea.order.entity.enums.OrderStatus).DELIVERING}"
+                                    th:action="@{'/customer/orders/' + ${it.orderCode} + '/cancel'}" method="post">
+                                <button class="btn btn-outline-danger btn-sm" type="submit">
+                                    <i class="bi bi-x-circle"></i> Hủy đơn
+                                </button>
+                            </form>
+
+                            <!-- ĐÁNH GIÁ: DELIVERED & chưa review -->
+                            <button
+                                    th:if="${it.orderStatus == T(net.codejava.utea.order.entity.enums.OrderStatus).DELIVERED and it.reviewId == null}"
+                                    class="btn btn-dark btn-sm"
+                                    data-bs-toggle="modal" data-bs-target="#reviewModal"
+                                    th:data-oi="${it.orderItemId}"
+                                    th:data-pid="${it.productId}"
+                                    th:data-code="${it.orderCode}"
+                                    th:data-name="${it.productName}"
+                                    th:data-img="${it.productImageUrl}">
+                                <i class="bi bi-star"></i> Đánh giá
+                            </button>
+
+                            <!-- XEM/ĐỔI ĐÁNH GIÁ: DELIVERED & đã review -->
+                            <button
+                                    th:if="${it.orderStatus == T(net.codejava.utea.order.entity.enums.OrderStatus).DELIVERED and it.reviewId != null}"
+                                    class="btn btn-outline-dark btn-sm"
+                                    data-bs-toggle="modal" data-bs-target="#reviewModal"
+                                    th:data-oi="${it.orderItemId}"
+                                    th:data-pid="${it.productId}"
+                                    th:data-code="${it.orderCode}"
+                                    th:data-name="${it.productName}"
+                                    th:data-img="${it.productImageUrl}"
+                                    th:data-rating="${it.rating}"
+                                    th:data-content="${it.reviewContent}">
+                                <i class="bi bi-pencil-square"></i> Xem/đổi đánh giá
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <nav class="mt-2" th:if="${items.totalPages > 1}">
+            <ul class="pagination pagination-sm">
+                <li class="page-item" th:classappend="${items.first} ? 'disabled' : ''">
+                    <a class="page-link"
+                       th:href="@{/customer/orders(filter=${filter},sort=${sort},page=${items.number-1},size=${items.size})}">«</a>
+                </li>
+
+                <li class="page-item" th:each="i : ${#numbers.sequence(0, items.totalPages-1)}"
+                    th:classappend="${i == items.number} ? 'active' : ''">
+                    <a class="page-link"
+                       th:text="${i+1}"
+                       th:href="@{/customer/orders(filter=${filter},sort=${sort},page=${i},size=${items.size})}">1</a>
+                </li>
+
+                <li class="page-item" th:classappend="${items.last} ? 'disabled' : ''">
+                    <a class="page-link"
+                       th:href="@{/customer/orders(filter=${filter},sort=${sort},page=${items.number+1},size=${items.size})}">»</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div th:if="${items.content.size() == 0}" class="text-center text-muted py-5">
+        Chưa có mục nào phù hợp.
+    </div>
+</div>
+
+<!-- Modal Đánh giá -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" th:action="@{/customer/orders/review}" method="post">
+            <div class="modal-header">
+                <div class="rv-head">
+                    <div class="rv-img"><img id="rvImg" alt=""/></div>
+                    <div>
+                        <div class="fw-semibold" id="rvName">Sản phẩm</div>
+                        <div class="text-muted small">Đơn <span id="rvOrder">—</span></div>
+                    </div>
+                </div>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="orderItemId" id="rvOi">
+                <input type="hidden" name="productId" id="rvPid">
+                <input type="hidden" name="orderCode" id="rvCode">
+
+                <label class="form-label">Chấm sao</label>
+                <div class="star-group mb-2">
+                    <input type="radio" id="star5" name="rating" value="5"><label class="star" for="star5"><i class="bi bi-star"></i></label>
+                    <input type="radio" id="star4" name="rating" value="4"><label class="star" for="star4"><i class="bi bi-star"></i></label>
+                    <input type="radio" id="star3" name="rating" value="3"><label class="star" for="star3"><i class="bi bi-star"></i></label>
+                    <input type="radio" id="star2" name="rating" value="2"><label class="star" for="star2"><i class="bi bi-star"></i></label>
+                    <input type="radio" id="star1" name="rating" value="1"><label class="star" for="star1"><i class="bi bi-star"></i></label>
+                </div>
+
+                <label class="form-label">Nội dung đánh giá</label>
+                <textarea class="form-control" name="content" id="rvContent" rows="4"
+                          placeholder="Cảm nhận của bạn... (≥ 50 ký tự)" required></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-dark" type="submit">Lưu</button>
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal" type="button">Đóng</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const reviewModal = document.getElementById('reviewModal');
+    reviewModal.addEventListener('show.bs.modal', function (e){
+        const btn = e.relatedTarget;
+
+        document.getElementById('rvOi').value   = btn.getAttribute('data-oi');
+        document.getElementById('rvPid').value  = btn.getAttribute('data-pid');
+        document.getElementById('rvCode').value = btn.getAttribute('data-code');
+
+        document.getElementById('rvName').textContent = btn.getAttribute('data-name') || 'Sản phẩm';
+        document.getElementById('rvOrder').textContent = btn.getAttribute('data-code') || '';
+        const img = btn.getAttribute('data-img') || '/images/no-image.png';
+        document.getElementById('rvImg').setAttribute('src', img);
+
+        const rating  = btn.getAttribute('data-rating');
+        const content = btn.getAttribute('data-content') || '';
+        document.getElementById('rvContent').value = content;
+
+        document.querySelectorAll('.star-group input[name="rating"]').forEach(r => r.checked = false);
+        const pick = rating ? Number(rating) : 5;
+        const radio = document.querySelector('.star-group input[value="'+pick+'"]');
+        if (radio) radio.checked = true;
+    });
+</script>
+</body>
+</html>

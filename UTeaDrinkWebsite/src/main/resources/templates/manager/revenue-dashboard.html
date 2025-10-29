@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo Doanh thu - UTea Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8f9fa;
+            overflow-x: hidden;
+            padding-top: 70px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+            min-height: calc(100vh - 70px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-content.expanded {
+            margin-left: 70px;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .quick-filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            border-color: #1e3c72;
+            color: #1e3c72;
+            background: #f8f9fa;
+        }
+
+        .filter-btn.active {
+            background: #1e3c72;
+            color: white;
+            border-color: #1e3c72;
+        }
+
+        .custom-range {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .date-input {
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .btn-apply {
+            padding: 8px 20px;
+            background: #1e3c72;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-apply:hover {
+            background: #2a5298;
+        }
+
+        .btn-export {
+            padding: 8px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-export:hover {
+            background: #218838;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-export:active {
+            transform: translateY(0);
+        }
+
+        .btn-export:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-color);
+        }
+
+        .stat-card.revenue::before { --accent-color: #3498db; }
+        .stat-card.orders::before { --accent-color: #2ecc71; }
+        .stat-card.cancel::before { --accent-color: #e74c3c; }
+        .stat-card.average::before { --accent-color: #9b59b6; }
+
+        .stat-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .stat-card.revenue .stat-icon {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+
+        .stat-card.orders .stat-icon {
+            background: rgba(46, 204, 113, 0.1);
+            color: #2ecc71;
+        }
+
+        .stat-card.cancel .stat-icon {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+
+        .stat-card.average .stat-icon {
+            background: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .stat-info {
+            font-size: 12px;
+            color: #95a5a6;
+        }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Top Products Table */
+        .table-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .products-table {
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .products-table thead th {
+            font-size: 13px;
+            color: #6c757d;
+            font-weight: 600;
+            padding: 12px 10px;
+            border-bottom: 2px solid #f1f3f5;
+            text-align: left;
+        }
+
+        .products-table tbody td {
+            padding: 12px 10px;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .products-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .rank-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .rank-1 { background: #FFD700; color: #856404; }
+        .rank-2 { background: #C0C0C0; color: #383838; }
+        .rank-3 { background: #CD7F32; color: white; }
+        .rank-other { background: #f1f3f5; color: #6c757d; }
+
+        .product-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .revenue-value {
+            font-weight: 600;
+            color: #2ecc71;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1e3c72;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Notification Toast */
+        .notification-toast {
+            position: fixed;
+            top: 90px;
+            right: -350px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 10000;
+            transition: all 0.3s ease;
+            min-width: 300px;
+            max-width: 400px;
+        }
+
+        .notification-toast.show {
+            right: 20px;
+        }
+
+        .notification-toast i {
+            font-size: 20px;
+        }
+
+        .notification-success {
+            border-left: 4px solid #2ecc71;
+        }
+
+        .notification-success i {
+            color: #2ecc71;
+        }
+
+        .notification-warning {
+            border-left: 4px solid #f39c12;
+        }
+
+        .notification-warning i {
+            color: #f39c12;
+        }
+
+        .notification-info {
+            border-left: 4px solid #3498db;
+        }
+
+        .notification-info i {
+            color: #3498db;
+        }
+
+        .notification-toast span {
+            flex: 1;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .notification-toast {
+                right: -100%;
+                min-width: calc(100% - 40px);
+            }
+
+            .notification-toast.show {
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div th:replace="~{fragments/header-manager :: managerHeader}"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+                            </div>
+
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/manager-sidebar :: sidebar('revenue')}"></div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-chart-line me-2"></i>
+                Báo cáo Doanh thu
+            </h1>
+                        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="quick-filters">
+                <button class="filter-btn" onclick="loadQuickFilter('today', event)">Hôm nay</button>
+                <button class="filter-btn" onclick="loadQuickFilter('thisWeek', event)">Tuần này</button>
+                <button class="filter-btn" onclick="loadQuickFilter('thisMonth', event)">Tháng này</button>
+                <button class="filter-btn" onclick="loadQuickFilter('thisYear', event)">Năm nay</button>
+                    </div>
+            <div class="custom-range">
+                <label style="font-size: 13px; color: #6c757d;">Hoặc chọn khoảng:</label>
+                <input type="date" class="date-input" id="fromDate" th:value="${fromDate}">
+                <span style="color: #6c757d;">đến</span>
+                <input type="date" class="date-input" id="toDate" th:value="${toDate}">
+                <button class="btn-apply" onclick="applyCustomFilter()">
+                    <i class="fas fa-filter me-1"></i>
+                    Áp dụng
+                </button>
+                <button class="btn-export" onclick="exportExcel()">
+                    <i class="fas fa-file-excel me-1"></i>
+                    Xuất Excel
+                </button>
+                            </div>
+                        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card revenue">
+                <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+                <div class="stat-label">Tổng doanh thu</div>
+                <div class="stat-value" id="totalRevenue">0đ</div>
+                <div class="stat-info" id="revenueInfo">Từ đơn hàng đã giao</div>
+                    </div>
+            <div class="stat-card orders">
+                <div class="stat-icon"><i class="fas fa-shopping-cart"></i></div>
+                <div class="stat-label">Đơn hoàn thành</div>
+                <div class="stat-value" id="completedOrders">0</div>
+                <div class="stat-info" id="ordersInfo">/ 0 tổng đơn</div>
+                            </div>
+            <div class="stat-card cancel">
+                <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+                <div class="stat-label">Tỷ lệ hủy</div>
+                <div class="stat-value" id="cancelRate">0%</div>
+                <div class="stat-info" id="cancelInfo">0 đơn bị hủy</div>
+                        </div>
+            <div class="stat-card average">
+                <div class="stat-icon"><i class="fas fa-receipt"></i></div>
+                <div class="stat-label">Giá trị trung bình</div>
+                <div class="stat-value" id="averageValue">0đ</div>
+                <div class="stat-info">Trên mỗi đơn hàng</div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-chart-line me-2"></i>
+                    Doanh thu theo ngày
+                            </div>
+                <div class="chart-container">
+                                <canvas id="dailyRevenueChart"></canvas>
+                            </div>
+                        </div>
+            <div class="chart-card">
+                <div class="chart-title">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Đơn hàng theo giờ
+                    </div>
+                <div class="chart-container">
+                    <canvas id="hourlyOrdersChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+        <!-- Top Products Table -->
+        <div class="table-card">
+            <div class="chart-title">
+                <i class="fas fa-crown me-2"></i>
+                Top 10 Sản phẩm bán chạy
+                            </div>
+                                <div class="table-responsive">
+                <table class="products-table">
+                                        <thead>
+                                            <tr>
+                            <th style="width: 60px;">Hạng</th>
+                                                <th>Tên sản phẩm</th>
+                            <th style="width: 120px; text-align: center;">Số lượng</th>
+                            <th style="width: 150px; text-align: right;">Doanh thu</th>
+                                            </tr>
+                                        </thead>
+                    <tbody id="topProductsBody">
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty-state">
+                                    <i class="fas fa-chart-pie"></i>
+                                    <p>Đang tải dữ liệu...</p>
+                                </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let dailyChart = null;
+        let hourlyChart = null;
+        let currentFromDate = null;
+        let currentToDate = null;
+
+        // Load initial data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load initial data (thisMonth by default)
+            loadQuickFilterAuto('thisMonth');
+        });
+
+        // Quick Filter Functions
+        function loadQuickFilter(period, event) {
+            const today = new Date();
+            let fromDate, toDate;
+
+            switch(period) {
+                case 'today':
+                    fromDate = toDate = formatDate(today);
+                    break;
+                case 'thisWeek':
+                    const startOfWeek = new Date(today);
+                    startOfWeek.setDate(today.getDate() - today.getDay() + 1);
+                    fromDate = formatDate(startOfWeek);
+                    toDate = formatDate(today);
+                    break;
+                case 'thisMonth':
+                    fromDate = formatDate(new Date(today.getFullYear(), today.getMonth(), 1));
+                    toDate = formatDate(today);
+                    break;
+                case 'thisYear':
+                    fromDate = formatDate(new Date(today.getFullYear(), 0, 1));
+                    toDate = formatDate(today);
+                    break;
+            }
+
+            document.getElementById('fromDate').value = fromDate;
+            document.getElementById('toDate').value = toDate;
+
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            loadRevenueData(fromDate, toDate);
+        }
+
+        // Auto load filter on page load (without event)
+        function loadQuickFilterAuto(period) {
+            const today = new Date();
+            let fromDate, toDate;
+
+            switch(period) {
+                case 'today':
+                    fromDate = toDate = formatDate(today);
+                    break;
+                case 'thisWeek':
+                    const startOfWeek = new Date(today);
+                    startOfWeek.setDate(today.getDate() - today.getDay() + 1);
+                    fromDate = formatDate(startOfWeek);
+                    toDate = formatDate(today);
+                    break;
+                case 'thisMonth':
+                    fromDate = formatDate(new Date(today.getFullYear(), today.getMonth(), 1));
+                    toDate = formatDate(today);
+                    break;
+                case 'thisYear':
+                    fromDate = formatDate(new Date(today.getFullYear(), 0, 1));
+                    toDate = formatDate(today);
+                    break;
+            }
+
+            document.getElementById('fromDate').value = fromDate;
+            document.getElementById('toDate').value = toDate;
+
+            // Set active button for thisMonth by default
+            document.querySelectorAll('.filter-btn').forEach((btn, index) => {
+                btn.classList.remove('active');
+                // Button index: 0=today, 1=thisWeek, 2=thisMonth, 3=thisYear
+                if (period === 'today' && index === 0) btn.classList.add('active');
+                if (period === 'thisWeek' && index === 1) btn.classList.add('active');
+                if (period === 'thisMonth' && index === 2) btn.classList.add('active');
+                if (period === 'thisYear' && index === 3) btn.classList.add('active');
+            });
+
+            // Auto load data
+            loadRevenueData(fromDate, toDate);
+        }
+
+        function applyCustomFilter() {
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+
+            if (!fromDate || !toDate) {
+                alert('Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc');
+                return;
+            }
+
+            // Remove active from quick filters
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+
+            loadRevenueData(fromDate, toDate);
+        }
+
+        function loadRevenueData(fromDate, toDate) {
+            currentFromDate = fromDate;
+            currentToDate = toDate;
+
+            showLoading();
+
+            fetch(`/manager/revenue/api?fromDate=${fromDate}&toDate=${toDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Revenue data:', data);
+                    updateStats(data);
+                    updateDailyChart(data.dailyRevenue);
+                    updateHourlyChart(data.hourlyRevenue);
+                    updateTopProducts(data.topProducts);
+                    hideLoading();
+                })
+                .catch(error => {
+                    console.error('Error loading revenue data:', error);
+                    hideLoading();
+                    alert('Có lỗi khi tải dữ liệu. Vui lòng thử lại.');
+                });
+        }
+
+        function updateStats(data) {
+            document.getElementById('totalRevenue').textContent = formatCurrency(data.totalRevenue);
+            document.getElementById('completedOrders').textContent = data.completedOrders;
+            document.getElementById('ordersInfo').textContent = `/ ${data.totalOrders} tổng đơn`;
+            document.getElementById('cancelRate').textContent = data.cancelRate.toFixed(1) + '%';
+            document.getElementById('cancelInfo').textContent = `${data.canceledOrders} đơn bị hủy`;
+            document.getElementById('averageValue').textContent = formatCurrency(data.averageOrderValue);
+        }
+
+        function updateDailyChart(dailyData) {
+            const ctx = document.getElementById('dailyRevenueChart').getContext('2d');
+            
+            if (dailyChart) {
+                dailyChart.destroy();
+            }
+
+            dailyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                    labels: dailyData.map(d => d.date),
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                        data: dailyData.map(d => d.revenue),
+                        borderColor: '#1e3c72',
+                        backgroundColor: 'rgba(30, 60, 114, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                    maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Doanh thu: ' + formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatShortCurrency(value);
+                                }
+                            }
+                    }
+                }
+            }
+        });
+        }
+
+        function updateHourlyChart(hourlyData) {
+            const ctx = document.getElementById('hourlyOrdersChart').getContext('2d');
+            
+            if (hourlyChart) {
+                hourlyChart.destroy();
+            }
+
+            hourlyChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                    labels: hourlyData.map(h => h.hour + ':00'),
+                datasets: [{
+                    label: 'Số đơn',
+                        data: hourlyData.map(h => h.orderCount),
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: '#3498db',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                    maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                    }
+                }
+            }
+        });
+        }
+
+        function updateTopProducts(products) {
+            const tbody = document.getElementById('topProductsBody');
+            
+            if (!products || products.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>Chưa có dữ liệu sản phẩm</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = products.map((product, index) => {
+                const rank = index + 1;
+                const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+                
+                return `
+                    <tr>
+                        <td><span class="rank-badge ${rankClass}">${rank}</span></td>
+                        <td class="product-name">${product.productName}</td>
+                        <td style="text-align: center;">${product.totalSold}</td>
+                        <td style="text-align: right;" class="revenue-value">${formatCurrency(product.totalRevenue)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function exportExcel() {
+            if (!currentFromDate || !currentToDate) {
+                alert('Vui lòng chọn khoảng thời gian trước khi xuất báo cáo');
+                return;
+            }
+
+            // Build export URL with parameters
+            const exportUrl = `/manager/revenue/api/export/excel?fromDate=${currentFromDate}&toDate=${currentToDate}`;
+            
+            // Trigger download (same as order-management.html)
+            window.location.href = exportUrl;
+        }
+
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            const existingNotif = document.querySelector('.notification-toast');
+            if (existingNotif) {
+                existingNotif.remove();
+            }
+
+            // Create notification
+            const notification = document.createElement('div');
+            notification.className = `notification-toast notification-${type}`;
+            notification.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(notification);
+
+            // Show notification
+            setTimeout(() => notification.classList.add('show'), 100);
+
+            // Auto hide after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Utility Functions
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(value);
+        }
+
+        function formatShortCurrency(value) {
+            if (value >= 1000000) {
+                return (value / 1000000).toFixed(1) + 'M';
+            } else if (value >= 1000) {
+                return (value / 1000).toFixed(1) + 'K';
+            }
+            return value.toLocaleString('vi-VN');
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+        }
+    </script>
+</body>
+</html>

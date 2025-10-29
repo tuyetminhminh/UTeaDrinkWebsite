@@ -1,0 +1,372 @@
+<!-- templates/customer/product.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${product.name}">Chi tiết sản phẩm</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/customer.css}" />
+
+    <style>
+        :root{ --brand:#ee7f00; --text:#222; --header-h:80px; }
+        body.page-with-header{ padding-top:var(--header-h); background:#fff; color:var(--text); }
+
+        .pd-wrap{max-width:1120px;margin:24px auto;padding:0 16px;}
+        .pd-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:stretch}
+
+        .pd-img{ background:#faf7f4;border-radius:14px;padding:18px; display:flex;
+            align-items:center;justify-content:center; height:520px; }
+        .pd-img img{max-width:100%;max-height:100%;object-fit:contain;height:auto}
+
+        .pd-right{display:flex;flex-direction:column;min-height:100%}
+        .pd-name{font-size:28px;font-weight:800;margin:0 0 8px}
+        .pd-price{font-size:24px;font-weight:800;color:#d58500;margin:0 0 18px}
+
+        .pill-group{display:flex;gap:10px;flex-wrap:wrap}
+        .pill{border:1.5px solid #ddd;border-radius:999px;padding:10px 14px;cursor:pointer;
+            font-weight:600;background:#fff}
+        .pill input{display:none}
+        .pill.active{border-color:#222;background:#222;color:#fff}
+
+        .qty{display:flex;align-items:center;gap:10px;margin-top:14px}
+        .qty button{width:36px;height:36px;border:1px solid #ddd;border-radius:8px;background:#fff}
+        .qty input{width:64px;text-align:center;border:1px solid #ddd;border-radius:8px;height:36px}
+
+        .pd-desc{margin-top:22px;border-top:1px solid #eee;padding-top:16px;line-height:1.6}
+        .pd-actions{margin-top:auto;display:flex;gap:12px;flex-wrap:wrap}
+        .btn-primary{background:var(--brand);color:#fff;border:none;border-radius:12px;
+            padding:14px 24px;font-weight:800;cursor:pointer}
+        .btn-wide{width:100%;max-width:420px;font-size:1.05rem}
+        
+        /* Nút quay lại đẹp */
+        .btn-back-custom {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #f3f4f6;
+            color: #374151;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .btn-back-custom:hover {
+            background: #e5e7eb;
+            color: #1f2937;
+            transform: translateX(-3px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn-back-custom i {
+            font-size: 1.2rem;
+            transition: transform 0.2s ease;
+        }
+        
+        .btn-back-custom:hover i {
+            transform: translateX(-2px);
+        }
+
+        .pd-related{margin-top:22px}
+        .rel-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+        .rel-card{border:1px solid #eee;border-radius:12px;padding:10px;text-align:center;background:#fff}
+        .rel-card img{width:100%;height:120px;object-fit:cover;border-radius:10px;background:#faf7f4}
+
+        .pag-wrap{ display:flex; gap:6px; margin-top:14px; flex-wrap:wrap }
+        .pag-wrap .btn{ border-radius:10px; }
+
+        @media (max-width:900px){
+            .pd-grid{grid-template-columns:1fr}
+            .pd-img{height:360px}
+        }
+    </style>
+</head>
+<body class="page-with-header">
+
+<!-- Toast thông báo thêm giỏ thành công -->
+<div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index:2000">
+    <div id="addToast" class="toast align-items-center border-0 shadow-lg" role="alert"
+         aria-live="assertive" aria-atomic="true"
+         th:classappend="${msg != null} ? ' show' : ''"
+         style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); min-width: 300px;">
+        <div class="d-flex align-items-center">
+            <div class="toast-body text-white d-flex align-items-center gap-2" style="font-weight: 600; font-size: 0.95rem;">
+                <i class="bi bi-check-circle-fill" style="font-size: 1.3rem;"></i>
+                <span th:text="${msg != null ? msg : ''}">Đã thêm vào giỏ hàng.</span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/header-customer :: customerHeader}"></div>
+<div style="height:20px"></div>
+
+<!-- Nút quay lại -->
+<div class="pd-wrap" style="margin-top:-8px">
+    <a class="btn-back-custom" th:href="${backUrl}">
+        <i class="bi bi-arrow-left-circle-fill"></i>
+        <span>Quay lại</span>
+    </a>
+</div>
+
+<main class="pd-wrap">
+    <div class="pd-grid">
+        <!-- Ảnh -->
+        <div class="pd-img">
+            <img th:src="${product.mainImageUrl}" alt="Ảnh sản phẩm" loading="lazy"/>
+        </div>
+
+        <!-- Thông tin + size + add-to-cart -->
+        <div class="pd-right">
+            <h1 class="pd-name" th:text="${product.name}">Tên SP</h1>
+
+            <div id="priceBox" class="pd-price"
+                 th:text="${#numbers.formatDecimal(defaultPrice,0,'COMMA',0,'POINT')} + ' đ'">0 đ</div>
+
+            <!-- CHỌN SIZE: chỉ hiển thị nếu KHÔNG phải Bánh -->
+            <div th:if="${!isBakery and variants != null and variants.size() > 0}">
+                <div style="font-weight:700;margin-bottom:8px">Chọn size (bắt buộc)</div>
+                <div id="sizePills" class="pill-group" th:data-prices='${priceMapJson}'>
+                    <label class="pill"
+                           th:each="v : ${variants}"
+                           th:classappend="${v.id == defaultVariantId} ? ' active' : ''">
+                        <input type="radio" name="variantId"
+                               th:value="${v.id}"
+                               th:checked="${v.id == defaultVariantId}"/>
+                        <span th:text="${v.size}">M</span>
+                        <span style="opacity:.7;font-weight:600"
+                              th:text="' + ' + ${#numbers.formatDecimal(v.price.subtract(defaultPrice),0,'COMMA',0,'POINT')} + ' đ'"></span>
+                    </label>
+                </div>
+            </div>
+
+            <form th:action="@{/customer/cart/add}" method="post" id="addForm">
+                <input type="hidden" name="productId" th:value="${product.id}"/>
+                <!-- chỉ tạo input variantId nếu KHÔNG phải Bánh -->
+                <input type="hidden" name="variantId" id="variantInput"
+                       th:if="${!isBakery and variants != null and !#lists.isEmpty(variants)}"
+                       th:value="${defaultVariantId}"/>
+                <input type="hidden" name="redirect"
+                       th:value="@{/customer/product/{id}(id=${product.id})}" />
+                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                <!-- TOPPING: KHÔNG hiển thị cho Bánh -->
+                <div th:if="${!isBakery and toppings != null and !#lists.isEmpty(toppings)}" style="margin-top:14px">
+                    <div style="font-weight:700;margin-bottom:8px">Topping (chọn thêm)</div>
+
+                    <div id="topList"
+                         style="max-height:220px; overflow:auto; border:1px solid #eee; border-radius:12px; padding:10px;">
+                        <label class="pill" style="display:inline-flex;align-items:center;gap:8px;margin:6px"
+                               th:each="t : ${toppings}">
+                            <input type="checkbox" name="toppingIds"
+                                   th:value="${t.id}" th:attr="data-price=${t.price}"/>
+                            <span th:text="${t.name}">Trân châu</span>
+                            <span style="opacity:.7;font-weight:600"
+                                  th:text="' + ' + ${#numbers.formatDecimal(t.price,0,'COMMA',0,'POINT')} + ' đ'"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="qty">
+                    <span style="font-weight:700">Số lượng</span>
+                    <button type="button" onclick="stepQty(-1)">−</button>
+                    <input id="qty" type="number" name="quantity" value="1" min="1"/>
+                    <button type="button" onclick="stepQty(1)">+</button>
+                </div>
+
+                <div class="pd-desc">
+                    <div style="font-weight:800;margin-bottom:6px">Mô tả sản phẩm</div>
+                    <p th:text="${product.description}">Mô tả...</p>
+                </div>
+
+                <div class="pd-actions">
+                    <button class="btn-primary btn-wide" type="submit">🛒 THÊM VÀO GIỎ HÀNG</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Đánh giá -->
+    <section class="mt-4">
+        <h3 style="font-weight:800;margin:20px 0 12px">Đánh giá</h3>
+
+        <div class="d-flex flex-wrap gap-2 mb-2">
+            <a class="btn btn-sm"
+               th:classappend="${selectedRating == null} ? ' btn-dark' : ' btn-outline-dark'"
+               th:href="@{/customer/product/{id}(id=${product.id}, rp=${rp}, back=${backUrl})}">
+                Tất cả
+            </a>
+
+            <a class="btn btn-sm"
+               th:each="s : ${stars}"
+               th:text="${s} + '★'"
+               th:classappend="${selectedRating != null and selectedRating == s} ? ' btn-dark' : ' btn-outline-dark'"
+               th:href="@{/customer/product/{id}(id=${product.id}, rating=${s}, rp=${rp}, back=${backUrl})}">
+                5★
+            </a>
+        </div>
+
+        <div class="mb-2 small text-muted">
+            TB: <span th:text="${avgRating}">0.0</span> ★ ·
+            <span th:each="s : ${stars}">
+                <span th:text="${s} + '★:'"></span>
+                <strong th:text="${
+                    ratingCounts != null and #maps.containsKey(ratingCounts, s)
+                        ? ratingCounts.get(s)
+                        : 0
+                }">0</strong>
+                <span th:if="${s > 1}"> · </span>
+            </span>
+        </div>
+
+        <div th:if="${reviews != null and reviews.totalElements > 0}">
+            <div class="mb-3 p-3 border rounded" th:each="r : ${reviews.content}">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <strong th:text="${r.userName}">Khách</strong>
+                        <span class="ms-2" th:text="${r.rating} + '★'">5★</span>
+                    </div>
+                    <small class="text-muted" th:text="${#temporals.format(r.createdAt,'dd/MM/yyyy HH:mm')}">--</small>
+                </div>
+                <div th:text="${r.content}" class="mt-2"></div>
+            </div>
+
+            <div class="pag-wrap" th:if="${totalRp > 1}">
+                <a class="btn btn-outline-dark btn-sm"
+                   th:classappend="${rp == 0} ? ' disabled' : ''"
+                   th:href="@{/customer/product/{id}(id=${product.id}, rating=${selectedRating}, rp=${prevRp}, back=${backUrl})}">
+                    « Trước
+                </a>
+
+                <a class="btn btn-outline-dark btn-sm"
+                   th:each="i : ${rpPages}"
+                   th:text="${i + 1}"
+                   th:classappend="${i == rp} ? ' active' : ''"
+                   th:href="@{/customer/product/{id}(id=${product.id}, rating=${selectedRating}, rp=${i}, back=${backUrl})}">
+                    1
+                </a>
+
+                <a class="btn btn-outline-dark btn-sm"
+                   th:classappend="${rp == (totalRp - 1)} ? ' disabled' : ''"
+                   th:href="@{/customer/product/{id}(id=${product.id}, rating=${selectedRating}, rp=${nextRp}, back=${backUrl})}">
+                    Sau »
+                </a>
+            </div>
+        </div>
+
+        <div th:if="${reviews == null or reviews.totalElements == 0}" class="text-muted">Chưa có đánh giá.</div>
+    </section>
+
+    <div class="pd-related" th:if="${relatedProducts != null and !#lists.isEmpty(relatedProducts)}">
+        <h3 style="font-weight:800;margin:20px 0 12px">Sản phẩm liên quan</h3>
+        <div class="rel-list">
+            <a class="rel-card" th:each="rp : ${relatedProducts}"
+               th:href="@{/customer/product/{id}(id=${rp.id}, back=${backUrl})}">
+                <img th:src="${rp.mainImageUrl}" th:alt="${rp.name}">
+                <div style="font-weight:700;margin-top:6px" th:text="${rp.name}">Tên</div>
+            </a>
+        </div>
+    </div>
+</main>
+
+<div style="height:50px"></div>
+<div th:replace="~{fragments/footer-home :: siteFooter}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+<script>
+    // Hiện toast nếu có msg
+    document.addEventListener('DOMContentLoaded', function(){
+        var el = document.getElementById('addToast');
+        if(el && el.classList.contains('show')){
+            try { new bootstrap.Toast(el, {delay: 2200}).show(); } catch(e){}
+        }
+    });
+
+    (function () {
+        const priceBox = document.getElementById('priceBox');
+        const sizeBox  = document.getElementById('sizePills');
+        const qtyEl    = document.getElementById('qty');
+        const topList  = document.getElementById('topList');
+        const hiddenVariant = document.getElementById('variantInput');
+
+        const fmt = v => (Number(v)||0).toLocaleString('vi-VN') + ' đ';
+
+        // ---- SIZE (variant) ----
+        let variantPrices = {};
+        let currentVariantPrice = 0;
+
+        if (sizeBox) {
+            try { variantPrices = JSON.parse(sizeBox.dataset.prices || "{}"); } catch(e){ variantPrices = {}; }
+            const checked = sizeBox.querySelector('input[name="variantId"]:checked');
+            if (checked) currentVariantPrice = Number(variantPrices[checked.value] || 0);
+
+            sizeBox.addEventListener('click', (e) => {
+                const label = e.target.closest('.pill');
+                if (!label) return;
+                sizeBox.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+                label.classList.add('active');
+
+                const input = label.querySelector('input[name="variantId"]');
+                if (hiddenVariant) hiddenVariant.value = input.value;
+
+                currentVariantPrice = Number(variantPrices[input.value] || 0);
+                updateTotal();
+            });
+        } else {
+            // Không có size: lấy giá đang hiển thị (đơn giá)
+            const num = (priceBox?.textContent || '').replace(/[^\d]/g, '') || '0';
+            currentVariantPrice = Number(num);
+        }
+
+        // ---- TOPPING ----
+        function toppingSum() {
+            let sum = 0;
+            if (!topList) return 0;
+            topList.querySelectorAll('input[type="checkbox"]:checked').forEach(ch => {
+                sum += Number(ch.getAttribute('data-price') || '0');
+            });
+            return sum;
+        }
+        // Đổi màu nhãn topping khi chọn/bỏ
+        function syncTopActive() {
+            if (!topList) return;
+            topList.querySelectorAll('label.pill').forEach(lb => {
+                const ck = lb.querySelector('input[type="checkbox"]');
+                lb.classList.toggle('active', ck.checked);
+            });
+        }
+        if (topList) {
+            topList.addEventListener('change', () => { syncTopActive(); updateTotal(); });
+            syncTopActive();
+        }
+
+        // ---- QTY ----
+        function getQty() {
+            return Math.max(1, parseInt(qtyEl.value || '1', 10));
+        }
+        window.stepQty = function(n){
+            qtyEl.value = Math.max(1, parseInt(qtyEl.value || '1', 10) + n);
+            updateTotal();
+        };
+        qtyEl.addEventListener('change', updateTotal);
+
+        // ---- TOTAL ----
+        function updateTotal() {
+            const total = (currentVariantPrice + toppingSum()) * getQty();
+            priceBox.textContent = fmt(total);
+        }
+
+        // init
+        updateTotal();
+    })();
+</script>
+</body>
+</html>

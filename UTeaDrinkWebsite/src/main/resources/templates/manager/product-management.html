@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Sản phẩm - UTea Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+            padding-top: 70px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 20px;
+            min-height: calc(100vh - 70px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-content.expanded {
+            margin-left: 70px;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: white;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .page-header h4 {
+            color: #0f172a;
+            margin: 0 0 4px 0;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .page-header p {
+            color: #64748b;
+            margin: 0;
+            font-size: 13px;
+        }
+
+        /* Stats Cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .stat-card.blue::before { background: #3b82f6; }
+        .stat-card.green::before { background: #10b981; }
+        .stat-card.orange::before { background: #f59e0b; }
+        .stat-card.purple::before { background: #8b5cf6; }
+
+        .stat-card .icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card.blue .icon { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .stat-card.green .icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .stat-card.orange .icon { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .stat-card.purple .icon { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+
+        .stat-card h6 {
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 6px 0;
+        }
+
+        .stat-card h3 {
+            color: #0f172a;
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        /* Filter & Search */
+        .filter-card {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .filter-card .form-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .filter-card .form-control,
+        .filter-card .form-select {
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .filter-card .form-control:focus,
+        .filter-card .form-select:focus {
+            border-color: #0891b2;
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+        }
+
+        /* Product Table */
+        .product-card {
+            background: white;
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .product-card h5 {
+            color: #0f172a;
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0 0 16px 0;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .product-table thead {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        .product-table th {
+            color: white;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .product-table th:first-child {
+            border-top-left-radius: 8px;
+        }
+
+        .product-table th:last-child {
+            border-top-right-radius: 8px;
+        }
+
+        .product-table tbody tr {
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .product-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .product-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #1e293b;
+            font-size: 13px;
+        }
+
+        .product-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #0f172a;
+            margin: 0;
+            font-size: 13px;
+        }
+
+        .product-category {
+            font-size: 11px;
+            color: #64748b;
+            margin: 3px 0 0 0;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .btn-action {
+            padding: 6px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Badges */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .status-badge.available {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.hidden {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .status-badge.out-of-stock {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Modal */
+        .modal-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            border-bottom: none;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .modal-content {
+            border-radius: 10px;
+            border: none;
+        }
+
+        /* No Shop Warning */
+        .no-shop-warning {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            body.sidebar-open .sidebar {
+                transform: translateX(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 15px 12px;
+            }
+
+            .stats-row {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .product-table {
+                font-size: 12px;
+            }
+
+            .product-table th,
+            .product-table td {
+                padding: 8px 6px;
+            }
+
+            .stat-card {
+                padding: 12px;
+            }
+
+            .filter-card,
+            .product-card {
+                padding: 14px;
+            }
+        }
+
+        /* Tab Navigation */
+        .tab-navigation {
+            display: flex;
+            gap: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            font-size: 15px;
+            color: #64748b;
+        }
+
+        .tab-btn:hover {
+            border-color: #1e3a8a;
+            color: #1e3a8a;
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            color: white;
+            border-color: #1e3a8a;
+        }
+
+        .tab-btn i {
+            margin-right: 8px;
+        }
+
+        .tab-content {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div th:replace="~{fragments/header-manager :: managerHeader}"></div>
+
+    <!-- Sidebar -->
+    <div th:replace="~{fragments/manager-sidebar :: sidebar('products')}"></div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="productContainer">
+        <!-- No Shop Warning -->
+        <div class="no-shop-warning" th:if="${!hasShop}">
+            <h5><i class="fas fa-exclamation-triangle"></i> Bạn chưa đăng ký shop</h5>
+            <p class="mb-3" th:text="${errorMessage}">Vui lòng đăng ký shop trước khi quản lý sản phẩm.</p>
+            <a href="/manager/shop/register" class="btn btn-warning">
+                <i class="fas fa-store"></i> Đăng ký Shop ngay
+            </a>
+        </div>
+
+        <!-- Main Content (only show if hasShop) -->
+        <div th:if="${hasShop}">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4><i class="fas fa-box-open"></i> Quản lý Sản phẩm & Topping</h4>
+                        <p>Xem danh sách và quản lý trạng thái sản phẩm và topping của cửa hàng</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="tab-navigation mb-3">
+                <button class="tab-btn active" onclick="switchTab('products')">
+                    <i class="fas fa-box-open"></i> Sản phẩm
+                </button>
+                <button class="tab-btn" onclick="switchTab('toppings')">
+                    <i class="fas fa-cookie-bite"></i> Topping
+                </button>
+            </div>
+
+            <!-- Products Tab Content -->
+            <div id="productsTab" class="tab-content">
+                <!-- Stats Cards -->
+                <div class="stats-row">
+                <div class="stat-card blue">
+                    <div class="icon"><i class="fas fa-box"></i></div>
+                    <h6>Tổng sản phẩm</h6>
+                    <h3 id="totalProducts">--</h3>
+                </div>
+                <div class="stat-card green">
+                    <div class="icon"><i class="fas fa-check-circle"></i></div>
+                    <h6>Đang bán</h6>
+                    <h3 id="availableProducts">--</h3>
+                </div>
+                <div class="stat-card orange">
+                    <div class="icon"><i class="fas fa-eye-slash"></i></div>
+                    <h6>Đã ẩn</h6>
+                    <h3 id="hiddenProducts">--</h3>
+                </div>
+                <div class="stat-card purple">
+                    <div class="icon"><i class="fas fa-fire"></i></div>
+                    <h6>Bán chạy nhất</h6>
+                    <h3 id="bestSeller" style="font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">--</h3>
+                </div>
+            </div>
+
+            <!-- Filter & Search -->
+            <div class="filter-card">
+                <div class="row align-items-end g-2">
+                    <div class="col-md-3">
+                        <label class="form-label"><i class="fas fa-search"></i> Tìm kiếm</label>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Tên sản phẩm...">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label"><i class="fas fa-folder"></i> Danh mục</label>
+                        <select id="categoryFilter" class="form-select">
+                            <option value="">Tất cả</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label"><i class="fas fa-toggle-on"></i> Trạng thái</label>
+                        <select id="statusFilter" class="form-select">
+                            <option value="">Tất cả</option>
+                            <option value="AVAILABLE">Đang bán</option>
+                            <option value="HIDDEN">Đã ẩn</option>
+                            <option value="OUT_OF_STOCK">Hết hàng</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label"><i class="fas fa-sort"></i> Sắp xếp</label>
+                        <select id="sortFilter" class="form-select">
+                            <option value="">Mặc định</option>
+                            <option value="newest">Mới nhất</option>
+                            <option value="best_selling">Bán chạy nhất</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" onclick="loadProducts(0)">
+                            <i class="fas fa-filter"></i> Lọc
+                        </button>
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-outline-secondary w-100" onclick="clearFilters()" title="Xóa bộ lọc">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    </div>
+                </div>
+
+            <!-- Product Table -->
+            <div class="product-card">
+                <h5><i class="fas fa-list"></i> Danh sách sản phẩm</h5>
+                        <div class="table-responsive">
+                    <table class="product-table">
+                                <thead>
+                                    <tr>
+                                        <th>Hình ảnh</th>
+                                <th>Sản phẩm</th>
+                                        <th>Danh mục</th>
+                                <th>Giá cơ bản</th>
+                                <th>Biến thể</th>
+                                        <th>Đã bán</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                        <tbody id="productTableBody">
+                            <tr>
+                                <td colspan="8" class="text-center py-5">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Đang tải...</span>
+                                    </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                <nav class="mt-3" id="paginationContainer"></nav>
+            </div>
+            </div>
+            <!-- End Products Tab -->
+
+            <!-- Toppings Tab Content -->
+            <div id="toppingsTab" class="tab-content" style="display: none;">
+                <!-- Topping Table -->
+                <div class="product-card">
+                    <h5><i class="fas fa-cookie-bite"></i> Danh sách Topping</h5>
+                    <div class="table-responsive">
+                        <table class="product-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 10%;">STT</th>
+                                    <th style="width: 40%;">Tên Topping</th>
+                                    <th style="width: 20%;">Giá</th>
+                                    <th style="width: 15%;">Trạng thái</th>
+                                    <th style="width: 15%;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="toppingTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center py-5">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Đang tải...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- End Toppings Tab -->
+        </div>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        const hasShop = /*[[${hasShop}]]*/ false;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (hasShop) {
+                loadStats();
+                loadCategories();
+                loadProducts();
+            }
+        });
+
+        // Load Statistics
+        function loadStats() {
+            fetch('/manager/products/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('totalProducts').textContent = data.total || 0;
+                    document.getElementById('availableProducts').textContent = data.available || 0;
+                    document.getElementById('hiddenProducts').textContent = data.hidden || 0;
+                    document.getElementById('bestSeller').textContent = data.bestSeller || '--';
+                })
+                .catch(error => {
+                    console.error('Error loading stats:', error);
+                });
+        }
+
+        // Load Categories
+        function loadCategories() {
+            fetch('/manager/products/api/categories')
+                .then(response => response.json())
+                .then(categories => {
+                    const categoryFilter = document.getElementById('categoryFilter');
+
+                    categories.forEach(cat => {
+                        const option = document.createElement('option');
+                        option.value = cat.id;
+                        option.textContent = cat.name;
+                        categoryFilter.appendChild(option);
+                    });
+                    
+                    console.log('Loaded categories:', categories.length);
+                })
+                .catch(error => {
+                    console.error('Error loading categories:', error);
+                });
+        }
+
+        // Load Products
+        function loadProducts(page = 0) {
+            const tbody = document.getElementById('productTableBody');
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5"><div class="spinner-border text-primary"></div></td></tr>';
+
+            // Lấy các giá trị filter
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            const categoryId = document.getElementById('categoryFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            const sortBy = document.getElementById('sortFilter').value;
+
+            // Build URL with params
+            let url = `/manager/products/api?page=${page}&size=20`;
+            if (searchTerm) url += `&search=${encodeURIComponent(searchTerm)}`;
+            if (categoryId) url += `&categoryId=${categoryId}`;
+            if (status) url += `&status=${status}`;
+            if (sortBy) url += `&sortBy=${sortBy}`;
+
+            console.log('Loading products with URL:', url);
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    renderProducts(data.content || []);
+                    renderPagination(data);
+                    updateStats(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">Lỗi tải dữ liệu</td></tr>';
+                });
+        }
+
+        // Render Products
+        function renderProducts(products) {
+            const tbody = document.getElementById('productTableBody');
+            
+            if (products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">Chưa có sản phẩm nào</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = products.map(product => `
+                <tr>
+                    <td>
+                        <img src="${product.images && product.images.length > 0 ? product.images[0].url : '/images/no-image.png'}" 
+                             class="product-img" alt="${product.name}" 
+                             onerror="this.src='https://via.placeholder.com/60x60?text=No+Image'">
+                    </td>
+                    <td>
+                        <p class="product-name">${product.name}</p>
+                        <p class="product-category">${product.categoryName || 'Chưa phân loại'}</p>
+                    </td>
+                    <td>${product.categoryName || '--'}</td>
+                    <td>${formatCurrency(product.basePrice)}</td>
+                    <td>${formatVariants(product.variants)}</td>
+                    <td>${product.soldCount || 0}</td>
+                    <td>
+                        <span class="status-badge ${getStatusClass(product.status)}">
+                            ${getStatusText(product.status)}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="/manager/products/${product.id}" class="btn btn-sm btn-info btn-action">
+                            <i class="fas fa-eye me-1"></i> Xem
+                        </a>
+                        <button class="btn btn-sm ${product.status === 'AVAILABLE' ? 'btn-warning' : 'btn-success'} btn-action" 
+                                onclick="toggleStatus(${product.id})">
+                            ${product.status === 'AVAILABLE' ? '<i class="fas fa-eye-slash me-1"></i> Ẩn' : '<i class="fas fa-eye me-1"></i> Hiện'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Render Pagination
+        function renderPagination(data) {
+            const container = document.getElementById('paginationContainer');
+            if (!data.totalPages || data.totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '<ul class="pagination justify-content-center">';
+            
+            // Previous
+            html += `<li class="page-item ${data.number === 0 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="loadProducts(${data.number - 1}); return false;">Trước</a>
+                     </li>`;
+            
+            // Pages
+            for (let i = 0; i < data.totalPages; i++) {
+                html += `<li class="page-item ${i === data.number ? 'active' : ''}">
+                            <a class="page-link" href="#" onclick="loadProducts(${i}); return false;">${i + 1}</a>
+                         </li>`;
+            }
+            
+            // Next
+            html += `<li class="page-item ${data.number === data.totalPages - 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="loadProducts(${data.number + 1}); return false;">Sau</a>
+                     </li>`;
+            
+            html += '</ul>';
+            container.innerHTML = html;
+        }
+
+        // Update Stats
+        function updateStats(data) {
+            if (data.totalElements !== undefined) {
+                document.getElementById('totalProducts').textContent = data.totalElements;
+            }
+        }
+
+        // Toggle Product Status
+        function toggleStatus(productId) {
+            fetch(`/manager/products/api/${productId}/toggle-status`, {
+                method: 'PUT'
+                })
+                .then(response => {
+                if (!response.ok) throw new Error('Failed');
+                return response.json();
+            })
+            .then(product => {
+                const statusText = product.status === 'AVAILABLE' ? 'hiện' : 'ẩn';
+                alert(`Đã chuyển sản phẩm sang trạng thái ${statusText}!`);
+                loadProducts();
+                loadStats();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                alert('Có lỗi xảy ra khi thay đổi trạng thái!');
+            });
+        }
+
+        // Helper Functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        }
+
+        function formatVariants(variants) {
+            if (!variants || variants.length === 0) {
+                return '<span style="color: #64748b; font-style: italic;">Giá cố định</span>';
+            }
+            
+            // Lấy danh sách size và sắp xếp theo thứ tự S, M, L, XL
+            const sizeOrder = ['S', 'M', 'L', 'XL'];
+            const sizes = variants
+                .map(v => v.size)
+                .sort((a, b) => {
+                    const indexA = sizeOrder.indexOf(a);
+                    const indexB = sizeOrder.indexOf(b);
+                    return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+                });
+            
+            return '<span style="font-weight: 600; color: #0891b2;">' + sizes.join(', ') + '</span>';
+        }
+
+        function getStatusClass(status) {
+            return status === 'AVAILABLE' ? 'available' : 
+                   status === 'HIDDEN' ? 'hidden' : 'out-of-stock';
+        }
+
+        function getStatusText(status) {
+            return status === 'AVAILABLE' ? 'Đang bán' : 
+                   status === 'HIDDEN' ? 'Đã ẩn' : 'Hết hàng';
+        }
+
+        // Clear all filters
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('sortFilter').value = '';
+            loadProducts(0);
+        }
+
+        // Add Enter key support for search
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loadProducts(0);
+                }
+            });
+        });
+
+        // ==================== TAB SWITCHING ====================
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.tab-btn').classList.add('active');
+
+            // Show/hide content
+            if (tab === 'products') {
+                document.getElementById('productsTab').style.display = 'block';
+                document.getElementById('toppingsTab').style.display = 'none';
+            } else if (tab === 'toppings') {
+                document.getElementById('productsTab').style.display = 'none';
+                document.getElementById('toppingsTab').style.display = 'block';
+                loadToppings(); // Load toppings when tab is shown
+            }
+        }
+
+        // ==================== TOPPING MANAGEMENT ====================
+        function loadToppings() {
+            fetch('/manager/products/api/toppings')
+                .then(response => response.json())
+                .then(toppings => {
+                    const tbody = document.getElementById('toppingTableBody');
+                    
+                    if (!toppings || toppings.length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="5" class="text-center py-5" style="color: #64748b;">
+                                    <i class="fas fa-cookie-bite" style="font-size: 48px; opacity: 0.3;"></i>
+                                    <p class="mt-3 mb-0">Chưa có topping nào</p>
+                                </td>
+                            </tr>
+                        `;
+                        return;
+                    }
+
+                    tbody.innerHTML = toppings.map((topping, index) => `
+                        <tr>
+                            <td style="text-align: center; font-weight: 600;">${index + 1}</td>
+                            <td style="font-weight: 500;">${topping.name}</td>
+                            <td style="font-weight: 600; color: #2563eb;">${formatCurrency(topping.price)}</td>
+                            <td>
+                                ${topping.status === 'ACTIVE' 
+                                    ? '<span class="badge bg-success">Đang bán</span>' 
+                                    : '<span class="badge bg-secondary">Đã ẩn</span>'}
+                            </td>
+                            <td>
+                                <button class="btn ${topping.status === 'ACTIVE' ? 'btn-warning' : 'btn-success'} btn-sm"
+                                        onclick="toggleToppingStatus(${topping.id})"
+                                        title="${topping.status === 'ACTIVE' ? 'Ẩn topping' : 'Hiện topping'}">
+                                    ${topping.status === 'ACTIVE' ? 'Ẩn' : 'Hiện'}
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(error => {
+                    console.error('Error loading toppings:', error);
+                    const tbody = document.getElementById('toppingTableBody');
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-danger">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Có lỗi khi tải danh sách topping
+                            </td>
+                        </tr>
+                    `;
+                });
+        }
+
+        function toggleToppingStatus(toppingId) {
+            if (!confirm('Bạn có chắc muốn thay đổi trạng thái topping này?')) {
+                return;
+            }
+
+            fetch(`/manager/products/api/toppings/${toppingId}/toggle-status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    alert('Đã cập nhật trạng thái topping thành công!');
+                    loadToppings(); // Reload toppings
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Có lỗi xảy ra khi cập nhật trạng thái topping');
+                });
+        }
+    </script>
+</body>
+</html>

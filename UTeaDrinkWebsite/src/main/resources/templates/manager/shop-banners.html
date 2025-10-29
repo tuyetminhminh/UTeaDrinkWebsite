@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Banner - UTea Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f5f7fa;
+            min-height: 100vh;
+            padding-top: 70px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 70px;
+            left: 0;
+            height: calc(100vh - 70px);
+            width: 260px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e293b 100%);
+            padding: 20px 0;
+            box-shadow: 2px 0 15px rgba(0,0,0,0.2);
+            overflow-y: auto;
+            z-index: 99;
+        }
+
+        .sidebar .brand {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .sidebar .brand h4 {
+            color: #fff;
+            font-weight: 600;
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .sidebar .brand p {
+            color: rgba(255,255,255,0.7);
+            margin: 5px 0 0;
+            font-size: 13px;
+        }
+
+        .sidebar .nav-item {
+            margin: 5px 15px;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .sidebar .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .sidebar .nav-link i {
+            width: 20px;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        .banner-container {
+            max-width: 1200px;
+            margin-left: 280px;
+            padding: 20px 30px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .page-header h2 {
+            color: #2d3748;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .page-header p {
+            color: #718096;
+            margin: 5px 0 0 0;
+            font-size: 14px;
+        }
+
+        .btn-add-banner {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.3);
+        }
+
+        .btn-add-banner:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(15, 23, 42, 0.4);
+            color: white;
+        }
+
+        .btn-back {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #4a5568;
+            background: white;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+
+        .btn-back:hover {
+            background: #f7fafc;
+            border-color: #cbd5e0;
+        }
+
+        .banner-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .banner-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .banner-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .banner-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #e0e7ff 0%, #f0e7ff 100%);
+        }
+
+        .banner-body {
+            padding: 20px;
+        }
+
+        .banner-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 10px;
+            font-size: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .banner-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .banner-info span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: linear-gradient(135deg, #d4f4dd 0%, #c3f0d0 100%);
+            color: #166534;
+        }
+
+        .status-inactive {
+            background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+            color: #991b1b;
+        }
+
+        .banner-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #92400e;
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+            color: #991b1b;
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .empty-state i {
+            font-size: 80px;
+            color: #cbd5e0;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h4 {
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #718096;
+            margin-bottom: 25px;
+        }
+
+        /* Modal Styles */
+        .modal-content {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+            padding: 20px 30px;
+        }
+
+        .modal-header h5 {
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #0891b2;
+            box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.1);
+        }
+
+        .image-preview {
+            width: 100%;
+            height: 200px;
+            border: 2px dashed #e2e8f0;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f7fafc;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview i {
+            font-size: 40px;
+            color: #cbd5e0;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 30px;
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.4);
+            color: white;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .banner-container {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .banner-list {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div th:replace="~{fragments/header-manager :: managerHeader}"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="brand">
+            <h4><i class="fas fa-store"></i> Manager Panel</h4>
+            <p>Quản lý cửa hàng của bạn</p>
+        </div>
+        <nav class="nav flex-column">
+            <div class="nav-item">
+                <a href="/manager/home" class="nav-link">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/shop" class="nav-link active">
+                    <i class="fas fa-store-alt"></i>
+                    <span>Quản lý Shop</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/products" class="nav-link">
+                    <i class="fas fa-box-open"></i>
+                    <span>Sản phẩm</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/orders" class="nav-link">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span>Đơn hàng</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/promotions" class="nav-link">
+                    <i class="fas fa-gift"></i>
+                    <span>Khuyến mãi</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/revenue" class="nav-link">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Báo cáo doanh thu</span>
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="/manager/settings" class="nav-link">
+                    <i class="fas fa-cog"></i>
+                    <span>Cài đặt</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <div class="banner-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h2><i class="fas fa-images text-primary"></i> Quản lý Banner</h2>
+                <p>Tạo và quản lý banner hiển thị trên trang chủ cửa hàng</p>
+            </div>
+            <div>
+                <button class="btn btn-back" onclick="window.location.href='/manager/shop'">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </button>
+                <button class="btn btn-add-banner" data-bs-toggle="modal" data-bs-target="#bannerModal" onclick="openAddModal()">
+                    <i class="fas fa-plus-circle"></i> Thêm Banner
+                </button>
+            </div>
+        </div>
+
+        <!-- Alert Container -->
+        <div id="alertContainer"></div>
+
+        <!-- Banner List -->
+        <div id="bannerList" class="banner-list">
+            <!-- Banners will be loaded here -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <i class="fas fa-images"></i>
+            <h4>Chưa có banner nào</h4>
+            <p>Hãy tạo banner đầu tiên để thu hút khách hàng</p>
+            <button class="btn btn-add-banner" data-bs-toggle="modal" data-bs-target="#bannerModal" onclick="openAddModal()">
+                <i class="fas fa-plus-circle"></i> Thêm Banner đầu tiên
+            </button>
+        </div>
+    </div>
+
+    <!-- Banner Modal -->
+    <div class="modal fade" id="bannerModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">
+                        <i class="fas fa-plus-circle"></i> Thêm Banner mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="bannerForm">
+                        <input type="hidden" id="bannerId">
+
+                        <div class="mb-4">
+                            <label for="bannerTitle" class="form-label">
+                                <i class="fas fa-heading text-primary"></i> Tiêu đề Banner <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="bannerTitle" 
+                                   placeholder="Ví dụ: Khuyến mãi mùa hè 2025"
+                                   required
+                                   maxlength="200">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="bannerImageUrl" class="form-label">
+                                <i class="fas fa-image text-success"></i> URL Hình ảnh <span class="text-danger">*</span>
+                            </label>
+                            <input type="url" 
+                                   class="form-control" 
+                                   id="bannerImageUrl" 
+                                   placeholder="https://example.com/image.jpg"
+                                   required
+                                   maxlength="500">
+                            <small class="form-text text-muted">
+                                Nhập link hình ảnh hoặc upload lên server riêng
+                            </small>
+                            <div class="image-preview" id="imagePreview">
+                                <i class="fas fa-image"></i>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="bannerLink" class="form-label">
+                                <i class="fas fa-link text-info"></i> Link chuyển hướng
+                            </label>
+                            <input type="url" 
+                                   class="form-control" 
+                                   id="bannerLink" 
+                                   placeholder="https://example.com/promo"
+                                   maxlength="500">
+                            <small class="form-text text-muted">
+                                Link mà khách hàng sẽ truy cập khi click vào banner (không bắt buộc)
+                            </small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="bannerOrder" class="form-label">
+                                    <i class="fas fa-sort-numeric-up text-warning"></i> Thứ tự hiển thị
+                                </label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="bannerOrder" 
+                                       value="0"
+                                       min="0">
+                                <small class="form-text text-muted">
+                                    Banner có số thứ tự nhỏ sẽ hiển thị trước
+                                </small>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label for="bannerStatus" class="form-label">
+                                    <i class="fas fa-toggle-on text-danger"></i> Trạng thái
+                                </label>
+                                <select class="form-select" id="bannerStatus">
+                                    <option value="true" selected>🟢 Hiển thị</option>
+                                    <option value="false">🔴 Ẩn</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-save" onclick="saveBanner()">
+                        <i class="fas fa-save"></i> Lưu Banner
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let banners = [];
+        let editingBannerId = null;
+
+        // Load banners on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBanners();
+
+            // Image preview
+            document.getElementById('bannerImageUrl').addEventListener('input', function(e) {
+                const url = e.target.value;
+                const preview = document.getElementById('imagePreview');
+                if (url && isValidUrl(url)) {
+                    preview.innerHTML = `<img src="${url}" alt="Preview" onerror="this.style.display='none'">`;
+                } else {
+                    preview.innerHTML = '<i class="fas fa-image"></i>';
+                }
+            });
+        });
+
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        function loadBanners() {
+            fetch('/manager/shop/api/banners')
+                .then(response => response.json())
+                .then(data => {
+                    banners = data;
+                    renderBanners();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('danger', 'Không thể tải danh sách banner');
+                });
+        }
+
+        function renderBanners() {
+            const container = document.getElementById('bannerList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (banners.length === 0) {
+                container.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            container.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            container.innerHTML = banners.map(banner => `
+                <div class="banner-card">
+                    <img src="${banner.imageUrl}" 
+                         alt="${banner.title}" 
+                         class="banner-image"
+                         onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
+                    <div class="banner-body">
+                        <h5 class="banner-title">${banner.title}</h5>
+                        <div class="banner-info">
+                            <span><i class="fas fa-sort-numeric-up"></i> Thứ tự: ${banner.sortOrder}</span>
+                            <span class="status-badge ${banner.isActive ? 'status-active' : 'status-inactive'}">
+                                ${banner.isActive ? 'Hiển thị' : 'Ẩn'}
+                            </span>
+                        </div>
+                        ${banner.link ? `<div class="banner-info"><i class="fas fa-link"></i> <a href="${banner.link}" target="_blank" class="text-truncate" style="max-width: 250px; display: inline-block;">${banner.link}</a></div>` : ''}
+                        <div class="banner-actions">
+                            <button class="btn-action btn-edit" onclick="editBanner(${banner.id})">
+                                <i class="fas fa-edit"></i> Sửa
+                            </button>
+                            <button class="btn-action btn-delete" onclick="deleteBanner(${banner.id})">
+                                <i class="fas fa-trash"></i> Xóa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openAddModal() {
+            editingBannerId = null;
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Thêm Banner mới';
+            document.getElementById('bannerForm').reset();
+            document.getElementById('bannerId').value = '';
+            document.getElementById('imagePreview').innerHTML = '<i class="fas fa-image"></i>';
+            document.getElementById('bannerStatus').value = 'true';
+        }
+
+        function editBanner(id) {
+            const banner = banners.find(b => b.id === id);
+            if (!banner) return;
+
+            editingBannerId = id;
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Chỉnh sửa Banner';
+            document.getElementById('bannerId').value = banner.id;
+            document.getElementById('bannerTitle').value = banner.title;
+            document.getElementById('bannerImageUrl').value = banner.imageUrl;
+            document.getElementById('bannerLink').value = banner.link || '';
+            document.getElementById('bannerOrder').value = banner.sortOrder;
+            document.getElementById('bannerStatus').value = banner.isActive.toString();
+
+            // Preview image
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = `<img src="${banner.imageUrl}" alt="Preview">`;
+
+            // Open modal
+            const modal = new bootstrap.Modal(document.getElementById('bannerModal'));
+            modal.show();
+        }
+
+        function saveBanner() {
+            const form = document.getElementById('bannerForm');
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+
+            const data = {
+                title: document.getElementById('bannerTitle').value.trim(),
+                imageUrl: document.getElementById('bannerImageUrl').value.trim(),
+                link: document.getElementById('bannerLink').value.trim() || null,
+                sortOrder: parseInt(document.getElementById('bannerOrder').value) || 0,
+                isActive: document.getElementById('bannerStatus').value === 'true'
+            };
+
+            const url = editingBannerId 
+                ? `/manager/shop/api/banners/${editingBannerId}`
+                : '/manager/shop/api/banners';
+            const method = editingBannerId ? 'PUT' : 'POST';
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Có lỗi xảy ra');
+                return response.json();
+            })
+            .then(result => {
+                showAlert('success', `✅ ${editingBannerId ? 'Cập nhật' : 'Thêm'} banner thành công!`);
+                bootstrap.Modal.getInstance(document.getElementById('bannerModal')).hide();
+                loadBanners();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('danger', '❌ ' + error.message);
+            });
+        }
+
+        function deleteBanner(id) {
+            if (!confirm('Bạn có chắc muốn xóa banner này?')) return;
+
+            fetch(`/manager/shop/api/banners/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Có lỗi xảy ra');
+                showAlert('success', '✅ Xóa banner thành công!');
+                loadBanners();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('danger', '❌ ' + error.message);
+            });
+        }
+
+        function showAlert(type, message) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertHtml = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            alertContainer.innerHTML = alertHtml;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            setTimeout(() => {
+                const alert = alertContainer.querySelector('.alert');
+                if (alert) alert.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
+
