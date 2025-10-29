@@ -127,7 +127,12 @@ public class ManagerOrderController {
             System.out.println("→ After 'to date' filter: " + allOrders.size() + " orders");
         }
         
-        // Step 3: Apply pagination
+        // Step 3: Ensure sorted by createdAt DESC (mới nhất trước)
+        allOrders = allOrders.stream()
+                .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()))
+                .collect(java.util.stream.Collectors.toList());
+        
+        // Step 4: Apply pagination
         int start = Math.min((int) pageable.getOffset(), allOrders.size());
         int end = Math.min((start + pageable.getPageSize()), allOrders.size());
         List<OrderManagementDTO> pageContent = start < allOrders.size() 
@@ -284,7 +289,8 @@ public class ManagerOrderController {
     }
 
     /**
-     * API: Lấy đơn hàng NEW mới nhất (cho voice notification với tên khách hàng)
+     * API: Lấy đơn hàng NEW hoặc PAID mới nhất (cho voice notification với tên khách hàng)
+     * Đơn cần xác nhận = NEW + PAID
      */
     @GetMapping("/api/latest-new-order")
     @ResponseBody
@@ -293,12 +299,29 @@ public class ManagerOrderController {
             User currentUser = getCurrentUser(authentication);
             
             // Lấy đơn NEW mới nhất
-            OrderManagementDTO latestOrder = orderService.getLatestNewOrder(currentUser.getId());
+            OrderManagementDTO latestNewOrder = orderService.getLatestNewOrder(currentUser.getId());
             
-            // Đếm tổng số đơn NEW
+            // Lấy đơn PAID mới nhất
+            OrderManagementDTO latestPaidOrder = orderService.getLatestPaidOrder(currentUser.getId());
+            
+            // Chọn đơn mới nhất giữa NEW và PAID
+            OrderManagementDTO latestOrder = null;
+            if (latestNewOrder != null && latestPaidOrder != null) {
+                // So sánh thời gian, lấy đơn mới nhất
+                latestOrder = latestNewOrder.getCreatedAt().isAfter(latestPaidOrder.getCreatedAt()) 
+                    ? latestNewOrder : latestPaidOrder;
+            } else if (latestNewOrder != null) {
+                latestOrder = latestNewOrder;
+            } else if (latestPaidOrder != null) {
+                latestOrder = latestPaidOrder;
+            }
+            
+            // Đếm tổng số đơn NEW + PAID
             List<OrderManagementDTO> newOrders = orderService.getOrdersByStatus(
                     currentUser.getId(), OrderStatus.NEW);
-            int count = newOrders.size();
+            List<OrderManagementDTO> paidOrders = orderService.getOrdersByStatus(
+                    currentUser.getId(), OrderStatus.PAID);
+            int count = newOrders.size() + paidOrders.size();
             
             if (latestOrder != null) {
                 return ResponseEntity.ok(java.util.Map.of(

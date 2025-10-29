@@ -183,7 +183,16 @@ function openCreateModal() {
     const tomorrow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     document.getElementById('activeTo').value = tomorrow.toISOString().slice(0, 16);
     
-    updateRuleFields();
+    // Set default values for rule fields
+    document.getElementById('minTotal').value = '0';
+    document.getElementById('percentOff').value = '10';
+    document.getElementById('amountOff').value = '10000';
+    document.getElementById('amountCap').value = '50000';
+    
+    // Show all fields by default when creating new promotion
+    document.getElementById('percentOffGroup').style.display = 'block';
+    document.getElementById('amountOffGroup').style.display = 'block';
+    document.getElementById('amountCapGroup').style.display = 'block';
 }
 
 /**
@@ -440,4 +449,3 @@ function formatDateTime(dateStr) {
         minute: '2-digit'
     }).format(date);
 }
-

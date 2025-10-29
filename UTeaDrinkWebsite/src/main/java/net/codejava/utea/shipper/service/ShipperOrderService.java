@@ -7,6 +7,7 @@ import net.codejava.utea.common.entity.User;
 import net.codejava.utea.order.entity.Order;
 import net.codejava.utea.order.entity.enums.OrderStatus;
 import net.codejava.utea.order.repository.OrderRepository;
+import net.codejava.utea.payment.entity.enums.PaymentStatus;
 import net.codejava.utea.shipper.dto.AvailableOrderDTO;
 import net.codejava.utea.shipper.dto.MyOrderDTO;
 import net.codejava.utea.shipper.dto.ShipperStatsDTO;
@@ -81,6 +82,20 @@ public class ShipperOrderService {
                 .filter(a -> "ASSIGNED".equals(a.getStatus()))
                 .map(this::convertToMyOrderDTO)
                 .sorted(Comparator.comparing(MyOrderDTO::getAssignedAt).reversed())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Lấy danh sách đơn đã hủy (bao gồm đơn shipper báo cáo không giao được)
+     */
+    @Transactional(readOnly = true)
+    public List<MyOrderDTO> getCanceledOrders(Long shipperId, int limit) {
+        return shipAssignmentRepo.findByShipperId(shipperId).stream()
+                .filter(a -> "FAILED".equals(a.getStatus()) || 
+                            (a.getOrder() != null && a.getOrder().getStatus() == OrderStatus.CANCELED))
+                .map(this::convertToMyOrderDTO)
+                .sorted(Comparator.comparing(MyOrderDTO::getAssignedAt).reversed())
+                .limit(limit)
                 .collect(Collectors.toList());
     }
 
@@ -195,6 +210,46 @@ public class ShipperOrderService {
         orderRepo.save(order);
     }
 
+    /**
+     * Báo cáo không giao được hàng (Khách từ chối, không liên hệ được, sai địa chỉ...)
+     * → Chuyển đơn về CANCELED và lưu lý do
+     */
+    @Transactional
+    public void reportFailedDelivery(Long shipperId, Long orderId, String failureReason, String note) {
+        ShipAssignment assignment = shipAssignmentRepo.findByOrderId(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin giao hàng"));
+
+        if (!assignment.getShipper().getId().equals(shipperId)) {
+            throw new RuntimeException("Bạn không có quyền cập nhật đơn hàng này");
+        }
+
+        if (!"DELIVERING".equals(assignment.getStatus())) {
+            throw new RuntimeException("Chỉ có thể báo cáo thất bại khi đang giao hàng");
+        }
+
+        // Tạo JSON note với thông tin thất bại
+        Map<String, Object> noteData = new HashMap<>();
+        noteData.put("failureReason", failureReason != null ? failureReason : "UNKNOWN");
+        noteData.put("note", note != null ? note : "Không giao được hàng");
+        noteData.put("failedAt", LocalDateTime.now().toString());
+        noteData.put("reportedBy", "SHIPPER");
+
+        try {
+            String noteJson = objectMapper.writeValueAsString(noteData);
+            assignment.setNote(noteJson);
+        } catch (JsonProcessingException e) {
+            assignment.setNote("FAILED: " + failureReason + " - " + note);
+        }
+
+        assignment.setStatus("FAILED"); // Đánh dấu assignment là FAILED
+        shipAssignmentRepo.save(assignment);
+
+        // Cập nhật đơn hàng về CANCELED
+        Order order = assignment.getOrder();
+        order.setStatus(OrderStatus.CANCELED);
+        orderRepo.save(order);
+    }
+
     // ==================== STATISTICS ====================
     
     /**
@@ -252,6 +307,14 @@ public class ShipperOrderService {
     
     private AvailableOrderDTO convertToAvailableDTO(Order order) {
         int itemCount = order.getItems().stream().mapToInt(item -> item.getQuantity()).sum();
+        
+        // Tính tiền thu hộ: nếu đã thanh toán online (payment.status = PAID) thì = 0, không thì = total
+        boolean isPaidOnline = order.getPayment() != null 
+                && order.getPayment().getStatus() == PaymentStatus.PAID;
+        BigDecimal collectAmount = isPaidOnline ? BigDecimal.ZERO : order.getTotal();
+        
+        // orderStatus để hiển thị trên UI: nếu đã thanh toán online thì show "PAID", không thì show status hiện tại
+        String displayStatus = isPaidOnline ? "PAID" : order.getStatus().name();
 
         return AvailableOrderDTO.builder()
                 .orderId(order.getId())
@@ -267,7 +330,9 @@ public class ShipperOrderService {
                 .itemCount(itemCount)
                 .total(order.getTotal())
                 .shippingFee(order.getShippingFee())
+                .collectAmount(collectAmount)
                 .paymentMethod(order.getPayment() != null ? order.getPayment().getMethod().name() : "COD")
+                .orderStatus(displayStatus)
                 .createdAt(order.getCreatedAt())
                 .timeAgo(calculateTimeAgo(order.getCreatedAt()))
                 .estimatedDistance("~2-3 km") // TODO: calculate actual distance
@@ -281,18 +346,37 @@ public class ShipperOrderService {
         // Parse note JSON
         String deliveryNote = "";
         String proofImageUrl = "";
+        String failureReason = "";
+        String failureNote = "";
+        
         try {
             if (assignment.getNote() != null && assignment.getNote().startsWith("{")) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> noteData = objectMapper.readValue(assignment.getNote(), Map.class);
+                
+                // Parse delivery success info
                 deliveryNote = (String) noteData.getOrDefault("deliveryNote", "");
                 proofImageUrl = (String) noteData.getOrDefault("proofImage", "");
+                
+                // Parse failure info (if assignment status is FAILED)
+                if ("FAILED".equals(assignment.getStatus())) {
+                    failureReason = (String) noteData.getOrDefault("failureReason", "");
+                    failureNote = (String) noteData.getOrDefault("note", "");
+                }
             } else {
                 deliveryNote = assignment.getNote();
             }
         } catch (Exception e) {
             deliveryNote = assignment.getNote();
         }
+        
+        // Tính tiền thu hộ: nếu đã thanh toán online (payment.status = PAID) thì = 0, không thì = total
+        boolean isPaidOnline = order.getPayment() != null 
+                && order.getPayment().getStatus() == PaymentStatus.PAID;
+        BigDecimal collectAmount = isPaidOnline ? BigDecimal.ZERO : order.getTotal();
+        
+        // orderStatus để hiển thị trên UI: nếu đã thanh toán online thì show "PAID", không thì show status hiện tại
+        String displayStatus = isPaidOnline ? "PAID" : order.getStatus().name();
 
         return MyOrderDTO.builder()
                 .orderId(order.getId())
@@ -308,11 +392,15 @@ public class ShipperOrderService {
                 .itemCount(itemCount)
                 .total(order.getTotal())
                 .shippingFee(order.getShippingFee())
+                .collectAmount(collectAmount)
+                .orderStatus(displayStatus)
                 .assignedAt(assignment.getAssignedAt())
                 .pickedUpAt(assignment.getPickedUpAt())
                 .deliveredAt(assignment.getDeliveredAt())
                 .deliveryNote(deliveryNote)
                 .proofImageUrl(proofImageUrl)
+                .failureReason(failureReason)
+                .failureNote(failureNote)
                 .build();
     }
 

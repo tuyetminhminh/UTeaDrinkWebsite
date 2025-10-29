@@ -1,13 +1,12 @@
 package net.codejava.utea.auth.service.impl;
 
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import lombok.RequiredArgsConstructor;
 import net.codejava.utea.auth.service.EmailService;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.messaging.MessagingException;
 import org.springframework.stereotype.Service;
 
 @Service

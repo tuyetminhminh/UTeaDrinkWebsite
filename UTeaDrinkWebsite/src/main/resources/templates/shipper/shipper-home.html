@@ -693,6 +693,68 @@
         </div>
     </div>
 
+    <!-- Đơn đã hủy -->
+    <div class="main-content">
+        <h3 class="section-title">
+            <i class="fas fa-times-circle"></i>
+            Đơn đã hủy
+        </h3>
+        <p class="text-muted mb-3" style="font-size: 13px;">
+            <i class="fas fa-info-circle me-1"></i>
+            Các đơn hàng đã bị hủy hoặc không giao được
+        </p>
+        <div class="order-table">
+            <table class="table table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Địa chỉ</th>
+                    <th>Lý do</th>
+                    <th>Thời gian</th>
+                </tr>
+                </thead>
+                <tbody th:if="${canceledOrders != null and !canceledOrders.isEmpty()}">
+                <tr th:each="order : ${canceledOrders}">
+                    <td><strong th:text="${order.orderCode}">ORD-001</strong></td>
+                    <td>
+                        <div th:text="${order.customerName}">Khách hàng</div>
+                        <small class="text-muted" th:text="${order.shopName}">Cửa hàng</small>
+                    </td>
+                    <td>
+                        <small th:text="${order.deliveryAddress}">Địa chỉ</small>
+                    </td>
+                    <td>
+                        <span class="badge" style="background: #FFEBEE; color: #C62828; font-size: 10px;"
+                              th:if="${order.failureReason != null and !order.failureReason.isEmpty()}"
+                              th:text="${
+                                  order.failureReason == 'CUSTOMER_REFUSED' ? 'Khách từ chối' :
+                                  order.failureReason == 'CUSTOMER_NOT_REACHABLE' ? 'Không liên hệ được' :
+                                  order.failureReason == 'WRONG_ADDRESS' ? 'Địa chỉ sai' :
+                                  order.failureReason == 'CUSTOMER_REQUESTED_CANCEL' ? 'Khách yêu cầu hủy' :
+                                  'Lý do khác'
+                              }">Shipper báo cáo</span>
+                        <span class="badge bg-secondary" style="font-size: 10px;"
+                              th:if="${order.failureReason == null or order.failureReason.isEmpty()}">Đã hủy</span>
+                    </td>
+                    <td>
+                        <small th:text="${order.assignedAt != null ? #temporals.format(order.assignedAt, 'dd/MM/yyyy HH:mm') : 'N/A'}">24/10/2025</small>
+                    </td>
+                </tr>
+                </tbody>
+                <tbody th:if="${canceledOrders == null || canceledOrders.isEmpty()}">
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        <i class="fas fa-check-circle"></i>
+                        <h5>Chưa có đơn hàng bị hủy</h5>
+                        <p>Tuyệt vời! Bạn chưa có đơn nào bị hủy</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
 
 <!-- Map Modal -->
@@ -815,7 +877,7 @@
         }
 
         try {
-            const response = await fetch(`/shipper/api/confirm-pickup?orderId=${orderId}`, {
+            const response = await fetch(`/shipper/api/orders/${orderId}/confirm-pickup`, {
                 method: 'POST'
             });
 
@@ -828,7 +890,7 @@
             }
         } catch (error) {
             console.error('Error confirming pickup:', error);
-            alert('❌ Có lỗi xảy ra');
+            alert('❌ Có lỗi xảy ra: ' + error.message);
         }
     }
 

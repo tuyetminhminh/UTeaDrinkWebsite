@@ -71,16 +71,17 @@ public class CheckoutController {
         autoPromoInfo.put("discountMsg", autoPromos.discount().ok() ? autoPromos.discount().message() : null);
         autoPromoInfo.put("freeshipMsg", autoPromos.freeship().ok() ? autoPromos.freeship().message() : null);
         
-        // Prefill địa chỉ mặc định
+        // ✅ Prefill địa chỉ mặc định (chỉ khi chưa có địa chỉ được chọn)
         var addresses = addressService.listOf(u);
-        if ((reqIn.getFullname()==null || reqIn.getFullname().isBlank()) && !addresses.isEmpty()){
-            var d = addresses.get(0);
-            reqIn.setAddressId(d.getId());// ///////////////////////////////////////////////////////////
-            reqIn.setFullname(d.getReceiverName());
-            reqIn.setPhone(d.getPhone());
-            reqIn.setAddressLine(d.getLine());
-            reqIn.setDistrict(d.getDistrict());
-            reqIn.setProvince(d.getProvince());
+        if (reqIn.getAddressId() == null && !addresses.isEmpty()){
+            // Lấy địa chỉ đầu tiên (đã được sort theo isDefault DESC, nên địa chỉ mặc định sẽ ở đầu)
+            var defaultAddr = addresses.get(0);
+            reqIn.setAddressId(defaultAddr.getId());
+            reqIn.setFullname(defaultAddr.getReceiverName());
+            reqIn.setPhone(defaultAddr.getPhone());
+            reqIn.setAddressLine(defaultAddr.getLine());
+            reqIn.setDistrict(defaultAddr.getDistrict());
+            reqIn.setProvince(defaultAddr.getProvince());
         }
         if (reqIn.getPaymentMethod()==null) reqIn.setPaymentMethod(PaymentMethod.COD);
 
@@ -235,38 +236,22 @@ public class CheckoutController {
         var u = currentUser(user);
         var subtotal = cartService.getSelectedSubtotal(u);
         if (subtotal.signum() <= 0) return "redirect:/customer/cart";
-        var shippingFee = cartService.estimateShippingFee(subtotal);
 
-        // ✅ VALIDATION ĐỊA CHỈ - Kiểm tra xem user đã nhập đầy đủ thông tin chưa
-        boolean hasAddress = (req.getFullname() != null && !req.getFullname().isBlank()) &&
-                             (req.getPhone() != null && !req.getPhone().isBlank()) &&
-                             (req.getAddressLine() != null && !req.getAddressLine().isBlank()) &&
-                             (req.getDistrict() != null && !req.getDistrict().isBlank()) &&
-                             (req.getProvince() != null && !req.getProvince().isBlank());
+        // ✅ VALIDATION ĐỊA CHỈ - Kiểm tra xem user đã chọn địa chỉ từ sổ địa chỉ chưa
+        if (req.getAddressId() == null) {
+            ra.addFlashAttribute("toastError", "Vui lòng chọn địa chỉ giao hàng từ sổ địa chỉ!");
+            return "redirect:/customer/checkout";
+        }
         
-        if (!hasAddress) {
-            ra.addFlashAttribute("toastError", "Vui lòng điền đầy đủ thông tin giao hàng!");
+        // Kiểm tra địa chỉ có thuộc về user không
+        var addressOpt = addressService.findById(req.getAddressId());
+        if (addressOpt.isEmpty() || !addressOpt.get().getUser().getId().equals(u.getId())) {
+            ra.addFlashAttribute("toastError", "Địa chỉ không hợp lệ hoặc không thuộc về bạn!");
             return "redirect:/customer/checkout";
         }
 
-        // Tính tổng giá cuối cùng - Logic ưu tiên: Voucher trước, Promotion sau
-        var voucherResult = promotionService.applyBoth(req.getCouponCode(), req.getShipCode(), subtotal, shippingFee, u);
-        var autoPromos = promotionService.findBestAutoPromotions(subtotal, shippingFee, u);
-        
-        // Giảm giá sản phẩm: Voucher HOẶC Promotion (ưu tiên voucher)
-        BigDecimal productDiscount = voucherResult.okDiscount() 
-                ? voucherResult.discount() 
-                : autoPromos.discount().discount();
-        
-        // Freeship: Voucher HOẶC Promotion (ưu tiên voucher)
-        BigDecimal freeshipDiscount = voucherResult.okShip() 
-                ? voucherResult.shipDiscount() 
-                : autoPromos.freeship().discount();
-        
-//        var finalTotal = subtotal.add(shippingFee)
-//                .subtract(productDiscount)
-//                .subtract(freeshipDiscount)
-//                .max(BigDecimal.ZERO);
+        // Logic tính giá cuối cùng được xử lý trong OrderService.createFromCart()
+        // Voucher được ưu tiên trước, Promotion được áp dụng sau
 
         var order = orderService.createFromCart(
                 u,
