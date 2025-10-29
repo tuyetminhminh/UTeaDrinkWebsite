@@ -38,18 +38,19 @@ public class OrderManagementService {
     // ==================== ORDER MANAGEMENT ====================
 
     /**
-     * Lấy tất cả đơn hàng của shop (phân trang)
+     * Lấy tất cả đơn hàng của shop (phân trang, sắp xếp mới nhất trước)
      */
     @Transactional(readOnly = true)
     public Page<OrderManagementDTO> getAllOrders(Long managerId, Pageable pageable) {
         Shop shop = getShopByManagerId(managerId);
 
-        // Lấy TẤT CẢ orders của shop này (không phân trang trước)
+        // Lấy TẤT CẢ orders của shop này, SẮP XẾP MỚI NHẤT TRƯỚC
         List<Order> allShopOrders = orderRepo.findAll().stream()
                 .filter(order -> order.getShop() != null && order.getShop().getId().equals(shop.getId()))
+                .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt())) // MỚI NHẤT TRƯỚC
                 .collect(Collectors.toList());
 
-        // Áp dụng pagination TRÊN kết quả đã filter
+        // Áp dụng pagination TRÊN kết quả đã filter và sắp xếp
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), allShopOrders.size());
         List<Order> pageContent = allShopOrders.subList(start, end);
@@ -91,6 +92,23 @@ public class OrderManagementService {
                 .filter(order -> order.getShop() != null
                         && order.getShop().getId().equals(shop.getId())
                         && order.getStatus() == OrderStatus.NEW)
+                .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt())) // Mới nhất trước
+                .findFirst()
+                .map(this::convertToDTO)
+                .orElse(null);
+    }
+
+    /**
+     * Lấy đơn hàng PAID mới nhất (cho voice notification)
+     */
+    @Transactional(readOnly = true)
+    public OrderManagementDTO getLatestPaidOrder(Long managerId) {
+        Shop shop = getShopByManagerId(managerId);
+
+        return orderRepo.findAll().stream()
+                .filter(order -> order.getShop() != null
+                        && order.getShop().getId().equals(shop.getId())
+                        && order.getStatus() == OrderStatus.PAID)
                 .sorted((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt())) // Mới nhất trước
                 .findFirst()
                 .map(this::convertToDTO)
@@ -162,8 +180,10 @@ public class OrderManagementService {
             throw new RuntimeException("Không có quyền hủy đơn hàng này");
         }
 
-        // Chỉ cho phép hủy đơn ở trạng thái NEW hoặc CONFIRMED
-        if (order.getStatus() != OrderStatus.NEW && order.getStatus() != OrderStatus.CONFIRMED) {
+        // Chỉ cho phép hủy đơn ở trạng thái NEW, PAID hoặc CONFIRMED
+        if (order.getStatus() != OrderStatus.NEW 
+                && order.getStatus() != OrderStatus.PAID 
+                && order.getStatus() != OrderStatus.CONFIRMED) {
             throw new RuntimeException("Không thể hủy đơn hàng ở trạng thái: " + order.getStatus());
         }
 
@@ -244,21 +264,59 @@ public class OrderManagementService {
                 .mapToInt(OrderItem::getQuantity)
                 .sum();
 
-        // Parse delivery note and proof image from ShipAssignment
+        // Parse delivery note, proof image, and failure info from ShipAssignment
         String deliveryNote = "";
         String proofImageUrl = "";
+        String failureReason = "";
+        String failureNote = "";
+        
         if (shipAssignment != null && shipAssignment.getNote() != null) {
             try {
                 if (shipAssignment.getNote().startsWith("{")) {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> noteData = objectMapper.readValue(shipAssignment.getNote(), Map.class);
+                    
+                    // Parse delivery success info
                     deliveryNote = (String) noteData.getOrDefault("deliveryNote", "");
                     proofImageUrl = (String) noteData.getOrDefault("proofImage", "");
+                    
+                    // Parse failure info (if shipAssignment status is FAILED)
+                    if ("FAILED".equals(shipAssignment.getStatus())) {
+                        failureReason = (String) noteData.getOrDefault("failureReason", "");
+                        failureNote = (String) noteData.getOrDefault("note", "");
+                    }
                 } else {
                     deliveryNote = shipAssignment.getNote();
                 }
             } catch (Exception e) {
                 deliveryNote = shipAssignment.getNote();
+            }
+        }
+        
+        // Parse cancellation info (if order is CANCELED)
+        String cancelReason = null;
+        String canceledBy = null;
+        if (order.getStatus() == OrderStatus.CANCELED) {
+            if (shipAssignment != null && "FAILED".equals(shipAssignment.getStatus())) {
+                // Shipper báo không giao được
+                canceledBy = "SHIPPER";
+                cancelReason = translateFailureReason(failureReason);
+                if (cancelReason == null || cancelReason.isEmpty()) {
+                    cancelReason = "Shipper không giao được hàng";
+                }
+            } else if (order.getStatusHistories() != null && !order.getStatusHistories().isEmpty()) {
+                // Manager đã can thiệp và hủy đơn
+                canceledBy = "MANAGER";
+                // Lấy note từ history cuối cùng có status CANCELED
+                cancelReason = order.getStatusHistories().stream()
+                        .filter(h -> h.getStatus() == OrderStatus.CANCELED)
+                        .reduce((first, second) -> second) // Lấy cái cuối cùng
+                        .map(OrderStatusHistory::getNote)
+                        .orElse("Cửa hàng hủy đơn");
+            } else {
+                // Khách hàng hủy
+                canceledBy = "CUSTOMER";
+                cancelReason = "Khách hàng hủy đơn";
             }
         }
 
@@ -287,9 +345,24 @@ public class OrderManagementService {
                 .shipperName(shipAssignment != null ? shipAssignment.getShipper().getFullName() : null)
                 .deliveryNote(deliveryNote)
                 .proofImageUrl(proofImageUrl)
+                .failureReason(failureReason)
+                .failureNote(failureNote)
+                .cancelReason(cancelReason)
+                .canceledBy(canceledBy)
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
                 .build();
+    }
+    
+    private String translateFailureReason(String reasonCode) {
+        if (reasonCode == null || reasonCode.isEmpty()) return null;
+        return switch (reasonCode) {
+            case "CUSTOMER_REFUSED" -> "Khách hàng từ chối nhận hàng";
+            case "CUSTOMER_NOT_REACHABLE" -> "Không liên hệ được khách hàng";
+            case "WRONG_ADDRESS" -> "Địa chỉ sai / không tìm thấy";
+            case "CUSTOMER_REQUESTED_CANCEL" -> "Khách hàng yêu cầu hủy đơn";
+            default -> "Lý do khác";
+        };
     }
 
     private String formatAddress(Order order) {

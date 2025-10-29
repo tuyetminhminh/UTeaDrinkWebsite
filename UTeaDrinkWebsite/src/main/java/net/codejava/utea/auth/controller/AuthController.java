@@ -31,7 +31,7 @@ public class AuthController {
     private final UserRepository userRepo;
     private final PasswordEncoder encoder;
     private final UserService userService;
-    // private final OtpService otpService; // nếu bạn đã có
+    private final net.codejava.utea.auth.service.OtpService otpService;
 
     @Value("${app.jwt.cookie-name:UTEA_TOKEN}")
     private String cookieName;
@@ -140,17 +140,16 @@ public class AuthController {
 
     @PostMapping("/forgot")
     public String doForgot(@RequestParam String email, Model model) {
-        // nếu có OtpService thì gửi OTP:
-        // try { otpService.sendResetOtpToEmail(email); ... } catch (Exception e) { ...
-        // }
-        if (userRepo.findByEmail(email).isEmpty()) {
-            model.addAttribute("error", "Không tìm thấy email đã đăng ký");
+        try {
+            // Gửi OTP qua email
+            otpService.sendResetOtpToEmail(email);
+            model.addAttribute("email", email);
+            model.addAttribute("sent", true);
+            return "auth/reset";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
             return "auth/forgot";
         }
-        // giả sử chuyển ngay tới trang reset, bạn có thể hiển thị message "OTP đã gửi"
-        model.addAttribute("email", email);
-        model.addAttribute("sent", true);
-        return "auth/reset";
     }
 
     /* ======= RESET ======= */
@@ -161,19 +160,19 @@ public class AuthController {
     }
 
     @PostMapping("/reset")
-    public String doReset(@RequestParam String email, @RequestParam String password,
-                          // @RequestParam String otp, // nếu bạn dùng OTP thật
+    public String doReset(@RequestParam String email, 
+                          @RequestParam String otp,
+                          @RequestParam String password,
                           Model model) {
-        var u = userRepo.findByEmail(email).orElse(null);
-        if (u == null) {
-            model.addAttribute("error", "Email không hợp lệ");
+        try {
+            // Validate OTP và đổi mật khẩu
+            otpService.resetPasswordByEmail(email, otp, password);
+            model.addAttribute("success", "🔑 Mật khẩu đã được đặt lại! Hãy đăng nhập.");
+            return "auth/login";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
             model.addAttribute("email", email);
             return "auth/reset";
         }
-        // nếu có OTP: validate otpService.validate(email, otp) trước khi đổi mật khẩu.
-        u.setPasswordHash(encoder.encode(password));
-        userRepo.save(u);
-        model.addAttribute("success", "🔑 Mật khẩu đã được đặt lại! Hãy đăng nhập.");
-        return "auth/login";
     }
 }

@@ -291,33 +291,15 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal total = subtotal.add(shippingFee).subtract(discount).max(BigDecimal.ZERO);
 
         // 4) Lấy/gắn địa chỉ giao hàng
+        // ✅ FIX: KHÔNG TỰ ĐỘNG TẠO ĐỊA CHỈ MỚI - chỉ dùng địa chỉ đã chọn từ sổ địa chỉ
         Address pickedAddr = null;
         if (req.getAddressId() != null) {
             pickedAddr = addressService.findById(req.getAddressId())
                     .filter(a -> a.getUser() != null && a.getUser().getId().equals(user.getId()))
-                    .orElseThrow(() -> new IllegalStateException("Địa chỉ không hợp lệ."));
-        } else {
-            // Nếu không chọn từ sổ địa chỉ mà nhập tay -> tạo Address mới (lưu luôn cho user)
-            boolean hasTypedAddress =
-                    nonBlank(req.getFullname()) ||
-                            nonBlank(req.getPhone()) ||
-                            nonBlank(req.getAddressLine()) ||
-                            nonBlank(req.getDistrict()) ||
-                            nonBlank(req.getProvince());
-
-            if (hasTypedAddress) {
-                Address a = new Address();
-                a.setUser(user);
-                a.setReceiverName(nullToEmpty(req.getFullname()));
-                a.setPhone(nullToEmpty(req.getPhone()));
-                a.setLine(nullToEmpty(req.getAddressLine()));
-                a.setWard(nullToEmpty(req.getDistrict()));   // nếu bạn có field ward riêng, sửa lại cho đúng
-                a.setDistrict(nullToEmpty(req.getDistrict()));
-                a.setProvince(nullToEmpty(req.getProvince()));
-                a.setDefault(false);
-                pickedAddr = addressService.save(a);
-            }
+                    .orElseThrow(() -> new IllegalStateException("Địa chỉ không hợp lệ hoặc không thuộc về bạn."));
         }
+        // ❌ KHÔNG TẠO ĐỊA CHỈ MỚI TỰ ĐỘNG - yêu cầu user phải chọn từ sổ địa chỉ
+        // Nếu muốn dùng địa chỉ mới, user phải thêm vào sổ địa chỉ trước tại trang /customer/account
 
         // 5) Build Order (giả định 1 shop)
         var firstShop = selected.get(0).getProduct().getShop();
@@ -349,6 +331,7 @@ public class OrderServiceImpl implements OrderService {
                     .quantity(ci.getQuantity())
                     .unitPrice(ci.getUnitPrice())
                     .lineTotal(ci.getUnitPrice().multiply(BigDecimal.valueOf(ci.getQuantity())))
+                    .toppingsJson(ci.getToppingsJson())  // ✅ COPY TOPPING JSON
                     .build());
         }
         order.setItems(items);
@@ -366,9 +349,6 @@ public class OrderServiceImpl implements OrderService {
 
         return saved;
     }
-
-    private boolean nonBlank(String s){ return s != null && !s.isBlank(); }
-    private String nullToEmpty(String s){ return s == null ? "" : s; }
 
     private String buildVoucherCodesString(String couponCode, String shipCode) {
         boolean hasCoupon = couponCode != null && !couponCode.isBlank();

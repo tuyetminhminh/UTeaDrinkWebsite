@@ -64,4 +64,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("startDate") LocalDateTime startDate,
             @Param("statuses") List<OrderStatus> statuses // Nhận vào một List<OrderStatus>
     );
+
+    /**
+     * Kiểm tra xem địa chỉ có đang được sử dụng trong đơn hàng nào không
+     */
+    @Query("SELECT COUNT(o) > 0 FROM Order o WHERE o.shippingAddress.id = :addressId")
+    boolean existsByShippingAddressId(@Param("addressId") Long addressId);
 }

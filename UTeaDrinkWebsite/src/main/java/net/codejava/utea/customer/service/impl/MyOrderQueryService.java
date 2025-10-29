@@ -1,5 +1,6 @@
 package net.codejava.utea.customer.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import net.codejava.utea.common.entity.User;
 import net.codejava.utea.order.entity.Order;
@@ -8,6 +9,8 @@ import net.codejava.utea.order.repository.OrderRepository;
 import net.codejava.utea.order.view.CustomerOrderItemView;
 import net.codejava.utea.review.entity.Review;
 import net.codejava.utea.review.repository.ReviewRepository;
+import net.codejava.utea.shipping.entity.ShipAssignment;
+import net.codejava.utea.shipping.repository.ShipAssignmentRepository;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +26,8 @@ public class MyOrderQueryService {
 
     private final OrderRepository orderRepo;
     private final ReviewRepository reviewRepo;
+    private final ShipAssignmentRepository shipAssignmentRepo;
+    private final ObjectMapper objectMapper;
 
     @Transactional(readOnly = true)
     public Page<CustomerOrderItemView> listItems(User user,
@@ -68,6 +73,40 @@ public class MyOrderQueryService {
 
                 Review rv = reviewByOi.get(oi.getId());
 
+                // Xác định lý do hủy và ai hủy (nếu đơn bị CANCELED)
+                String cancelReason = null;
+                String canceledBy = null;
+                if (o.getStatus() == net.codejava.utea.order.entity.enums.OrderStatus.CANCELED) {
+                    // Kiểm tra xem có ShipAssignment không
+                    Optional<ShipAssignment> shipOpt = shipAssignmentRepo.findByOrderId(o.getId());
+                    
+                    if (shipOpt.isPresent() && "FAILED".equals(shipOpt.get().getStatus())) {
+                        // 1. Shipper báo không giao được
+                        canceledBy = "SHIPPER";
+                        try {
+                            if (shipOpt.get().getNote() != null && shipOpt.get().getNote().startsWith("{")) {
+                                @SuppressWarnings("unchecked")
+                                Map<String, Object> noteData = objectMapper.readValue(shipOpt.get().getNote(), Map.class);
+                                String reasonCode = (String) noteData.getOrDefault("failureReason", "");
+                                cancelReason = translateFailureReason(reasonCode);
+                            } else {
+                                cancelReason = "Shipper không giao được hàng";
+                            }
+                        } catch (Exception e) {
+                            cancelReason = "Shipper không giao được hàng";
+                        }
+                    } else if (o.getStatusHistories() != null && !o.getStatusHistories().isEmpty()) {
+                        // ✅ FIX: Có bất kỳ OrderStatusHistory nào → Manager đã can thiệp và hủy đơn
+                        // (Customer hủy thì KHÔNG tạo history, chỉ Manager tạo history khi thay đổi status)
+                        canceledBy = "MANAGER";
+                        cancelReason = "Cửa hàng hủy đơn";
+                    } else {
+                        // Không có ShipAssignment và không có StatusHistory → Khách hàng hủy
+                        canceledBy = "CUSTOMER";
+                        cancelReason = "Khách hàng hủy đơn";
+                    }
+                }
+
                 all.add(CustomerOrderItemView.builder()
                         .orderItemId(oi.getId())
                         .orderCode(Optional.ofNullable(o.getOrderCode()).orElse(""))
@@ -80,9 +119,16 @@ public class MyOrderQueryService {
                         .lineTotal(lineTotal)
                         .orderStatus(o.getStatus())
                         .orderedAt(orderedAt)
+                        // Thông tin đơn hàng
+                        .orderTotal(o.getTotal())
+                        .orderSubtotal(o.getSubtotal())
+                        .orderShippingFee(o.getShippingFee())
+                        .orderDiscount(o.getDiscount())
                         .reviewId(rv == null ? null : rv.getId())
                         .rating(rv == null ? null : rv.getRating())
                         .reviewContent(rv == null ? null : rv.getContent())
+                        .cancelReason(cancelReason)
+                        .canceledBy(canceledBy)
                         .build());
             }
         }
@@ -118,5 +164,22 @@ public class MyOrderQueryService {
         List<CustomerOrderItemView> pageList = filtered.subList(from, to);
 
         return new PageImpl<>(pageList, PageRequest.of(page, size), filtered.size());
+    }
+
+    /**
+     * Chuyển đổi mã lý do hủy sang tiếng Việt
+     */
+    private String translateFailureReason(String reasonCode) {
+        if (reasonCode == null || reasonCode.isEmpty()) {
+            return "Không rõ lý do";
+        }
+        return switch (reasonCode) {
+            case "CUSTOMER_NOT_REACHABLE" -> "Không liên lạc được với khách";
+            case "CUSTOMER_REFUSED" -> "Khách từ chối nhận hàng";
+            case "WRONG_ADDRESS" -> "Địa chỉ sai";
+            case "CUSTOMER_RESCHEDULED" -> "Khách hẹn lại";
+            case "OTHER" -> "Lý do khác";
+            default -> reasonCode;
+        };
     }
 }

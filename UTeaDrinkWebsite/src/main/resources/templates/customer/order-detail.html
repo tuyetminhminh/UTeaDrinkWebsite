@@ -1,84 +1,490 @@
-<!-- templates/customer/order-detail.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title th:text="'Đơn ' + ${order.orderCode}">Chi tiết đơn</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Chi tiết đơn hàng</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
     <style>
-        .wrap {max-width: 1000px; margin: 24px auto;}
-        .summary{border-radius: 12px;}
+        :root{
+            --bg:#f6f7f9; --ink:#0f172a; --muted:#6b7280; --line:#e9edf1;
+            --radius:14px; --elev:0 6px 16px rgba(15,23,42,.05);
+            --header-height:72px;
+        }
+        body{background:var(--bg);color:var(--ink)}
+        .page-offset{height:var(--header-height)}
+        .wrap{max-width:1000px;margin:0 auto 24px;padding:0 16px}
+        
+        .detail-card{
+            background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+            box-shadow:var(--elev);padding:24px;margin-bottom:16px;
+        }
+        .section-title{
+            font-size:1.1rem;font-weight:700;color:var(--ink);
+            margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--line);
+            display:flex;align-items:center;gap:8px;
+        }
+        .info-row{
+            display:flex;justify-content:space-between;align-items:start;
+            padding:10px 0;border-bottom:1px solid #f0f0f0;
+        }
+        .info-row:last-child{border-bottom:none}
+        .info-label{color:var(--muted);font-size:0.9rem;font-weight:600}
+        .info-value{color:var(--ink);font-weight:600;text-align:right}
+        
+        .status-badge{
+            display:inline-block;padding:6px 14px;border-radius:20px;
+            font-weight:700;font-size:0.85rem;text-transform:uppercase;
+        }
+        .status-NEW{background:#E3F2FD;color:#1976D2;border:1px solid #90CAF9}
+        .status-CONFIRMED{background:#FFF3E0;color:#F57C00;border:1px solid #FFB74D}
+        .status-PREPARING{background:#F3E5F5;color:#7B1FA2;border:1px solid #CE93D8}
+        .status-DELIVERING{background:#E8F5E9;color:#388E3C;border:1px solid #81C784}
+        .status-DELIVERED{background:#C8E6C9;color:#2E7D32;border:1px solid #66BB6A}
+        .status-CANCELED{background:#FFEBEE;color:#C62828;border:1px solid #EF9A9A}
+        
+        .product-item{
+            display:flex;gap:16px;padding:16px 0;border-bottom:1px solid #f0f0f0;
+        }
+        .product-item:last-child{border-bottom:none}
+        .product-img{
+            width:80px;height:80px;border-radius:10px;overflow:hidden;
+            background:#f1f5f9;flex-shrink:0;
+        }
+        .product-img img{width:100%;height:100%;object-fit:cover}
+        .product-info{flex:1}
+        .product-name{font-weight:700;color:var(--ink);margin-bottom:4px}
+        .product-meta{color:var(--muted);font-size:0.9rem}
+        .product-price{text-align:right;font-weight:700;color:var(--ink)}
+        
+        /* Topping styling */
+        .topping-list{
+            margin-top:8px;padding-top:8px;border-top:1px dashed #e0e0e0;
+        }
+        .topping-item{
+            display:inline-flex;align-items:center;gap:4px;
+            background:#FFF8E1;color:#F57C00;padding:4px 10px;
+            border-radius:12px;font-size:0.85rem;margin-right:6px;margin-bottom:4px;
+            border:1px solid #FFE082;font-weight:600;
+        }
+        .topping-item i{font-size:0.75rem}
+        
+        .total-row{
+            display:flex;justify-content:space-between;padding:12px 0;
+            font-size:1rem;
+        }
+        .total-row.final{
+            font-size:1.3rem;font-weight:700;color:#d32f2f;
+            padding-top:16px;border-top:2px solid var(--line);
+        }
+        
+        .back-btn{
+            display:inline-flex;align-items:center;gap:6px;
+            background:#f5f5f5;color:var(--ink);padding:8px 16px;
+            border-radius:8px;text-decoration:none;font-weight:600;
+            transition:all 0.3s;
+        }
+        .back-btn:hover{background:#e0e0e0;color:var(--ink)}
+        
+        .alert-cancel{
+            background:#FFF3E0;border-left:4px solid #FF9800;
+            padding:16px;border-radius:8px;margin-top:16px;
+        }
+        
+        /* Timeline */
+        .timeline{position:relative;padding-left:40px}
+        .timeline::before{
+            content:'';position:absolute;left:12px;top:8px;bottom:8px;
+            width:2px;background:#e0e0e0;
+        }
+        .timeline-item{position:relative;padding-bottom:20px}
+        .timeline-item:last-child{padding-bottom:0}
+        .timeline-dot{
+            position:absolute;left:-28px;top:0;
+            width:24px;height:24px;border-radius:50%;
+            background:#fff;border:3px solid #4CAF50;
+            display:flex;align-items:center;justify-content:center;
+        }
+        .timeline-dot.pending{border-color:#9E9E9E;background:#f5f5f5}
+        .timeline-time{color:var(--muted);font-size:0.85rem;margin-bottom:2px}
+        .timeline-status{font-weight:700;color:var(--ink);margin-bottom:4px}
+        .timeline-note{color:var(--muted);font-size:0.9rem}
+        
+        /* Delivery Info */
+        .delivery-proof{margin-top:12px}
+        .proof-image{
+            max-width:300px;border-radius:10px;border:1px solid var(--line);
+            box-shadow:0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .shipper-info{
+            background:#E8F5E9;border-left:4px solid#66BB6A;
+            padding:12px 16px;border-radius:8px;
+        }
     </style>
 </head>
 <body>
+<!-- Header -->
 <div th:replace="~{fragments/header-customer :: customerHeader}"></div>
+<div class="page-offset"></div>
+
 <div class="wrap">
-    <a th:href="@{/customer/orders}" class="btn btn-link">&larr; Quay lại danh sách</a>
+    <!-- Back button -->
+    <div class="mb-3">
+        <a href="/customer/orders" class="back-btn">
+            <i class="bi bi-arrow-left"></i> Quay lại danh sách
+        </a>
+    </div>
 
-    <h4 class="mt-2 mb-3">Đơn hàng <span th:text="${order.orderCode}">ORD-XXXXXX</span></h4>
-
-    <div class="row g-3">
-        <div class="col-lg-8">
-            <div class="card p-3">
-                <div><b>Trạng thái:</b> <span th:text="${order.status}">PENDING</span></div>
-                <div><b>Phương thức thanh toán:</b> <span th:text="${order.paymentMethod}">COD</span></div>
-                <div><b>Ngày tạo:</b> <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">-</span></div>
+    <!-- Order Header -->
+    <div class="detail-card">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h3 class="mb-2">
+                    <i class="bi bi-receipt"></i>
+                    Đơn hàng <strong th:text="${order.orderCode}">ORD-XXXX</strong>
+                </h3>
+                <p class="text-muted mb-0">
+                    <i class="bi bi-clock"></i>
+                    Đặt lúc: <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">24/10/2025 14:30</span>
+                </p>
             </div>
-
-            <div class="card p-3 mt-3">
-                <h6>Sản phẩm</h6>
-                <div class="table-responsive">
-                    <table class="table align-middle">
-                        <thead>
-                        <tr>
-                            <th>Ảnh</th>
-                            <th>Sản phẩm</th>
-                            <th>SL</th>
-                            <th>Đơn giá</th>
-                            <th>Tạm tính</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="it : ${order.items}">
-                            <td style="width:70px">
-                                <img th:src="${it.imageUrl}" alt="" class="img-fluid" th:if="${it.imageUrl}">
-                            </td>
-                            <td th:text="${it.productName}">Tên sản phẩm</td>
-                            <td th:text="${it.quantity}">1</td>
-                            <td th:text="${#numbers.formatDecimal(it.unitPrice,0,'COMMA',0,'POINT')} + 'đ'">0đ</td>
-                            <td th:text="${#numbers.formatDecimal(it.lineTotal,0,'COMMA',0,'POINT')} + 'đ'">0đ</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
+            <span class="status-badge" 
+                  th:classappend="'status-' + ${order.status}"
+                  th:text="${
+                      order.status == T(net.codejava.utea.order.entity.enums.OrderStatus).NEW ? 'Mới' :
+                      order.status == T(net.codejava.utea.order.entity.enums.OrderStatus).CONFIRMED ? 'Đã xác nhận' :
+                      order.status == T(net.codejava.utea.order.entity.enums.OrderStatus).PREPARING ? 'Đang chuẩn bị' :
+                      order.status == T(net.codejava.utea.order.entity.enums.OrderStatus).DELIVERING ? 'Đang giao' :
+                      order.status == T(net.codejava.utea.order.entity.enums.OrderStatus).DELIVERED ? 'Đã giao' :
+                      order.status == T(net.codejava.utea.order.entity.enums.OrderStatus).CANCELED ? 'Đã hủy' :
+                      'Không rõ'
+                  }">
+                Mới
+            </span>
         </div>
-        <div class="col-lg-4">
-            <div class="card p-3 summary">
-                <h6>Tổng kết</h6>
-                <div class="d-flex justify-content-between">
+
+        <!-- Thông tin cửa hàng -->
+        <div class="info-row" th:if="${order.shop != null}">
+            <span class="info-label">
+                <i class="bi bi-shop"></i> Cửa hàng
+            </span>
+            <span class="info-value" th:text="${order.shop.name}">Tên cửa hàng</span>
+        </div>
+            </div>
+
+    <!-- Địa chỉ giao hàng -->
+    <div class="detail-card" th:if="${order.shippingAddress != null}">
+        <h5 class="section-title">
+            <i class="bi bi-geo-alt-fill"></i>
+            Địa chỉ giao hàng
+        </h5>
+        <div class="info-row">
+            <span class="info-label">Người nhận</span>
+            <span class="info-value" th:text="${order.shippingAddress.receiverName}">Nguyễn Văn A</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Số điện thoại</span>
+            <span class="info-value" th:text="${order.shippingAddress.phone}">0901234567</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Địa chỉ</span>
+            <span class="info-value" style="max-width:60%">
+                <span th:text="${order.shippingAddress.line}">123 Đường ABC</span>,
+                <span th:text="${order.shippingAddress.ward}">Phường 1</span>,
+                <span th:text="${order.shippingAddress.district}">Quận 1</span>,
+                <span th:text="${order.shippingAddress.province}">TP.HCM</span>
+            </span>
+                </div>
+            </div>
+
+    <!-- Danh sách sản phẩm -->
+    <div class="detail-card">
+        <h5 class="section-title">
+            <i class="bi bi-bag-fill"></i>
+            Sản phẩm đã đặt
+        </h5>
+        
+        <div th:each="item : ${order.items}" class="product-item">
+            <div class="product-img">
+                <img th:src="${item.product != null && item.product.images != null && !item.product.images.isEmpty() 
+                    ? item.product.images[0].url : '/images/no-image.png'}" 
+                     th:alt="${item.product != null ? item.product.name : 'Sản phẩm'}">
+            </div>
+            <div class="product-info">
+                <div class="product-name" th:text="${item.product != null ? item.product.name : 'Sản phẩm'}">Tên sản phẩm</div>
+                <div class="product-meta">
+                    <span>Số lượng: <strong th:text="${item.quantity}">1</strong></span>
+                    <span th:if="${item.variant != null && item.variant.size != null}" 
+                          class="ms-2">
+                        Size: <strong th:text="${item.variant.size}">M</strong>
+                    </span>
+                    <span class="ms-2">
+                        Đơn giá: <strong th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')} + 'đ'">50,000đ</strong>
+                    </span>
+                </div>
+                
+                <!-- Hiển thị Topping nếu có -->
+                <div th:if="${item.toppingsJson != null && !item.toppingsJson.isEmpty()}" 
+                     class="topping-list"
+                     th:attr="data-toppings=${item.toppingsJson}">
+                    <div style="color:#F57C00;font-weight:600;font-size:0.85rem;margin-bottom:4px;">
+                        <i class="bi bi-plus-circle"></i> Topping:
+                    </div>
+                    <div class="toppings-container"></div>
+                    <!-- Debug: hiển thị raw JSON (sẽ xóa sau) -->
+                    <div class="text-muted small" style="display:none;" th:text="'DEBUG: ' + ${item.toppingsJson}"></div>
+                </div>
+                
+                <!-- Ghi chú nếu có -->
+                <div th:if="${item.note != null && item.note != ''}" 
+                     class="mt-2"
+                     style="color:#757575;font-size:0.85rem;font-style:italic;">
+                    <i class="bi bi-chat-left-text"></i> Ghi chú: <span th:text="${item.note}">Ghi chú</span>
+                </div>
+            </div>
+            <div class="product-price">
+                <span th:text="${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 0, 'POINT')} + 'đ'">50,000đ</span>
+            </div>
+        </div>
+        </div>
+
+    <!-- Tổng tiền -->
+    <div class="detail-card">
+        <h5 class="section-title">
+            <i class="bi bi-calculator-fill"></i>
+            Chi tiết thanh toán
+        </h5>
+        
+        <div class="total-row">
                     <span>Tạm tính</span>
-                    <span th:text="${#numbers.formatDecimal(order.subtotalAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+            <span th:text="${#numbers.formatDecimal(order.subtotal, 0, 'COMMA', 0, 'POINT')} + 'đ'">100,000đ</span>
                 </div>
-                <div class="d-flex justify-content-between">
-                    <span>Phí giao hàng</span>
-                    <span th:text="${order.shippingFee.signum()==0 ? 'Miễn phí' : #numbers.formatDecimal(order.shippingFee,0,'COMMA',0,'POINT') + 'đ'}">0đ</span>
+        <div class="total-row">
+            <span>Phí vận chuyển</span>
+            <span th:text="${#numbers.formatDecimal(order.shippingFee, 0, 'COMMA', 0, 'POINT')} + 'đ'">15,000đ</span>
                 </div>
-                <div class="d-flex justify-content-between">
+        <div class="total-row" th:if="${order.discount != null && order.discount > 0}">
                     <span>Giảm giá</span>
-                    <span th:text="${#numbers.formatDecimal(order.discountAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+            <span class="text-success">
+                - <span th:text="${#numbers.formatDecimal(order.discount, 0, 'COMMA', 0, 'POINT')} + 'đ'">10,000đ</span>
+            </span>
+        </div>
+        <div class="total-row" th:if="${order.voucherCode != null && !order.voucherCode.isEmpty()}">
+            <span>
+                <i class="bi bi-ticket-perforated"></i> Mã voucher
+            </span>
+            <span class="text-primary" th:text="${order.voucherCode}">VOUCHER123</span>
+        </div>
+        <div class="total-row final">
+            <span>Tổng cộng</span>
+            <span>
+                <span th:text="${#numbers.formatDecimal(order.total, 0, 'COMMA', 0, 'POINT')} + 'đ'">105,000đ</span>
+            </span>
+        </div>
+        <!-- Note thanh toán online -->
+        <div th:if="${order.payment != null && order.payment.status == T(net.codejava.utea.payment.entity.enums.PaymentStatus).PAID}"
+             style="background: #E8F5E9; border-left: 4px solid #2E7D32; padding: 12px; border-radius: 6px; margin-top: 12px;">
+            <div style="color: #2E7D32; font-weight: 600; font-size: 0.95rem;">
+                <i class="bi bi-check-circle-fill"></i> Đã thanh toán online
+            </div>
+            <div style="color: #558B2F; font-size: 0.85rem; margin-top: 4px;">
+                Phương thức: 
+                <span th:if="${order.payment.method == T(net.codejava.utea.payment.entity.enums.PaymentMethod).MBBANK}">
+                    <i class="bi bi-bank"></i> MB Bank
+                </span>
+                <span th:if="${order.payment.method == T(net.codejava.utea.payment.entity.enums.PaymentMethod).MOMO}">
+                    <i class="bi bi-wallet2"></i> MoMo
+                </span>
+                <span th:if="${order.payment.method == T(net.codejava.utea.payment.entity.enums.PaymentMethod).VNPAY}">
+                    <i class="bi bi-credit-card"></i> VNPay
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trạng thái thanh toán -->
+    <div class="detail-card" th:if="${order.payment != null}">
+        <h5 class="section-title">
+            <i class="bi bi-credit-card-fill"></i>
+            Thanh toán
+        </h5>
+        <div class="info-row">
+            <span class="info-label">Phương thức</span>
+            <span class="info-value" th:text="${order.payment.method}">PAYOS</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Trạng thái</span>
+            <span class="info-value">
+                <span th:if="${order.payment.status == 'COMPLETED'}" class="badge bg-success">Đã thanh toán</span>
+                <span th:if="${order.payment.status == 'PENDING'}" class="badge bg-warning">Chờ thanh toán</span>
+                <span th:if="${order.payment.status == 'FAILED'}" class="badge bg-danger">Thất bại</span>
+            </span>
+        </div>
+    </div>
+
+    <!-- Thông tin shipper -->
+    <div class="detail-card" th:if="${shipAssignment != null}">
+        <h5 class="section-title">
+            <i class="bi bi-truck"></i>
+            Thông tin giao hàng
+        </h5>
+        <div class="shipper-info mb-3" th:if="${shipAssignment.shipper != null}">
+            <div><strong>Shipper:</strong> <span th:text="${shipAssignment.shipper.fullName}">Tên shipper</span></div>
+        </div>
+        <div class="info-row" th:if="${shipAssignment.assignedAt != null}">
+            <span class="info-label">Đã nhận đơn</span>
+            <span class="info-value" th:text="${#temporals.format(shipAssignment.assignedAt, 'dd/MM/yyyy HH:mm')}">24/10/2025 10:00</span>
+        </div>
+        <div class="info-row" th:if="${shipAssignment.pickedUpAt != null}">
+            <span class="info-label">Đã lấy hàng</span>
+            <span class="info-value" th:text="${#temporals.format(shipAssignment.pickedUpAt, 'dd/MM/yyyy HH:mm')}">24/10/2025 11:00</span>
+        </div>
+        <div class="info-row" th:if="${shipAssignment.deliveredAt != null}">
+            <span class="info-label">Đã giao hàng</span>
+            <span class="info-value" th:text="${#temporals.format(shipAssignment.deliveredAt, 'dd/MM/yyyy HH:mm')}">24/10/2025 12:00</span>
+        </div>
+        
+        <!-- Ghi chú và ảnh giao hàng thành công -->
+        <div th:if="${deliveryNote != null || proofImageUrl != null}" class="delivery-proof">
+            <div th:if="${deliveryNote != null && !deliveryNote.isEmpty()}" class="mb-2">
+                <strong><i class="bi bi-chat-left-text"></i> Ghi chú giao hàng:</strong>
+                <p class="mb-0 mt-1" th:text="${deliveryNote}">Ghi chú</p>
+            </div>
+            <div th:if="${proofImageUrl != null && !proofImageUrl.isEmpty()}">
+                <strong><i class="bi bi-camera"></i> Ảnh bằng chứng giao hàng:</strong>
+                <div class="mt-2">
+                    <img th:src="${proofImageUrl}" class="proof-image" alt="Ảnh giao hàng">
                 </div>
-                <hr>
-                <div class="d-flex justify-content-between fw-bold">
-                    <span>Thành tiền</span>
-                    <span th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + 'đ'">0đ</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin hủy đơn -->
+    <div class="detail-card" th:if="${order.status == T(net.codejava.utea.order.entity.enums.OrderStatus).CANCELED}">
+        <h5 class="section-title">
+            <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+            Thông tin hủy đơn
+        </h5>
+        <div class="alert-cancel">
+            <div class="d-flex align-items-start gap-2">
+                <i class="bi bi-exclamation-circle-fill" style="font-size:1.5rem;color:#FF9800"></i>
+                <div class="flex-grow-1">
+                    <div class="fw-bold mb-2">Đơn hàng đã bị hủy</div>
+                    <div class="text-muted">
+                        <span th:if="${canceledBy == 'CUSTOMER'}">
+                            <i class="bi bi-person-fill"></i> 
+                            <strong>Bạn</strong> đã hủy đơn này
+                        </span>
+                        <span th:if="${canceledBy == 'SHIPPER'}">
+                            <i class="bi bi-truck"></i> 
+                            <strong>Shipper</strong> báo không giao được
+                        </span>
+                        <span th:if="${canceledBy == 'MANAGER'}">
+                            <i class="bi bi-shop"></i> 
+                            <strong>Cửa hàng</strong> đã hủy đơn này
+                        </span>
+                    </div>
+                    <div th:if="${cancelReason != null && !cancelReason.isEmpty()}" class="mt-2">
+                        <strong>Lý do:</strong> <em th:text="${cancelReason}">Lý do hủy</em>
+                </div>
+                    <div th:if="${failureNote != null && !failureNote.isEmpty()}" class="mt-2">
+                        <strong>Ghi chú:</strong> <span th:text="${failureNote}">Ghi chú chi tiết</span>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+
+    <!-- Lịch sử trạng thái -->
+    <div class="detail-card" th:if="${order.statusHistories != null && !order.statusHistories.isEmpty()}">
+        <h5 class="section-title">
+            <i class="bi bi-clock-history"></i>
+            Lịch sử trạng thái
+        </h5>
+        <div class="timeline">
+            <div th:each="history : ${order.statusHistories}" class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-time" th:text="${#temporals.format(history.changedAt, 'dd/MM/yyyy HH:mm')}">24/10/2025 14:30</div>
+                <div class="timeline-status" th:text="${
+                    history.status == T(net.codejava.utea.order.entity.enums.OrderStatus).NEW ? 'Đơn hàng mới' :
+                    history.status == T(net.codejava.utea.order.entity.enums.OrderStatus).CONFIRMED ? 'Đã xác nhận' :
+                    history.status == T(net.codejava.utea.order.entity.enums.OrderStatus).PREPARING ? 'Đang chuẩn bị' :
+                    history.status == T(net.codejava.utea.order.entity.enums.OrderStatus).DELIVERING ? 'Đang giao hàng' :
+                    history.status == T(net.codejava.utea.order.entity.enums.OrderStatus).DELIVERED ? 'Đã giao hàng' :
+                    history.status == T(net.codejava.utea.order.entity.enums.OrderStatus).CANCELED ? 'Đã hủy' :
+                    'Không rõ'
+                }">Trạng thái</div>
+                <div th:if="${history.note != null && !history.note.isEmpty()}" class="timeline-note" th:text="${history.note}">Ghi chú</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hủy đơn -->
+    <div th:if="${order.status == T(net.codejava.utea.order.entity.enums.OrderStatus).NEW}">
+        <form th:action="@{'/customer/orders/' + ${order.orderCode} + '/cancel'}" method="post"
+              onsubmit="return confirm('Bạn có chắc muốn hủy đơn hàng này?')">
+            <button class="btn btn-danger w-100" type="submit">
+                <i class="bi bi-x-circle"></i> Hủy đơn hàng
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Parse và hiển thị topping
+document.addEventListener('DOMContentLoaded', function() {
+    const toppingLists = document.querySelectorAll('.topping-list');
+    console.log('🔍 Tìm thấy ' + toppingLists.length + ' sản phẩm có topping');
+    
+    toppingLists.forEach(function(toppingList, index) {
+        const toppingsJson = toppingList.getAttribute('data-toppings');
+        const container = toppingList.querySelector('.toppings-container');
+        
+        console.log('📦 Item ' + (index + 1) + ' - JSON:', toppingsJson);
+        
+        if (!toppingsJson || !container) {
+            console.warn('⚠️ Item ' + (index + 1) + ' - Thiếu JSON hoặc container');
+            return;
+        }
+        
+        try {
+            const toppings = JSON.parse(toppingsJson);
+            console.log('✅ Item ' + (index + 1) + ' - Parsed:', toppings);
+            
+            if (!Array.isArray(toppings) || toppings.length === 0) {
+                console.warn('⚠️ Item ' + (index + 1) + ' - Mảng rỗng hoặc không phải mảng');
+                toppingList.style.display = 'none';
+                return;
+            }
+            
+            // Tạo HTML cho từng topping
+            let html = '';
+            toppings.forEach(function(topping) {
+                const name = topping.name || 'N/A';
+                const price = topping.price || 0;
+                const formattedPrice = new Intl.NumberFormat('vi-VN').format(price);
+                
+                html += `<span class="topping-item">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    ${name} (+${formattedPrice}đ)
+                </span>`;
+            });
+            
+            container.innerHTML = html;
+            console.log('✅ Item ' + (index + 1) + ' - Đã render ' + toppings.length + ' topping');
+            
+        } catch (e) {
+            console.error('❌ Item ' + (index + 1) + ' - Lỗi parse JSON:', e);
+            console.error('   Raw JSON:', toppingsJson);
+            toppingList.style.display = 'none';
+        }
+    });
+});
+</script>
 </body>
 </html>

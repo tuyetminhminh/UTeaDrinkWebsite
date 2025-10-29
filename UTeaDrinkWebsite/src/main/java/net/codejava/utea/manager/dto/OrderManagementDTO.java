@@ -47,6 +47,14 @@ public class OrderManagementDTO {
     private String shipperName;
     private String deliveryNote; // Ghi chú giao hàng
     private String proofImageUrl; // Ảnh bằng chứng giao hàng
+    
+    // Failed Delivery Info
+    private String failureReason; // Lý do không giao được (CUSTOMER_REFUSED, CUSTOMER_NOT_REACHABLE, etc.)
+    private String failureNote; // Ghi chú chi tiết khi không giao được
+    
+    // Cancellation Info
+    private String cancelReason; // Lý do hủy đơn
+    private String canceledBy; // Ai hủy: CUSTOMER, MANAGER, SHIPPER
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

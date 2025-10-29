@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Chương trình khuyến mãi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B35;
+            --primary-dark: #E85A25;
+            --bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --border: #e0e6ed;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --radius: 12px;
+        }
+        
+        body {
+            background: var(--bg);
+            color: var(--text);
+            padding-top: 70px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+        
+        .page-header {
+            margin-bottom: 24px;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+        
+        /* Search panel */
+        .search-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+        }
+        
+        .search-form {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .search-input {
+            flex: 1;
+            min-width: 240px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            padding: 10px 16px;
+        }
+        
+        .btn-search {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-search:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+        }
+        
+        /* Promotion grid */
+        .promo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .promo-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Promotion card */
+        .promo-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .promo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            border-color: var(--primary);
+        }
+        
+        .promo-header {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            padding: 16px 20px;
+            color: white;
+        }
+        
+        .promo-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .promo-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        .promo-body {
+            padding: 20px;
+        }
+        
+        .promo-description {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 16px;
+            min-height: 42px;
+        }
+        
+        .promo-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .promo-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .promo-detail-item i {
+            color: var(--primary);
+            width: 18px;
+        }
+        
+        .promo-value {
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .promo-footer {
+            border-top: 1px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+        
+        .promo-scope {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+        
+        .promo-dates {
+            font-size: 0.8rem;
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+        
+        /* Pagination */
+        .pagination-wrapper {
+            margin-top: 32px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .pagination {
+            gap: 8px;
+        }
+        
+        .page-link {
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            color: var(--text);
+            font-weight: 600;
+        }
+        
+        .page-link:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .page-item.active .page-link {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        /* Badge effects */
+        .badge-global {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .badge-shop {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div th:replace="~{fragments/header-customer :: customerHeader}"></div>
+
+<div class="wrap">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="bi bi-gift"></i> Chương trình khuyến mãi
+        </h1>
+        <p class="page-subtitle">
+            Các chương trình ưu đãi tự động áp dụng khi đặt hàng · <span th:text="${shopName}">UTeaDrink</span>
+        </p>
+    </div>
+
+    <!-- Search Panel -->
+    <div class="search-panel">
+        <form class="search-form" method="get" th:action="@{/customer/promotions}">
+            <input type="hidden" name="size" value="12">
+            <input type="hidden" name="page" value="0">
+            <input class="search-input form-control" 
+                   type="text" 
+                   name="q" 
+                   placeholder="🔍 Tìm kiếm chương trình khuyến mãi..." 
+                   th:value="${q}">
+            <button class="btn-search" type="submit">
+                <i class="bi bi-search"></i> Tìm kiếm
+            </button>
+        </form>
+    </div>
+
+    <!-- Promotion Grid -->
+    <div class="promo-grid" th:if="${items != null and items.totalElements > 0}">
+        <div class="promo-card" th:each="promo : ${items.content}">
+            <!-- Header -->
+            <div class="promo-header">
+                <div class="promo-type">
+                    <i class="bi" 
+                       th:classappend="${promo.freeShip ? 'bi-truck' : 
+                                        promo.percentOff != null ? 'bi-percent' : 
+                                        'bi-tag-fill'}"></i>
+                    <span th:text="${promo.typeText}">Giảm %</span>
+                </div>
+                <h3 class="promo-title" th:text="${promo.title}">Giảm giá sản phẩm</h3>
+            </div>
+            
+            <!-- Body -->
+            <div class="promo-body">
+                <!-- Description -->
+                <div class="promo-description" 
+                     th:text="${promo.description != null && !promo.description.isEmpty() ? promo.description : 'Chương trình ưu đãi đặc biệt'}">
+                    Áp dụng tự động khi đặt hàng
+                </div>
+                
+                <!-- Details -->
+                <div class="promo-details">
+                    <!-- Percent Off -->
+                    <div class="promo-detail-item" th:if="${promo.percentOff != null && promo.percentOff > 0}">
+                        <i class="bi bi-percent"></i>
+                        <span>Giảm <span class="promo-value" th:text="${promo.percentOff} + '%'">10%</span></span>
+                    </div>
+                    
+                    <!-- Amount Off -->
+                    <div class="promo-detail-item" th:if="${promo.amountOff != null && promo.amountOff > 0}">
+                        <i class="bi bi-cash-coin"></i>
+                        <span>Giảm <span class="promo-value" th:text="${#numbers.formatDecimal(promo.amountOff, 0, 'COMMA', 0, 'POINT')} + 'đ'">10,000đ</span></span>
+                    </div>
+                    
+                    <!-- Amount Cap -->
+                    <div class="promo-detail-item" th:if="${promo.amountCap != null && promo.amountCap > 0}">
+                        <i class="bi bi-shield-check"></i>
+                        <span>Tối đa <span class="promo-value" th:text="${#numbers.formatDecimal(promo.amountCap, 0, 'COMMA', 0, 'POINT')} + 'đ'">50,000đ</span></span>
+                    </div>
+                    
+                    <!-- Min Total -->
+                    <div class="promo-detail-item" th:if="${promo.minTotal != null && promo.minTotal > 0}">
+                        <i class="bi bi-cart-check"></i>
+                        <span>Đơn tối thiểu <span class="promo-value" th:text="${#numbers.formatDecimal(promo.minTotal, 0, 'COMMA', 0, 'POINT')} + 'đ'">100,000đ</span></span>
+                    </div>
+                    
+                    <!-- Free Ship -->
+                    <div class="promo-detail-item" th:if="${promo.freeShip}">
+                        <i class="bi bi-truck"></i>
+                        <span class="promo-value">Miễn phí vận chuyển</span>
+                    </div>
+                    
+                    <!-- Ship Discount -->
+                    <div class="promo-detail-item" th:if="${promo.shipDiscountAmount != null && promo.shipDiscountAmount > 0}">
+                        <i class="bi bi-truck"></i>
+                        <span>Giảm phí ship <span class="promo-value" th:text="${#numbers.formatDecimal(promo.shipDiscountAmount, 0, 'COMMA', 0, 'POINT')} + 'đ'">10,000đ</span></span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="promo-footer">
+                <div>
+                    <span class="promo-scope" 
+                          th:classappend="${promo.scope == 'GLOBAL' ? 'badge-global' : 'badge-shop'}">
+                        <i class="bi" th:classappend="${promo.scope == 'GLOBAL' ? 'bi-globe2' : 'bi-shop'}"></i>
+                        <span th:text="${promo.scope == 'GLOBAL' ? 'Toàn hệ thống' : (promo.shopName != null ? promo.shopName : 'Cửa hàng')}">GLOBAL</span>
+                    </span>
+                </div>
+                <div class="promo-dates">
+                    <div th:if="${promo.activeFrom != null}">
+                        <i class="bi bi-calendar-check"></i>
+                        <span th:text="${#temporals.format(promo.activeFrom, 'dd/MM/yyyy')}">01/01/2024</span>
+                    </div>
+                    <div th:if="${promo.activeTo != null}">
+                        <i class="bi bi-calendar-x"></i>
+                        <span th:text="${#temporals.format(promo.activeTo, 'dd/MM/yyyy')}">31/12/2024</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" th:if="${items == null or items.totalElements == 0}">
+        <i class="bi bi-gift"></i>
+        <h3>Chưa có chương trình khuyến mãi</h3>
+        <p>Hiện tại chưa có chương trình ưu đãi nào đang diễn ra</p>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-wrapper" th:if="${items != null and items.totalPages > 1}">
+        <nav>
+            <ul class="pagination">
+                <li class="page-item" th:classappend="${items.first ? 'disabled' : ''}">
+                    <a class="page-link" 
+                       th:href="@{/customer/promotions(page=${items.number - 1}, size=${items.size}, q=${q})}">
+                        <i class="bi bi-chevron-left"></i> Trước
+                    </a>
+                </li>
+                
+                <li class="page-item" 
+                    th:each="i : ${#numbers.sequence(0, items.totalPages - 1)}"
+                    th:if="${i >= items.number - 2 and i <= items.number + 2}"
+                    th:classappend="${i == items.number ? 'active' : ''}">
+                    <a class="page-link" 
+                       th:href="@{/customer/promotions(page=${i}, size=${items.size}, q=${q})}"
+                       th:text="${i + 1}">1</a>
+                </li>
+                
+                <li class="page-item" th:classappend="${items.last ? 'disabled' : ''}">
+                    <a class="page-link" 
+                       th:href="@{/customer/promotions(page=${items.number + 1}, size=${items.size}, q=${q})}">
+                        Sau <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

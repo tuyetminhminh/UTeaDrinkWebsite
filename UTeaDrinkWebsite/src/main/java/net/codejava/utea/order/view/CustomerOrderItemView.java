@@ -23,19 +23,32 @@ public class CustomerOrderItemView {
     private OrderStatus orderStatus;           // enum gốc
     private String orderStatusAsText;
     private LocalDateTime orderedAt;
+    
+    // Thông tin đơn hàng
+    private BigDecimal orderTotal;      // Tổng tiền đơn hàng
+    private BigDecimal orderSubtotal;   // Tạm tính
+    private BigDecimal orderShippingFee; // Phí ship
+    private BigDecimal orderDiscount;   // Giảm giá
 
     private Long reviewId;
     private Integer rating;
     private String reviewContent;
 
+    // Thông tin hủy đơn
+    private String cancelReason;        // Lý do hủy
+    private String canceledBy;          // Ai hủy: CUSTOMER, SHIPPER, MANAGER
+
     // ======= convenience flags cho view (tránh biểu thức dài) =======
     public boolean isCancelableByCustomer() {
-        return orderStatus == OrderStatus.NEW || orderStatus == OrderStatus.CONFIRMED;
+        return orderStatus == OrderStatus.NEW; // Chỉ NEW mới hủy được
     }
     public boolean isDeliveredNoReview() {
         return orderStatus == OrderStatus.DELIVERED && reviewId == null;
     }
     public boolean isDeliveredReviewed() {
         return orderStatus == OrderStatus.DELIVERED && reviewId != null;
+    }
+    public boolean isCanceled() {
+        return orderStatus == OrderStatus.CANCELED;
     }
 }

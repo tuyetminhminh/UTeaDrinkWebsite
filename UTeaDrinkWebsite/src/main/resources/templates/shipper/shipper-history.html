@@ -295,6 +295,63 @@
         </div>
     </div>
 
+    <!-- Canceled Orders Table -->
+    <div class="chart-section">
+        <h3 class="section-title">
+            <i class="fas fa-times-circle"></i>
+            Đơn hàng đã hủy
+        </h3>
+        <div class="history-table">
+            <table class="table table-hover mb-0">
+                <thead>
+                <tr>
+                    <th>Ngày giờ</th>
+                    <th>Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Lý do</th>
+                    <th>Ghi chú</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${canceledOrders == null || canceledOrders.isEmpty()}">
+                    <td colspan="5" class="empty-state">
+                        <i class="fas fa-check-circle"></i>
+                        <h4>Chưa có đơn hàng bị hủy</h4>
+                        <p>Tuyệt vời! Bạn chưa có đơn nào bị hủy</p>
+                    </td>
+                </tr>
+                <tr th:each="order : ${canceledOrders}">
+                    <td>
+                        <strong th:text="${order.assignedAt != null ? #temporals.format(order.assignedAt, 'dd/MM/yyyy') : 'N/A'}">24/10/2025</strong><br>
+                        <small class="text-muted" th:text="${order.assignedAt != null ? #temporals.format(order.assignedAt, 'HH:mm') : ''}">14:30</small>
+                    </td>
+                    <td><strong th:text="${order.orderCode}">ORD-001</strong></td>
+                    <td>
+                        <div th:text="${order.customerName}">Khách hàng</div>
+                        <small class="text-muted" th:text="${order.deliveryAddress}">Địa chỉ</small>
+                    </td>
+                    <td>
+                        <span class="badge" style="background: #FFEBEE; color: #C62828; font-size: 10px;"
+                              th:if="${order.failureReason != null and !order.failureReason.isEmpty()}"
+                              th:text="${
+                                  order.failureReason == 'CUSTOMER_REFUSED' ? 'Khách từ chối' :
+                                  order.failureReason == 'CUSTOMER_NOT_REACHABLE' ? 'Không liên hệ được' :
+                                  order.failureReason == 'WRONG_ADDRESS' ? 'Địa chỉ sai' :
+                                  order.failureReason == 'CUSTOMER_REQUESTED_CANCEL' ? 'Khách yêu cầu hủy' :
+                                  'Lý do khác'
+                              }">Lý do</span>
+                        <span class="badge bg-secondary" style="font-size: 10px;"
+                              th:if="${order.failureReason == null or order.failureReason.isEmpty()}">Đã hủy</span>
+                    </td>
+                    <td>
+                        <small th:text="${order.failureNote ?: 'Đơn hàng đã bị hủy'}">Ghi chú</small>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- Revenue Chart -->
     <div class="chart-section">
         <h3 class="section-title">

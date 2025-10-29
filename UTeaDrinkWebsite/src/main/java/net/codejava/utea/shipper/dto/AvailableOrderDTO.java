@@ -30,7 +30,9 @@ public class AvailableOrderDTO {
     private Integer itemCount;
     private BigDecimal total;
     private BigDecimal shippingFee;
+    private BigDecimal collectAmount; // Tiền thu hộ (= 0 nếu đã thanh toán online)
     private String paymentMethod;
+    private String orderStatus; // NEW, PAID, CONFIRMED, etc.
     
     // Time
     private LocalDateTime createdAt;

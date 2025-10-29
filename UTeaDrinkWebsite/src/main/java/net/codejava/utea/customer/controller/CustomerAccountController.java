@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.validation.Valid;
-import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -49,6 +48,18 @@ public class CustomerAccountController {
         }
 
         User owner = userService.findById(cud.getId()).orElseThrow();
+        
+        // ✅ FIX: Nếu địa chỉ mới được đặt làm mặc định, bỏ default của tất cả địa chỉ cũ
+        if (form.isDefault()) {
+            var existingAddresses = addressService.listOf(owner);
+            for (var addr : existingAddresses) {
+                if (addr.isDefault()) {
+                    addr.setDefault(false);
+                    addressService.save(addr);
+                }
+            }
+        }
+        
         var address = net.codejava.utea.common.entity.Address.builder()
                 .user(owner)
                 .receiverName(form.getReceiverName())
@@ -78,8 +89,13 @@ public class CustomerAccountController {
     public String deleteAddress(@AuthenticationPrincipal CustomUserDetails cud,
                                 @PathVariable Long id,
                                 RedirectAttributes ra) {
-        addressService.delete(id, cud.getId());
-        ra.addFlashAttribute("success", "Đã xóa địa chỉ!");
+        try {
+            addressService.delete(id, cud.getId());
+            ra.addFlashAttribute("success", "Đã xóa địa chỉ thành công!");
+        } catch (RuntimeException e) {
+            // Hiển thị lỗi rõ ràng cho user (ví dụ: địa chỉ đang được sử dụng trong đơn hàng)
+            ra.addFlashAttribute("error", e.getMessage());
+        }
         return "redirect:/customer/account";
     }
 

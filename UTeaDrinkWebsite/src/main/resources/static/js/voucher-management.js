@@ -503,4 +503,3 @@ function showAlert(type, message) {
         alertDiv.remove();
     }, 3000);
 }
-

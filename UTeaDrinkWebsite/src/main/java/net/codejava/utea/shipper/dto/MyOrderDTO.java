@@ -30,6 +30,8 @@ public class MyOrderDTO {
     private Integer itemCount;
     private BigDecimal total;
     private BigDecimal shippingFee;
+    private BigDecimal collectAmount; // Tiền thu hộ (= 0 nếu đã thanh toán online)
+    private String orderStatus; // NEW, PAID, CONFIRMED, etc.
     
     // Assignment info
     private LocalDateTime assignedAt; // Thời điểm nhận đơn
@@ -39,5 +41,9 @@ public class MyOrderDTO {
     // Note & Proof
     private String deliveryNote;
     private String proofImageUrl;
+    
+    // Failed Delivery Info
+    private String failureReason; // Lý do không giao được
+    private String failureNote; // Ghi chú chi tiết
 }
 

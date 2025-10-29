@@ -5,6 +5,7 @@ import net.codejava.utea.common.entity.Address;
 import net.codejava.utea.common.entity.User;
 import net.codejava.utea.common.repository.AddressRepository;
 import net.codejava.utea.common.service.AddressService;
+import net.codejava.utea.order.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,14 +17,25 @@ import java.util.Optional;
 public class AddressServiceImpl implements AddressService {
 
     private final AddressRepository repo;
+    private final OrderRepository orderRepo;
 
     @Override
     public Address save(Address a) { return repo.save(a); }
 
     @Override
     public void delete(Long id, Long ownerId) {
-        Address a = repo.findById(id).orElseThrow();
-        if (!a.getUser().getId().equals(ownerId)) throw new RuntimeException("Không có quyền xóa");
+        Address a = repo.findById(id).orElseThrow(() -> new RuntimeException("Địa chỉ không tồn tại"));
+        
+        // Kiểm tra quyền sở hữu
+        if (!a.getUser().getId().equals(ownerId)) {
+            throw new RuntimeException("Không có quyền xóa địa chỉ này");
+        }
+        
+        // ✅ KIỂM TRA: Không cho xóa địa chỉ đang được sử dụng trong đơn hàng
+        if (orderRepo.existsByShippingAddressId(id)) {
+            throw new RuntimeException("Không thể xóa địa chỉ đã được sử dụng trong đơn hàng");
+        }
+        
         repo.delete(a);
     }
 

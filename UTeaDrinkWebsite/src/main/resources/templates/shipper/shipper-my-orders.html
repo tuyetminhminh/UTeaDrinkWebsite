@@ -134,6 +134,10 @@
             border-left: 4px solid #64B5F6;
         }
 
+        .order-item.canceled {
+            border-left: 4px solid #EF5350;
+        }
+
         .order-top {
             display: flex;
             justify-content: space-between;
@@ -165,6 +169,12 @@
             background: #E3F2FD;
             color: #1565C0;
             border: 1px solid #BBDEFB;
+        }
+
+        .status-canceled {
+            background: #FFEBEE;
+            color: #C62828;
+            border: 1px solid #FFCDD2;
         }
 
         .order-details {
@@ -580,6 +590,10 @@
                 <i class="fas fa-check-circle me-2"></i>
                 Đã giao (<span id="deliveredCount">0</span>)
             </button>
+            <button class="custom-tab" data-tab="canceled">
+                <i class="fas fa-times-circle me-2"></i>
+                Đã hủy (<span id="canceledCount">0</span>)
+            </button>
         </div>
     </div>
 
@@ -591,6 +605,11 @@
     <!-- Delivered Tab -->
     <div class="tab-content-area" id="delivered-content">
         <div class="order-list" id="deliveredList"></div>
+    </div>
+
+    <!-- Canceled Tab -->
+    <div class="tab-content-area" id="canceled-content">
+        <div class="order-list" id="canceledList"></div>
     </div>
 </div>
 
@@ -608,6 +627,58 @@
         </div>
         <div class="fullscreen-map-body">
             <iframe id="directionsMapIframe" allowfullscreen></iframe>
+        </div>
+    </div>
+</div>
+
+<!-- Failed Delivery Modal -->
+<div class="modal fade" id="failedDeliveryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #FFEBEE;">
+                <h5 class="modal-title" style="font-size: 15px; color: #C62828;">
+                    <i class="fas fa-times-circle me-2"></i> Báo cáo không giao được hàng
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="failedDeliveryForm">
+                    <input type="hidden" id="failedOrderId">
+
+                    <div class="mb-3">
+                        <label class="form-label">Lý do không giao được <span style="color: red;">*</span></label>
+                        <select class="form-select" id="failureReason" required>
+                            <option value="">-- Chọn lý do --</option>
+                            <option value="CUSTOMER_REFUSED">Khách hàng từ chối nhận hàng</option>
+                            <option value="CUSTOMER_NOT_REACHABLE">Không liên hệ được khách hàng</option>
+                            <option value="WRONG_ADDRESS">Địa chỉ sai / không tìm thấy</option>
+                            <option value="CUSTOMER_REQUESTED_CANCEL">Khách hàng yêu cầu hủy</option>
+                            <option value="OTHER">Lý do khác</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú chi tiết</label>
+                        <textarea class="form-control" id="failureNote" rows="3"
+                                  placeholder="VD: Đã gọi 3 lần nhưng không nghe máy, không ai ở nhà..."></textarea>
+                    </div>
+
+                    <div class="alert alert-warning" style="font-size: 11px; padding: 10px;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Lưu ý:</strong> Đơn hàng sẽ được chuyển về trạng thái "Đã hủy" và bạn sẽ không nhận được phí ship.
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-secondary flex-grow-1" data-bs-dismiss="modal" style="font-size: 12px;">
+                            Quay lại
+                        </button>
+                        <button type="submit" class="btn flex-grow-1" 
+                                style="background: #EF5350; color: white; font-size: 12px; font-weight: 600;">
+                            <i class="fas fa-times-circle me-2"></i> Xác nhận hủy đơn
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -699,7 +770,7 @@
     // Load delivering orders
     async function loadDeliveringOrders() {
         try {
-            const response = await fetch(`/shipper/api/my-orders/delivering?shipperId=${shipperId}`);
+            const response = await fetch(`/shipper/api/delivering-orders`);
             const orders = await response.json();
 
             document.getElementById('deliveringCount').textContent = orders.length;
@@ -773,16 +844,45 @@
                                         <small>${order.customerPhone || 'N/A'}</small>
                                     </div>
                                 </div>
-                                <div class="detail-group">
-                                    <div class="detail-label">Địa chỉ giao</div>
+                                <div class="detail-group" style="grid-column: 1 / -1;">
+                                    <div class="detail-label">Địa chỉ giao hàng</div>
                                     <div class="detail-value">
-                                        <i class="fas fa-map-marker-alt"></i> ${order.deliveryAddress || 'N/A'}
+                                        <i class="fas fa-map-marker-alt"></i> ${order.fullAddress || order.deliveryAddress || 'N/A'}
                                     </div>
                                 </div>
+                                ${order.fullAddress ? `
+                                <div class="detail-group" style="grid-column: 1 / -1;">
+                                    <div class="shop-map-container">
+                                        <div class="map-header">
+                                            <i class="fas fa-home"></i> Vị trí giao hàng
+                                        </div>
+                                        <iframe
+                                            class="map-iframe"
+                                            frameborder="0"
+                                            referrerpolicy="no-referrer-when-downgrade"
+                                            src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(order.fullAddress)}&zoom=15"
+                                            allowfullscreen>
+                                        </iframe>
+                                        <div class="directions-buttons">
+                                            <button class="btn-directions" onclick="getDirectionsFromMyLocation('${encodeURIComponent(order.fullAddress)}', ${order.orderId + 2000})">
+                                                <i class="fas fa-location-arrow"></i> Chỉ đường đến nhà khách
+                                            </button>
+                                            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.fullAddress)}"
+                                               target="_blank"
+                                               class="btn-directions"
+                                               style="text-decoration: none;">
+                                                <i class="fas fa-external-link-alt"></i> Mở Google Maps
+                                            </a>
+                                        </div>
+                                        <div id="location-status-${order.orderId + 2000}"></div>
+                                    </div>
+                                </div>
+                                ` : ''}
                                 <div class="detail-group">
-                                    <div class="detail-label">Tổng tiền</div>
+                                    <div class="detail-label">Thu hộ</div>
                                     <div class="detail-value">
-                                        <i class="fas fa-money-bill-wave"></i> ${(order.total || 0).toLocaleString()}₫
+                                        <i class="fas fa-wallet"></i> <strong style="color: #D32F2F;">${(order.collectAmount || 0).toLocaleString()}₫</strong>
+                                        ${order.orderStatus === 'PAID' ? '<br><small style="color: #2E7D32;"><i class="fas fa-check-circle"></i> Đã thanh toán online</small>' : ''}
                                         <br><small>Phí ship: ${(order.shippingFee || 0).toLocaleString()}₫</small>
                                     </div>
                                 </div>
@@ -829,6 +929,10 @@
                                 <button class="btn btn-complete" onclick="openCompleteModal(${order.orderId})">
                                     <i class="fas fa-check-circle me-2"></i> Hoàn thành giao hàng
                                 </button>
+                                <button class="btn btn-cancel" onclick="openFailedDeliveryModal(${order.orderId})" 
+                                        style="background: #EF5350; color: white; padding: 8px 14px; border-radius: 6px; font-weight: 600; border: none; font-size: 11px;">
+                                    <i class="fas fa-times-circle me-2"></i> Không giao được
+                                </button>
                             </div>
                         </div>
                     `;
@@ -841,7 +945,7 @@
     // Load delivered orders
     async function loadDeliveredOrders() {
         try {
-            const response = await fetch(`/shipper/api/my-orders/delivered?shipperId=${shipperId}`);
+            const response = await fetch(`/shipper/api/delivered-orders`);
             const orders = await response.json();
 
             document.getElementById('deliveredCount').textContent = orders.length;
@@ -923,27 +1027,74 @@
     async function confirmPickup(orderId) {
         try {
             const response = await fetch(`/shipper/api/orders/${orderId}/confirm-pickup`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ shipperId: shipperId })
+                method: 'POST'
             });
 
             if (response.ok) {
                 alert('✅ Xác nhận đã lấy hàng thành công!');
                 loadDeliveringOrders();
             } else {
-                alert('❌ Lỗi khi xác nhận lấy hàng');
+                const errorText = await response.text();
+                alert('❌ Lỗi: ' + errorText);
             }
         } catch (error) {
             console.error('Error confirming pickup:', error);
+            alert('❌ Lỗi kết nối: ' + error.message);
         }
     }
 
     // Camera variables
     let videoStream = null;
     let capturedImageBlob = null;
+
+    // Open failed delivery modal
+    function openFailedDeliveryModal(orderId) {
+        document.getElementById('failedOrderId').value = orderId;
+        document.getElementById('failureReason').value = '';
+        document.getElementById('failureNote').value = '';
+        new bootstrap.Modal(document.getElementById('failedDeliveryModal')).show();
+    }
+
+    // Handle failed delivery form
+    document.getElementById('failedDeliveryForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const orderId = document.getElementById('failedOrderId').value;
+        const failureReason = document.getElementById('failureReason').value;
+        const failureNote = document.getElementById('failureNote').value;
+
+        if (!failureReason) {
+            alert('Vui lòng chọn lý do không giao được hàng');
+            return;
+        }
+
+        if (confirm('⚠️ Bạn có chắc chắn muốn báo cáo không giao được đơn hàng này? Đơn hàng sẽ được hủy và bạn sẽ không nhận được phí ship.')) {
+            try {
+                const response = await fetch(`/shipper/api/orders/${orderId}/failed`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        failureReason: failureReason,
+                        note: failureNote || 'Không giao được hàng'
+                    })
+                });
+
+                if (response.ok) {
+                    alert('✅ Đã báo cáo không giao được hàng. Đơn hàng đã được hủy.');
+                    bootstrap.Modal.getInstance(document.getElementById('failedDeliveryModal')).hide();
+                    loadDeliveringOrders();
+                } else {
+                    const errorText = await response.text();
+                    alert('❌ Lỗi: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Error reporting failed delivery:', error);
+                alert('❌ Lỗi khi báo cáo: ' + error.message);
+            }
+        }
+    });
 
     // Open complete modal
     function openCompleteModal(orderId) {
@@ -1121,16 +1272,13 @@
         const proofImage = document.getElementById('proofImage').value;
 
         try {
-            const response = await fetch(`/shipper/api/orders/${orderId}/complete-delivery`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    shipperId: shipperId,
-                    deliveryNote: deliveryNote,
-                    proofImage: proofImage
-                })
+            // Sử dụng URLSearchParams vì controller nhận @RequestParam
+            const params = new URLSearchParams();
+            if (deliveryNote) params.append('deliveryNote', deliveryNote);
+            if (proofImage) params.append('proofImageUrl', proofImage);
+
+            const response = await fetch(`/shipper/api/orders/${orderId}/complete?${params.toString()}`, {
+                method: 'POST'
             });
 
             if (response.ok) {
@@ -1139,17 +1287,107 @@
                 loadDeliveringOrders();
                 loadDeliveredOrders();
             } else {
-                alert('❌ Lỗi khi hoàn thành giao hàng');
+                const errorText = await response.text();
+                alert('❌ Lỗi: ' + errorText);
             }
         } catch (error) {
             console.error('Error completing delivery:', error);
+            alert('❌ Lỗi kết nối: ' + error.message);
         }
     });
+
+    // Chuyển đổi mã lý do sang tiếng Việt
+    function getFailureReasonText(reason) {
+        const reasonMap = {
+            'CUSTOMER_NOT_REACHABLE': 'Không liên lạc được',
+            'CUSTOMER_REFUSED': 'Khách từ chối nhận',
+            'WRONG_ADDRESS': 'Địa chỉ sai',
+            'CUSTOMER_RESCHEDULED': 'Khách hẹn lại',
+            'OTHER': 'Lý do khác'
+        };
+        return reasonMap[reason] || reason || 'Không rõ';
+    }
+
+    // Load canceled orders
+    async function loadCanceledOrders() {
+        try {
+            const response = await fetch(`/shipper/api/canceled-orders`);
+            const orders = await response.json();
+
+            document.getElementById('canceledCount').textContent = orders.length;
+            const container = document.getElementById('canceledList');
+
+            if (orders.length === 0) {
+                container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-times-circle"></i>
+                            <h4>Chưa có đơn hàng đã hủy</h4>
+                            <p>Danh sách đơn hàng đã hủy sẽ hiển thị ở đây</p>
+                        </div>
+                    `;
+                return;
+            }
+
+            container.innerHTML = orders.map(order => {
+                const assignedTime = order.assignedAt ? new Date(order.assignedAt).toLocaleString('vi-VN') : 'N/A';
+                const reasonText = getFailureReasonText(order.failureReason);
+                
+                return `
+                        <div class="order-item canceled">
+                            <div class="order-top">
+                                <div class="order-code">${order.orderCode}</div>
+                                <span class="status-badge status-canceled">
+                                    <i class="fas fa-times-circle me-1"></i> Đã hủy
+                                </span>
+                            </div>
+
+                            <div class="order-details">
+                                <div class="detail-group">
+                                    <div class="detail-label">Khách hàng</div>
+                                    <div class="detail-value">
+                                        <i class="fas fa-user"></i> ${order.customerName || 'N/A'}
+                                    </div>
+                                </div>
+                                <div class="detail-group">
+                                    <div class="detail-label">Địa chỉ giao</div>
+                                    <div class="detail-value">
+                                        <i class="fas fa-map-marker-alt"></i> ${order.deliveryAddress || 'N/A'}
+                                    </div>
+                                </div>
+                                <div class="detail-group">
+                                    <div class="detail-label">Lý do hủy</div>
+                                    <div class="detail-value text-danger">
+                                        <i class="fas fa-exclamation-circle"></i> ${reasonText}
+                                    </div>
+                                </div>
+                                ${order.failureNote ? `
+                                <div class="detail-group">
+                                    <div class="detail-label">Ghi chú</div>
+                                    <div class="detail-value">
+                                        <i class="fas fa-sticky-note"></i> ${order.failureNote}
+                                    </div>
+                                </div>
+                                ` : ''}
+                                <div class="detail-group">
+                                    <div class="detail-label">Thời gian nhận đơn</div>
+                                    <div class="detail-value">
+                                        <i class="fas fa-clock"></i> ${assignedTime}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+            }).join('');
+        } catch (error) {
+            console.error('Error loading canceled orders:', error);
+        }
+    }
 
     // Load data on page load
     window.addEventListener('DOMContentLoaded', () => {
         loadDeliveringOrders();
         loadDeliveredOrders();
+        loadCanceledOrders();
     });
 
     // Get directions from current location

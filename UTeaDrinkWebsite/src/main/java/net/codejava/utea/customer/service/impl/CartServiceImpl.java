@@ -164,9 +164,9 @@ public class CartServiceImpl implements CartService {
     @Override
     public BigDecimal estimateShippingFee(BigDecimal subtotal) {
         if (subtotal == null || subtotal.compareTo(BigDecimal.ZERO) <= 0) return BigDecimal.ZERO;
-        return subtotal.compareTo(BigDecimal.valueOf(200_000)) >= 0
-                ? BigDecimal.ZERO
-                : BigDecimal.valueOf(20_000);
+        
+        // Phí ship cố định cho mọi đơn hàng
+        return BigDecimal.valueOf(20_000);
     }
 
     // =========================

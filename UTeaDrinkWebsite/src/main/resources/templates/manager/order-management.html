@@ -122,6 +122,12 @@
             font-size: 11px;
             letter-spacing: 0.3px;
         }
+        
+        .status-paid {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            color: white !important;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
 
         .btn-action {
             padding: 6px 12px;
@@ -448,6 +454,20 @@
                                                 order.status == 'CANCELED' ? 'Đã hủy' : order.status}">
                                     NEW
                                 </span>
+                                <!-- Hiển thị lý do hủy nếu là đơn hủy bởi shipper -->
+                                <div th:if="${order.status == 'CANCELED' and order.failureReason != null and !order.failureReason.isEmpty()}"
+                                     style="margin-top: 4px;">
+                                    <small class="badge bg-danger-subtle text-danger" style="font-size: 9px; font-weight: 600;">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span th:text="${
+                                            order.failureReason == 'CUSTOMER_REFUSED' ? 'Khách từ chối' :
+                                            order.failureReason == 'CUSTOMER_NOT_REACHABLE' ? 'Không liên hệ được' :
+                                            order.failureReason == 'WRONG_ADDRESS' ? 'Địa chỉ sai' :
+                                            order.failureReason == 'CUSTOMER_REQUESTED_CANCEL' ? 'Khách yêu cầu hủy' :
+                                            'Lý do khác'
+                                        }">Shipper báo cáo</span>
+                                    </small>
+                                </div>
                             </td>
                             <td>
                                 <div th:if="${order.shipperName != null}">
@@ -1048,14 +1068,14 @@
                     fetch('/manager/orders/api/latest-new-order')
                         .then(response => response.json())
                         .then(data => {
-                            const count = data.count;
+                            const count = data.count || 0;
                             const customerName = data.customerName || 'Khách hàng';
                             
                             if (count > 0) {
-                                const message = `Bạn có ${count} đơn từ khách hàng`;
+                                const message = `Bạn có ${count} đơn cần xác nhận từ khách hàng`;
                                 speakMessage(message);
                             } else {
-                                speakMessage('Hiện tại không có đơn hàng mới');
+                                speakMessage('Hiện tại không có đơn cần xác nhận');
                             }
                         })
                         .catch(error => {
@@ -1112,15 +1132,16 @@
                 
                 // Fetch and announce sau 1 giây (đợi page load xong)
                 setTimeout(() => {
-                    fetch('/manager/orders/api/count?status=NEW')
+                    fetch('/manager/orders/api/latest-new-order')
                         .then(response => response.json())
-                        .then(count => {
+                        .then(data => {
+                            const count = data.count || 0;
                             lastNewOrderCount = count;
-                            console.log('📊 Initial NEW orders:', count);
+                            console.log('📊 Initial pending orders (NEW + PAID):', count);
                             hasSpoken = true;
                             
-                            // Phát voice (không có "mới" và không có tên khách hàng)
-                            const message = `Bạn có ${count} đơn từ khách hàng`;
+                            // Phát voice với message mới
+                            const message = `Bạn có ${count} đơn cần xác nhận từ khách hàng`;
                             speakMessage(message);
                             
                             if (count > 0) {
@@ -1130,12 +1151,13 @@
                         .catch(error => console.error('❌ Error:', error));
                 }, 1000);
             } else {
-                // Get initial NEW order count (without speaking)
-                fetch('/manager/orders/api/count?status=NEW')
+                // Get initial pending order count (NEW + PAID) (without speaking)
+                fetch('/manager/orders/api/latest-new-order')
                     .then(response => response.json())
-                    .then(count => {
+                    .then(data => {
+                        const count = data.count || 0;
                         lastNewOrderCount = count;
-                        console.log('📊 Initial NEW orders:', count);
+                        console.log('📊 Initial pending orders (NEW + PAID):', count);
                         hasSpoken = true; // Mark as initialized
                     })
                     .catch(error => console.error('❌ Error getting initial order count:', error));
@@ -1151,45 +1173,37 @@
         function checkNewOrders() {
             if (!voiceEnabled) return;
             
-            console.log('🔄 Checking for new orders...');
+            console.log('🔄 Checking for pending confirmation orders (NEW + PAID)...');
             
-            fetch('/manager/orders/api/count?status=NEW')
+            // Fetch latest order info (API đã trả về count của NEW + PAID)
+            fetch('/manager/orders/api/latest-new-order')
                 .then(response => response.json())
-                .then(currentCount => {
-                    console.log(`📊 Current NEW orders: ${currentCount} | Last: ${lastNewOrderCount}`);
+                .then(data => {
+                    const currentCount = data.count || 0;
+                    console.log(`📊 Current pending orders (NEW + PAID): ${currentCount} | Last: ${lastNewOrderCount}`);
                     
                     // Only speak if we have new orders AND this is not the first load
                     if (hasSpoken && currentCount > lastNewOrderCount) {
                         const newOrdersCount = currentCount - lastNewOrderCount;
-                        console.log(`🎉 New orders detected: ${newOrdersCount}`);
+                        console.log(`🎉 New pending orders detected: ${newOrdersCount}`);
                         
-                        // Fetch thông tin đơn hàng mới nhất để lấy tên khách hàng
-                        fetch('/manager/orders/api/latest-new-order')
-                            .then(res => res.json())
-                            .then(data => {
-                                const customerName = data.customerName || 'Khách hàng';
-                                const message = `Bạn có 1 đơn hàng mới từ khách hàng ${customerName}`;
-                                speakMessage(message);
-                                showNotificationBadge(currentCount);
-                            })
-                            .catch(err => {
-                                console.error('❌ Error fetching latest order:', err);
-                                // Fallback: speak without customer name
-                                speakNewOrdersWithoutName(currentCount);
-                            });
+                        const customerName = data.customerName || 'Khách hàng';
+                        const message = `Bạn có 1 đơn cần xác nhận từ khách hàng ${customerName}`;
+                        speakMessage(message);
+                        showNotificationBadge(currentCount);
                     }
                     
                     lastNewOrderCount = currentCount;
                 })
-                .catch(error => console.error('❌ Error checking new orders:', error));
+                .catch(error => console.error('❌ Error checking pending orders:', error));
         }
 
         function speakNewOrders(count) {
             if (!voiceEnabled) return;
             
-            console.log(`🔊 Speaking: Bạn có ${count} đơn hàng mới từ khách hàng`);
+            console.log(`🔊 Speaking: Bạn có ${count} đơn cần xác nhận từ khách hàng`);
             
-            const message = `Bạn có ${count} đơn hàng mới từ khách hàng`;
+            const message = `Bạn có ${count} đơn cần xác nhận từ khách hàng`;
             speakMessage(message);
             
             // Show visual notification too
@@ -1199,7 +1213,7 @@
         function speakNewOrdersWithoutName(count) {
             if (!voiceEnabled) return;
             
-            const message = `Bạn có ${count} đơn hàng mới từ khách hàng`;
+            const message = `Bạn có ${count} đơn cần xác nhận từ khách hàng`;
             speakMessage(message);
             showNotificationBadge(count);
         }
@@ -1252,15 +1266,16 @@
             if (isOnOrdersPage) {
                 // Đã ở trang orders rồi → Phát voice ngay lập tức
                 console.log('✅ Đang ở trang orders, phát voice ngay');
-                fetch('/manager/orders/api/count?status=NEW')
+                fetch('/manager/orders/api/latest-new-order')
                     .then(response => response.json())
-                    .then(count => {
-                        console.log(`📊 Số đơn hàng NEW: ${count}`);
-                        // Message không có "mới" và không có tên khách hàng cụ thể
-                        const message = `Bạn có ${count} đơn từ khách hàng`;
+                    .then(data => {
+                        const count = data.count || 0;
+                        console.log(`📊 Số đơn cần xác nhận (NEW + PAID): ${count}`);
+                        // Message cập nhật
+                        const message = `Bạn có ${count} đơn cần xác nhận từ khách hàng`;
                         speakMessage(message);
                         
-                        // Hiển thị badge nếu có đơn mới
+                        // Hiển thị badge nếu có đơn
                         if (count > 0) {
                             showNotificationBadge(count);
                         }
@@ -1299,7 +1314,7 @@
                 z-index: 9999;
                 animation: slideIn 0.5s ease-out, pulse 1.5s infinite;
             `;
-            badge.innerHTML = `<i class="fas fa-bell"></i> ${count} đơn hàng mới!`;
+            badge.innerHTML = `<i class="fas fa-bell"></i> ${count} đơn cần xác nhận!`;
             
             // Add animation keyframes
             const style = document.createElement('style');
