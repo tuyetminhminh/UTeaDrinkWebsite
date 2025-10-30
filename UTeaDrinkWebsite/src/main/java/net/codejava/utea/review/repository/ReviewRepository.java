@@ -146,10 +146,10 @@ import java.util.List;
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     // (giữ nguyên các query avg/count nếu bạn đang dùng)
-    @Query("select avg(r.rating) from Review r where r.product.id=:pid and r.status = :st")
+    @Query("select avg(r.rating) from Review r where r.product.id=:pid and r.status = :st and r.isHidden = false")
     Double avgRating(@Param("pid") Long productId, @Param("st") ReviewStatus status);
 
-    @Query("select r.rating as star, count(r) as cnt from Review r where r.product.id=:pid and r.status=:st group by r.rating")
+    @Query("select r.rating as star, count(r) as cnt from Review r where r.product.id=:pid and r.status=:st and r.isHidden = false group by r.rating")
     java.util.List<Object[]> countByStarsRaw(@Param("pid") Long productId, @Param("st") ReviewStatus status);
 
     // NEW: lấy thẳng ReviewView, join user để tránh lazy
@@ -166,6 +166,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             join r.user u
             where r.product.id = :pid
               and r.status = :st
+              and r.isHidden = false
               and (:rating is null or r.rating = :rating)
             order by r.createdAt desc
         """,
@@ -174,6 +175,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             from Review r
             where r.product.id = :pid
               and r.status = :st
+              and r.isHidden = false
               and (:rating is null or r.rating = :rating)
         """
     )
@@ -239,20 +241,22 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     // ==================== ADMIN QUERIES ====================
     @Query(value = """
             SELECT new net.codejava.utea.review.dto.ReviewModerationRow(
-                r.id, p.name, u.fullName, r.rating, r.content, r.status, r.createdAt
+                r.id, p.name, p.shop.name, u.fullName, r.rating, r.content, r.status, r.isHidden, r.createdAt
             )
-            FROM Review r JOIN r.product p JOIN r.user u
+            FROM Review r JOIN r.product p JOIN p.shop JOIN r.user u
             WHERE (:status IS NULL OR r.status = :status)
               AND (:kw IS NULL OR :kw = ''
                    OR LOWER(p.name) LIKE LOWER(CONCAT('%', :kw, '%'))
+                   OR LOWER(p.shop.name) LIKE LOWER(CONCAT('%', :kw, '%'))
                    OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :kw, '%'))
                    OR LOWER(r.content) LIKE LOWER(CONCAT('%', :kw, '%')))
             """,
             countQuery = """
-            SELECT COUNT(r) FROM Review r JOIN r.product p JOIN r.user u
+            SELECT COUNT(r) FROM Review r JOIN r.product p JOIN p.shop JOIN r.user u
             WHERE (:status IS NULL OR r.status = :status)
               AND (:kw IS NULL OR :kw = ''
                    OR LOWER(p.name) LIKE LOWER(CONCAT('%', :kw, '%'))
+                   OR LOWER(p.shop.name) LIKE LOWER(CONCAT('%', :kw, '%'))
                    OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :kw, '%'))
                    OR LOWER(r.content) LIKE LOWER(CONCAT('%', :kw, '%')))
             """)
@@ -264,6 +268,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
         from Review r
         where r.product.id in :ids
           and r.status = :st
+          and r.isHidden = false
         group by r.product.id
     """)
     java.util.List<Object[]> avgRatingByProducts(@Param("ids") Collection<Long> productIds,
@@ -275,7 +280,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     )
     from Review r
     left join r.product p
-    where r.status = :st and r.rating = 5
+    where r.status = :st and r.rating = 5 and r.isHidden = false
     order by r.createdAt desc
 """)
     List<ReviewCardDTO> findTopCardsForHome(@Param("st") ReviewStatus status, Pageable pageable);

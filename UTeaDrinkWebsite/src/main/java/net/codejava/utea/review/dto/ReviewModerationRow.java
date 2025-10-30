@@ -7,9 +7,11 @@ import java.time.LocalDateTime;
 public record ReviewModerationRow(
     Long id,
     String productName,
+    String shopName,
     String userName,
     Integer rating,
     String content,
     ReviewStatus status,
+    Boolean isHidden,
     LocalDateTime createdAt
 ) {}

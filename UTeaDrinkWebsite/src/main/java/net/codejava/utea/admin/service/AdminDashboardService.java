@@ -5,6 +5,7 @@ import net.codejava.utea.admin.dto.AdminDashboardStatsDTO;
 import net.codejava.utea.catalog.repository.ProductRepository;
 import net.codejava.utea.common.repository.UserRepository;
 import net.codejava.utea.order.dto.RecentOrderDTO;
+import net.codejava.utea.order.repository.OrderItemRepository;
 import net.codejava.utea.order.entity.Order;
 import net.codejava.utea.order.entity.enums.OrderStatus;
 import net.codejava.utea.order.repository.OrderRepository;
@@ -27,6 +28,7 @@ public class AdminDashboardService {
     private final OrderRepository orderRepo;
     private final UserRepository userRepo;
     private final ProductRepository productRepo;
+    private final OrderItemRepository orderItemRepo;
     
     public AdminDashboardStatsDTO getDashboardStats() {
         LocalDate today = LocalDate.now();
@@ -38,7 +40,7 @@ public class AdminDashboardService {
         BigDecimal monthlyRevenue = orderRepo.sumRevenueBetween(startOfMonth, endOfMonth);
         long monthlyOrders = orderRepo.countOrdersBetween(startOfMonth, endOfMonth);
         long newUsers = userRepo.countByCreatedAtBetween(startOfMonth, endOfMonth);
-        long activeProducts = productRepo.countByStatus("ACTIVE");
+        long productsSoldThisMonth = orderItemRepo.sumQuantityBetween(startOfMonth, endOfMonth);
         
         // Recent orders
         List<RecentOrderDTO> recentOrders = orderRepo.findRecentOrders(PageRequest.of(0, 5));
@@ -69,7 +71,7 @@ public class AdminDashboardService {
             .monthlyRevenue(monthlyRevenue)
             .monthlyOrders(monthlyOrders)
             .newUsersThisMonth(newUsers)
-            .activeProducts(activeProducts)
+            .activeProducts(productsSoldThisMonth)
             .recentOrders(recentOrders)
             .chartLabels(chartLabels)
             .chartData(chartData)

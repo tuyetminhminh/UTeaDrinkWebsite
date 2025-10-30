@@ -428,25 +428,7 @@ public class AdminUserController {
         return "redirect:/admin/users";
     }
 
-    /*
-     * ========================= RESET MẬT KHẨU =========================
-     */
-    @PostMapping("/{id}/reset-password")
-    public String resetPassword(@PathVariable Long id, @RequestParam String newPassword, RedirectAttributes ra) {
-        var u = userService.findById(id).orElse(null);
-        if (u == null) {
-            ra.addFlashAttribute("error", "Không tìm thấy người dùng.");
-            return "redirect:/admin/users";
-        }
-        if (!StringUtils.hasText(newPassword) || newPassword.length() < 4) {
-            ra.addFlashAttribute("error", "Mật khẩu mới phải có ít nhất 4 ký tự.");
-            return "redirect:/admin/users";
-        }
-        u.setPasswordHash(newPassword); // NoOpPasswordEncoder → set thẳng
-        userService.save(u);
-        ra.addFlashAttribute("success", "Đã đặt lại mật khẩu.");
-        return "redirect:/admin/users";
-    }
+    // Reset password đã bị xóa - sử dụng chức năng đổi mật khẩu trong form Sửa
 
     /*
      * ========================= GÁN VAI TRÒ (ASSIGN ROLES)

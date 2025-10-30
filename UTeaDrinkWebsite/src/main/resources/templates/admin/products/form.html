@@ -49,7 +49,7 @@
 
 						<div class="row g-3">
 							<div class="col-md-6">
-								<label class="form-label">Cửa hàng</label> <select
+								<label class="form-label">Cửa hàng *</label> <select
 									class="form-select" th:field="*{shopId}" required>
 									<option value="">-- Chọn shop --</option>
 									<option th:each="s : ${shops}" th:value="${s.id}"
@@ -57,8 +57,8 @@
 								</select>
 							</div>
 							<div class="col-md-6">
-								<label class="form-label">Danh mục</label> <select
-									class="form-select" th:field="*{categoryId}">
+								<label class="form-label">Danh mục *</label> <select
+									class="form-select" th:field="*{categoryId}" required>
 									<option value="">-- Chọn danh mục --</option>
 									<option th:each="c : ${categories}" th:value="${c.id}"
 										th:text="${c.name}"></option>
@@ -80,7 +80,7 @@
 
 					<div class="col-lg-5">
 						<fieldset class="p-3 border rounded">
-							<legend class="fs-6 fw-bold">Giá theo kích cỡ</legend>
+							<legend class="fs-6 fw-bold">Giá theo kích cỡ *</legend>
 
 							<table class="table align-middle">
 								<thead>
@@ -100,7 +100,7 @@
 											th:text="*{variants[__${stat.index}__].size}"></span></td>
 										<td><input type="number" class="form-control"
 											th:field="*{variants[__${stat.index}__].price}" min="0"
-											step="1000" inputmode="numeric" required /></td>
+											step="1000" inputmode="numeric" placeholder="Nhập giá" /></td>
 										<td><input type="number" class="form-control"
 											th:field="*{variants[__${stat.index}__].volumeMl}" min="0"
 											step="50" inputmode="numeric" /></td>
@@ -115,8 +115,7 @@
 									</tr>
 								</tbody>
 							</table>
-							<div class="form-text">Nhập giá cho các kích cỡ. Nếu giá là
-								0, biến thể sẽ không được tạo.</div>
+							<div class="form-text"><span class="text-danger fw-bold">* Bắt buộc nhập giá cho ít nhất một kích cỡ.</span> Nếu để trống giá, biến thể đó sẽ không được tạo.</div>
 						</fieldset>
 					</div>
 				</div>
@@ -124,11 +123,11 @@
 
 				<div class="row g-3 mt-2">
 					<div class="col-12">
-						<label class="form-label">Ảnh sản phẩm</label> <input
+						<label class="form-label">Ảnh sản phẩm *</label> <input
 							class="form-control" type="file" name="images" accept="image/*"
-							multiple>
+							multiple th:required="${form.id == null}">
 						<div class="form-text">Chọn 1 hoặc nhiều ảnh. Ảnh đầu tiên
-							sẽ là ảnh chính.</div>
+							sẽ là ảnh chính. <span th:if="${form.id == null}" class="text-danger fw-bold">(Bắt buộc khi tạo mới)</span></div>
 					</div>
 					<div class="col-12 mt-3"
 						th:if="${existingImages != null and !#lists.isEmpty(existingImages)}">

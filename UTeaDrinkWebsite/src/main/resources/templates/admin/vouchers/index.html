@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/admin-layout :: adminLayout(~{::title}, ~{::content})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Voucher</title>
+</head>
+<body>
+<div th:fragment="content" class="container-fluid p-0">
+
+    <div th:replace="~{fragments/breadcrumbs ::
+        bc('Trang chủ', @{/admin/home}, null, null, 'Voucher')}"></div>
+
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="fw-bold">🎫 Quản lý Voucher</h3>
+        <a class="btn btn-primary"
+   th:href="@{/admin/vouchers/new(page=${pageIndex}, size=${size}, scope=${scope}, kw=${kw})}"><i class="bi bi-plus-circle"></i> Thêm voucher
+</a>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <form class="row g-2 align-items-end mb-3" method="get" th:action="@{/admin/vouchers}">
+        <div class="col-md-3">
+            <label class="form-label">Phạm vi</label>
+            <select class="form-select" name="scope">
+                <option value="">-- Tất cả --</option>
+                <option th:each="s : ${T(net.codejava.utea.promotion.entity.enums.PromoScope).values()}"
+                        th:value="${s}" th:text="${s.name()}" th:selected="${scope == s}"></option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Từ khóa</label>
+            <input class="form-control" name="kw" th:value="${kw}" placeholder="Mã voucher...">
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-outline-secondary">Lọc</button>
+            <a th:href="@{/admin/vouchers}" class="btn btn-outline-dark">Reset</a>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Mã Voucher</th>
+                <th>Phạm vi</th>
+                <th>Cửa hàng</th>
+                <th>Hiệu lực từ</th>
+                <th>Hiệu lực đến</th>
+                <th>Giới hạn</th>
+                <th>Đã dùng</th>
+                <th>Trạng thái</th>
+                <th style="width:150px">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="v : ${page.content}">
+                <td th:text="${v.id}"></td>
+                <td><strong th:text="${v.code}"></strong></td>
+                <td th:text="${v.scope}"></td>
+                <td th:text="${v.shopName}"></td>
+                <td th:text="${v.activeFrom != null ? #temporals.format(v.activeFrom, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+                <td th:text="${v.activeTo != null ? #temporals.format(v.activeTo, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+                <td th:text="${v.usageLimit != null ? v.usageLimit : '∞'}"></td>
+                <td th:text="${v.usedCount != null ? v.usedCount : 0}"></td>
+                <td>
+                    <span th:classappend="${v.status=='ACTIVE'} ? 'badge bg-success' : (${v.status=='EXHAUSTED'} ? 'badge bg-danger' : 'badge bg-secondary')"
+                          th:text="${v.status}"></span>
+                </td>
+                <td>
+                    <a class="btn btn-sm btn-outline-primary"
+                        th:href="@{/admin/vouchers/{id}/edit(id=${v.id}, page=${pageIndex}, size=${size}, scope=${scope}, kw=${kw})}">
+                        Sửa
+                    </a>
+                    <form class="d-inline" method="post"
+                            th:action="@{'/admin/vouchers/' + ${v.id} + '/delete'}"
+                            onsubmit="return confirm('Xóa voucher này?');">
+                        <input type="hidden" name="page"  th:value="${pageIndex}">
+                        <input type="hidden" name="size"  th:value="${size}">
+                        <input type="hidden" name="scope" th:value="${scope}">
+                        <input type="hidden" name="kw"    th:value="${kw}">
+                        <button class="btn btn-sm btn-outline-danger">Xóa</button>
+                    </form>
+
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-3">
+
+        <!-- Pagination -->
+        <nav th:if="${page.totalPages > 1}" aria-label="Page navigation">
+            <ul class="pagination mb-0">
+            <li class="page-item" th:classappend="${pageIndex==1}? 'disabled'">
+                <a class="page-link"
+                th:href="@{/admin/vouchers(page=${pageIndex-1}, size=${size}, scope=${scope}, kw=${kw})}">«</a>
+            </li>
+
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(1, page.totalPages)}"
+                th:classappend="${i==pageIndex}? 'active'">
+                <a class="page-link" th:text="${i}"
+                th:href="@{/admin/vouchers(page=${i}, size=${size}, scope=${scope}, kw=${kw})}"></a>
+            </li>
+
+            <li class="page-item" th:classappend="${pageIndex==page.totalPages}? 'disabled'">
+                <a class="page-link"
+                th:href="@{/admin/vouchers(page=${pageIndex+1}, size=${size}, scope=${scope}, kw=${kw})}">»</a>
+            </li>
+            </ul>
+        </nav>
+
+        <!-- Page size selector -->
+        <form th:action="@{/admin/vouchers}" method="get" class="d-flex align-items-center gap-2">
+            <input type="hidden" name="scope" th:value="${scope}">
+            <input type="hidden" name="kw"    th:value="${kw}">
+            <input type="hidden" name="page"  value="1">
+
+            <label for="voucherPageSize" class="form-label mb-0 text-nowrap">Số dòng/trang:</label>
+            <select id="voucherPageSize" class="form-select form-select-sm" name="size"
+                    style="width:auto" onchange="this.form.submit()">
+            <option th:each="s : ${sizes}" th:value="${s}" th:text="${s}" th:selected="${s == size}"></option>
+            </select>
+        </form>
+
+    </div>
+</div>
+</body>
+</html>
+

@@ -34,6 +34,20 @@ public class AdminModerationService {
         reviewRepo.save(review);
     }
 
+    // ✅ Ẩn đánh giá khỏi hiển thị công khai
+    public void hideReview(Long reviewId) {
+        Review review = reviewRepo.findById(reviewId).orElseThrow();
+        review.setIsHidden(true);
+        reviewRepo.save(review);
+    }
+
+    // ✅ Hiện lại đánh giá
+    public void unhideReview(Long reviewId) {
+        Review review = reviewRepo.findById(reviewId).orElseThrow();
+        review.setIsHidden(false);
+        reviewRepo.save(review);
+    }
+
     // === Chat Ban Logic ===
     public void banChat(Long userId, int hours, String reason) {
         // Xóa ban cũ nếu có, để tạo ban mới

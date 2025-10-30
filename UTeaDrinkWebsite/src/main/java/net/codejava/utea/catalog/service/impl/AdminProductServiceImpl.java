@@ -608,8 +608,22 @@ public class AdminProductServiceImpl implements AdminProductService {
     @Override
     @Transactional
     public void createProductWithVariants(ProductForm form, List<MultipartFile> images) {
-        Shop shop = shopRepo.findById(form.getShopId()).orElseThrow(() -> new RuntimeException("Shop không hợp lệ"));
-        ProductCategory category = (form.getCategoryId() != null) ? categoryRepo.findById(form.getCategoryId()).orElse(null) : null;
+        // ✅ Validation: Kiểm tra shop tồn tại
+        Shop shop = shopRepo.findById(form.getShopId())
+                .orElseThrow(() -> new RuntimeException("Cửa hàng không hợp lệ"));
+        
+        ProductCategory category = (form.getCategoryId() != null) 
+                ? categoryRepo.findById(form.getCategoryId()).orElse(null) 
+                : null;
+
+        // ✅ Validation: Kiểm tra ít nhất 1 variant có giá hợp lệ
+        List<VariantForm> validVariants = form.getVariants().stream()
+                .filter(v -> v.getPrice() != null && v.getPrice().compareTo(BigDecimal.ZERO) > 0)
+                .collect(Collectors.toList());
+        
+        if (validVariants.isEmpty()) {
+            throw new RuntimeException("Vui lòng nhập giá cho ít nhất một kích cỡ");
+        }
 
         String cleanStatus = "AVAILABLE"; // Default to AVAILABLE
         if (StringUtils.hasText(form.getStatus())) { // Check if form status is not null or blank
@@ -619,24 +633,26 @@ public class AdminProductServiceImpl implements AdminProductService {
                 cleanStatus = cleanStatus.substring(0, cleanStatus.length() - 1);
             }
         }
+        
+        // ✅ Lấy giá thấp nhất từ các variant hợp lệ làm basePrice
+        BigDecimal basePrice = validVariants.stream()
+                .map(VariantForm::getPrice)
+                .min(BigDecimal::compareTo)
+                .orElse(BigDecimal.ZERO);
+        
         Product product = Product.builder()
                 .name(form.getName())
                 .description(form.getDescription())
                 .status(cleanStatus)
                 .shop(shop)
                 .category(category)
+                .basePrice(basePrice) // ✅ Đảm bảo luôn có giá
                 .build();
-
-        if (form.getVariants() != null && !form.getVariants().isEmpty()) {
-            product.setBasePrice(form.getVariants().get(0).getPrice());
-        } else {
-            product.setBasePrice(BigDecimal.ZERO);
-        }
 
         Product savedProduct = productRepo.save(product);
 
-        List<ProductVariant> variants = form.getVariants().stream()
-                .filter(v -> v.getPrice() != null && v.getPrice().compareTo(BigDecimal.ZERO) > 0)
+        // ✅ Chỉ tạo các variant có giá hợp lệ
+        List<ProductVariant> variants = validVariants.stream()
                 .map(v -> ProductVariant.builder()
                         .product(savedProduct)
                         .size(v.getSize())
@@ -654,10 +670,23 @@ public class AdminProductServiceImpl implements AdminProductService {
     @Override
     @Transactional
     public void updateProductWithVariants(ProductForm form, List<MultipartFile> images) {
-        Product product = productRepo.findById(form.getId()).orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
+        Product product = productRepo.findById(form.getId())
+                .orElseThrow(() -> new RuntimeException("Sản phẩm không tồn tại"));
 
-        Shop shop = shopRepo.findById(form.getShopId()).orElseThrow(() -> new RuntimeException("Shop không hợp lệ"));
-        ProductCategory category = (form.getCategoryId() != null) ? categoryRepo.findById(form.getCategoryId()).orElse(null) : null;
+        Shop shop = shopRepo.findById(form.getShopId())
+                .orElseThrow(() -> new RuntimeException("Cửa hàng không hợp lệ"));
+        ProductCategory category = (form.getCategoryId() != null) 
+                ? categoryRepo.findById(form.getCategoryId()).orElse(null) 
+                : null;
+
+        // ✅ Validation: Kiểm tra ít nhất 1 variant có giá hợp lệ
+        List<VariantForm> validVariants = form.getVariants().stream()
+                .filter(v -> v.getPrice() != null && v.getPrice().compareTo(BigDecimal.ZERO) > 0)
+                .collect(Collectors.toList());
+        
+        if (validVariants.isEmpty()) {
+            throw new RuntimeException("Vui lòng nhập giá cho ít nhất một kích cỡ");
+        }
 
         String cleanStatus = "AVAILABLE"; // Default
         if (StringUtils.hasText(form.getStatus())) {
@@ -666,23 +695,31 @@ public class AdminProductServiceImpl implements AdminProductService {
                 cleanStatus = cleanStatus.substring(0, cleanStatus.length() - 1);
             }
         }
+        
+        // ✅ Lấy giá thấp nhất từ các variant hợp lệ làm basePrice
+        BigDecimal basePrice = validVariants.stream()
+                .map(VariantForm::getPrice)
+                .min(BigDecimal::compareTo)
+                .orElse(product.getBasePrice()); // Giữ giá cũ nếu không có variant hợp lệ
+        
         product.setName(form.getName());
         product.setDescription(form.getDescription());
         product.setStatus(cleanStatus);
         product.setShop(shop);
         product.setCategory(category);
-        if (form.getVariants() != null && !form.getVariants().isEmpty()) {
-            product.setBasePrice(form.getVariants().get(0).getPrice());
-        }
+        product.setBasePrice(basePrice); // ✅ Cập nhật basePrice
 
         product.getVariants().clear();
         variantRepo.flush(); // Xóa các variant cũ khỏi DB
 
-        for (VariantForm vForm : form.getVariants()) {
-            if (vForm.getPrice() != null && vForm.getPrice().compareTo(BigDecimal.ZERO) > 0) {
-                product.getVariants().add(ProductVariant.builder()
-                        .product(product).size(vForm.getSize()).price(vForm.getPrice()).volumeMl(vForm.getVolumeMl()).build());
-            }
+        // ✅ Chỉ tạo các variant có giá hợp lệ
+        for (VariantForm vForm : validVariants) {
+            product.getVariants().add(ProductVariant.builder()
+                    .product(product)
+                    .size(vForm.getSize())
+                    .price(vForm.getPrice())
+                    .volumeMl(vForm.getVolumeMl())
+                    .build());
         }
         productRepo.save(product);
 

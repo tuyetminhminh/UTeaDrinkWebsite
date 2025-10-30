@@ -68,6 +68,22 @@ public class AdminModerationController {
         return "redirect:/admin/moderation";
     }
 
+    // ✅ Ẩn đánh giá
+    @PostMapping("/reviews/{id}/hide")
+    public String hideReview(@PathVariable Long id, RedirectAttributes ra) {
+        service.hideReview(id);
+        ra.addFlashAttribute("success", "Đã ẩn review #" + id);
+        return "redirect:/admin/moderation";
+    }
+
+    // ✅ Hiện lại đánh giá
+    @PostMapping("/reviews/{id}/unhide")
+    public String unhideReview(@PathVariable Long id, RedirectAttributes ra) {
+        service.unhideReview(id);
+        ra.addFlashAttribute("success", "Đã hiện lại review #" + id);
+        return "redirect:/admin/moderation";
+    }
+
     // --- Chat Ban Actions ---
     @PostMapping("/users/{id}/ban-chat")
     public String banUserChat(@PathVariable Long id,

@@ -359,18 +359,61 @@ public class AdminCatalogController {
             @ModelAttribute("form") ProductForm form, // Dùng ProductForm
             @RequestParam("images") List<MultipartFile> images,
             BindingResult bindingResult,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes,
+            Model model) {
 
+        // ✅ Validation: Kiểm tra dữ liệu cơ bản
+        List<String> errors = new ArrayList<>();
+        
+        if (form.getName() == null || form.getName().trim().isEmpty()) {
+            errors.add("Vui lòng nhập tên sản phẩm");
+        }
+        if (form.getShopId() == null) {
+            errors.add("Vui lòng chọn cửa hàng");
+        }
+        if (form.getCategoryId() == null) {
+            errors.add("Vui lòng chọn danh mục");
+        }
+        
+        // ✅ Validation: Kiểm tra ảnh (bắt buộc khi tạo mới)
+        boolean hasImages = images != null && !images.isEmpty() 
+                && images.stream().anyMatch(img -> img != null && !img.isEmpty());
+        if (!hasImages) {
+            errors.add("Vui lòng chọn ít nhất một ảnh sản phẩm");
+        }
+        
+        // ✅ Validation: Kiểm tra ít nhất 1 biến thể có giá hợp lệ
+        boolean hasValidPrice = false;
+        if (form.getVariants() != null && !form.getVariants().isEmpty()) {
+            for (VariantForm variant : form.getVariants()) {
+                if (variant.getPrice() != null && variant.getPrice().compareTo(BigDecimal.ZERO) > 0) {
+                    hasValidPrice = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!hasValidPrice) {
+            errors.add("Vui lòng nhập giá cho ít nhất một kích cỡ (S, M hoặc L)");
+        }
+        
         if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errors", List.of("Dữ liệu không hợp lệ"));
+            errors.add("Dữ liệu không hợp lệ");
+        }
+        
+        // Nếu có lỗi validation, quay lại form
+        if (!errors.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errors", errors);
+            redirectAttributes.addFlashAttribute("form", form);
             return "redirect:/admin/products/new";
         }
 
+        // Thực hiện tạo sản phẩm
         try {
             adminProductService.createProductWithVariants(form, images);
             redirectAttributes.addFlashAttribute("success", "Thêm sản phẩm thành công.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errors", List.of(e.getMessage()));
+            redirectAttributes.addFlashAttribute("errors", List.of("Lỗi: " + e.getMessage()));
             redirectAttributes.addFlashAttribute("form", form); // Giữ lại dữ liệu form
             return "redirect:/admin/products/new";
         }
@@ -387,16 +430,52 @@ public class AdminCatalogController {
             RedirectAttributes redirectAttributes) {
 
         form.setId(id); // Đảm bảo ID được gán
+        
+        // ✅ Validation: Kiểm tra dữ liệu cơ bản
+        List<String> errors = new ArrayList<>();
+        
+        if (form.getName() == null || form.getName().trim().isEmpty()) {
+            errors.add("Vui lòng nhập tên sản phẩm");
+        }
+        if (form.getShopId() == null) {
+            errors.add("Vui lòng chọn cửa hàng");
+        }
+        if (form.getCategoryId() == null) {
+            errors.add("Vui lòng chọn danh mục");
+        }
+        
+        // ✅ Validation: Kiểm tra ít nhất 1 biến thể có giá hợp lệ
+        boolean hasValidPrice = false;
+        if (form.getVariants() != null && !form.getVariants().isEmpty()) {
+            for (VariantForm variant : form.getVariants()) {
+                if (variant.getPrice() != null && variant.getPrice().compareTo(BigDecimal.ZERO) > 0) {
+                    hasValidPrice = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!hasValidPrice) {
+            errors.add("Vui lòng nhập giá cho ít nhất một kích cỡ (S, M hoặc L)");
+        }
+        
         if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errors", List.of("Dữ liệu không hợp lệ"));
+            errors.add("Dữ liệu không hợp lệ");
+        }
+        
+        // Nếu có lỗi validation, quay lại form
+        if (!errors.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errors", errors);
+            redirectAttributes.addFlashAttribute("form", form);
             return "redirect:/admin/products/" + id + "/edit";
         }
 
+        // Thực hiện cập nhật sản phẩm
         try {
             adminProductService.updateProductWithVariants(form, images);
             redirectAttributes.addFlashAttribute("success", "Cập nhật sản phẩm thành công.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errors", List.of(e.getMessage()));
+            redirectAttributes.addFlashAttribute("errors", List.of("Lỗi: " + e.getMessage()));
             redirectAttributes.addFlashAttribute("form", form);
             return "redirect:/admin/products/" + id + "/edit";
         }

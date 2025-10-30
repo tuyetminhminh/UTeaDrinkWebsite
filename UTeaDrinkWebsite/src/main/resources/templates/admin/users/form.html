@@ -74,13 +74,23 @@
                 </div>
                 <div class="col-md-6" th:if="${form.id==null}">
                     <label class="form-label">Mật khẩu *</label>
-                    <input type="password" class="form-control" th:field="*{password}">
+                    <div class="input-group">
+                        <input type="password" class="form-control" th:field="*{password}" id="password-input">
+                        <button class="btn btn-outline-secondary" type="button" id="toggle-password">
+                            <i class="bi bi-eye" id="toggle-icon"></i>
+                        </button>
+                    </div>
                     <div class="form-text">Mật khẩu phải có ít nhất 4 ký tự.</div>
                     <div class="text-danger small" th:errors="*{password}"></div>
                 </div>
                 <div class="col-md-6" th:if="${form.id!=null}">
                     <label class="form-label">Mật khẩu mới</label>
-                    <input type="password" class="form-control" th:field="*{password}">
+                    <div class="input-group">
+                        <input type="password" class="form-control" th:field="*{password}" id="password-input-edit">
+                        <button class="btn btn-outline-secondary" type="button" id="toggle-password-edit">
+                            <i class="bi bi-eye" id="toggle-icon-edit"></i>
+                        </button>
+                    </div>
                     <div class="form-text">Để trống nếu không muốn thay đổi.</div>
                     <div class="text-danger small" th:errors="*{password}"></div>
                 </div>
@@ -125,6 +135,54 @@
         <a class="btn btn-outline-secondary" th:href="@{/admin/users}">Hủy</a>
     </div>
 </form>
+
+<script th:inline="javascript">
+    // Đợi DOM load xong
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle password visibility cho form tạo mới
+        const togglePasswordBtn = document.getElementById('toggle-password');
+        const passwordInput = document.getElementById('password-input');
+        const toggleIcon = document.getElementById('toggle-icon');
+
+        if (togglePasswordBtn && passwordInput && toggleIcon) {
+            togglePasswordBtn.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                
+                // Toggle icon
+                if (type === 'text') {
+                    toggleIcon.classList.remove('bi-eye');
+                    toggleIcon.classList.add('bi-eye-slash');
+                } else {
+                    toggleIcon.classList.remove('bi-eye-slash');
+                    toggleIcon.classList.add('bi-eye');
+                }
+            });
+        }
+
+        // Toggle password visibility cho form sửa
+        const togglePasswordBtnEdit = document.getElementById('toggle-password-edit');
+        const passwordInputEdit = document.getElementById('password-input-edit');
+        const toggleIconEdit = document.getElementById('toggle-icon-edit');
+
+        if (togglePasswordBtnEdit && passwordInputEdit && toggleIconEdit) {
+            togglePasswordBtnEdit.addEventListener('click', function() {
+                const type = passwordInputEdit.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInputEdit.setAttribute('type', type);
+                
+                // Toggle icon
+                if (type === 'text') {
+                    toggleIconEdit.classList.remove('bi-eye');
+                    toggleIconEdit.classList.add('bi-eye-slash');
+                } else {
+                    toggleIconEdit.classList.remove('bi-eye-slash');
+                    toggleIconEdit.classList.add('bi-eye');
+                }
+            });
+        }
+    });
+</script>
+
 </div>
 </body>
 </html>

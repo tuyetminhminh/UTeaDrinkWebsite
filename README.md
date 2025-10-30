@@ -1,304 +1,155 @@
-# UTeaDrinkWebsite
-# PHÂN CÔNG NHIỆM VỤ - NHÓM 9
-
-## Thành viên 1: Phạm Thiên Hoàng : Authentication & Security
-**CÔNG VIỆC CHÍNH:**
-- Authentication system (8-12/10)
-- User profile management (16-17/10)
-- WebSocket notifications (18-19/10)
-- Security testing (23/10)
-
-## Thành viên 2: Phạm Thị Tuyết Minh : Product & User Features
-**CÔNG VIỆC CHÍNH:**
-- Product system (9-15/10)
-- Review & rating (16-17/10)
-- Search & filtering (18-19/10)
-- UI refinement (22/10)
 
-## Thành viên 3: Đặng Công Quân : Order & Payment
-**CÔNG VIỆC CHÍNH:**
-- Cart system (11-15/10)
-- Payment integration (16-17/10)
-- Order management (18-19/10)
-- Payment testing (23/10)
+# Quản lý chuỗi cửa hàng bán trà sữa UTEADRINK
+## Mô tả dự án 
+UTEADRINK là một nền tảng thương mại điện tử được thiết kế để quản lý chuỗi cửa hàng bán trà sữa, cung cấp trải nghiệm mua sắm trực tuyến mượt mà cho khách hàng và công cụ quản lý mạnh mẽ cho các chủ cửa hàng. Dự án này không chỉ giúp các cửa hàng quản lý sản phẩm, đơn hàng và khách hàng một cách hiệu quả, mà còn hỗ trợ người dùng trong việc thanh toán trực tuyến và giao tiếp với cửa hàng qua các tính năng chat thời gian thực.
+
+## Hướng dẫn cài đặt dự án
+### 1. Yêu cầu hệ thống
+- Java 17 hoặc các phiên bản cao hơn
+- Maven 3.x hoặc Gradle
+- SQL Server 
+### 2. Cài đặt bước đầu
+#### Clone Repository
+```bash
+git clone https://github.com/tuyetminhminh/UTeaDrinkWebsite.git
+```
+#### Cài đặt các phụ thuộc với Maven
+```bash
+mvn install
+```
+#### Cấu hình kết nối cơ sở dữ liệu trong application.properties
+```javascript
+spring.datasource.url=jdbc:sqlserver://<Tên máy bạn>; databaseName=<NameDatabase>;encrypt=true;trustServerCertificate=true;sendStringParametersAsUnicode=true;characterEncoding=UTF-8
+spring.datasource.username= <Tên đăng nhập của bạn>
+spring.datasource.password= <Mật khẩu truy cập>
+```
+#### Chạy ứng dụng
+```bash
+mvn spring-boot:run
+```
+
+
+## Cấu trúc dự án
+```javascript
+src/
+├── main/
+│   ├── java/
+│   │   ├── net.codejava.utea/
+│   │   │   ├── admin/
+│   │   │   ├── ai/
+│   │   │   ├── auth/
+│   │   │   ├── catalog/
+│   │   │   ├── chat/
+│   │   │   ├── common/
+│   │   │   ├── config/
+│   │   │   ├── customer/
+│   │   │   ├── engament/
+│   │   │   ├── manager/
+│   │   │   ├── media.service/
+│   │   │   ├── notify/
+│   │   │   ├── order/
+│   │   │   ├── payment/
+│   │   │   ├── promotion/
+│   │   │   ├── review/
+│   │   │   ├── shipper/
+│   │   │   ├── shipping/
+│   │   │   ├── viewview/
+│   └── resources/
+│       ├── application.properties
+│       ├── static/
+│       ├── templates
+└── pom.xml
+```
+## Các tính năng chính
+### Quản lý sản phẩm và danh mục
+Nền tảng cung cấp công cụ quản lý sản phẩm dễ dàng, cho phép các cửa hàng thêm, sửa, xóa và phân loại sản phẩm. Từng sản phẩm được liên kết với các thông tin chi tiết như tên, giá cả, mô tả, hình ảnh và các thuộc tính khác. Người dùng có thể tìm kiếm và lọc sản phẩm theo các tiêu chí như danh mục, giá, độ phổ biến, v.v.
+
+### Giỏ hàng và thanh toán trực tuyến
+Hệ thống cho phép người dùng thêm sản phẩm vào giỏ hàng và tiến hành thanh toán qua các phương thức trực tuyến như VNPay. Quy trình thanh toán đơn giản và nhanh chóng, giúp khách hàng hoàn tất giao dịch mà không gặp phải rắc rối. Các chi tiết về đơn hàng, thuế, phí vận chuyển và các khuyến mãi được tính toán tự động.
+
+### Quản lý đơn hàng
+Các cửa hàng có thể theo dõi trạng thái của đơn hàng từ khi đặt hàng đến khi giao hàng, bao gồm việc quản lý lịch sử đơn hàng và trạng thái từng đơn. Hệ thống cho phép các cửa hàng kiểm soát và xác nhận đơn hàng, cũng như thông báo cho khách hàng khi đơn hàng thay đổi trạng thái.
+
+### Tính năng chat thời gian thực
+Dự án tích hợp WebSocket để hỗ trợ tính năng chat thời gian thực giữa khách hàng và cửa hàng. Điều này cho phép các cửa hàng giao tiếp trực tiếp với khách hàng, giải đáp thắc mắc và xử lý yêu cầu hỗ trợ ngay lập tức. Khách hàng có thể gửi câu hỏi về sản phẩm, trạng thái đơn hàng hoặc yêu cầu hỗ trợ kỹ thuật, và nhận được phản hồi ngay lập tức.
+
+### Trợ lý ảo hỗ trợ khách hàng
+UTEADRINK được tích hợp với một trợ lý ảo thông minh, giúp giải đáp các câu hỏi thường gặp và hỗ trợ khách hàng trong suốt quá trình mua sắm. Trợ lý ảo có thể giúp khách hàng tìm kiếm sản phẩm, hướng dẫn thanh toán, cung cấp thông tin về chính sách giao hàng và thậm chí xử lý các vấn đề sau bán hàng.
+
+### Quản lý người dùng và quyền hạn
+Hệ thống hỗ trợ nhiều loại tài khoản với quyền hạn khác nhau như người dùng, quản trị viên và nhà cung cấp. Các nhà quản lý có thể dễ dàng quản lý tài khoản người dùng, cấp quyền truy cập cho nhân viên và theo dõi hoạt động của các cửa hàng.
+
+### Tính năng đánh giá và nhận xét sản phẩm
+Hệ thống cho phép người dùng đánh giá sản phẩm và để lại nhận xét về trải nghiệm của họ. Điều này giúp các khách hàng khác đưa ra quyết định mua sắm chính xác hơn, đồng thời giúp cửa hàng cải thiện chất lượng dịch vụ và sản phẩm.
+
+### Bảo mật và xác thực
+Dự án sử dụng Spring Security kết hợp với JWT (JSON Web Token) để bảo vệ các tài khoản người dùng và đảm bảo an toàn trong quá trình xác thực. Người dùng có thể đăng ký tài khoản, đăng nhập và duy trì phiên làm việc một cách an toàn. Các mã OTP cũng được tích hợp để hỗ trợ quá trình xác thực 2 yếu tố (2FA) cho các tài khoản quan trọng.
+
+### Quản lý khuyến mãi và giảm giá
+Các cửa hàng có thể tạo và quản lý các chương trình khuyến mãi, mã giảm giá cho khách hàng, đồng thời theo dõi hiệu quả của các chiến dịch này qua các báo cáo thống kê.
+## Các công nghệ sử dụng
+### Spring Boot 
+Dùng để xây dựng backend với các tính năng mạnh mẽ như bảo mật, xác thực, quản lý cơ sở dữ liệu và xử lý HTTP request.
+
+### Thymeleaf 
+Một thư viện Java để tạo giao diện người dùng động trên frontend.
+
+### WebSocket
+Được sử dụng để cung cấp tính năng chat thời gian thực, giúp cửa hàng và khách hàng giao tiếp ngay lập tức.
+
+### JWT (JSON Web Token) 
+Được sử dụng để xác thực người dùng và bảo vệ các API.
 
-## Thành viên 4: Cáp Thanh Nhàn
-**CÔNG VIỆC CHÍNH:**
-- Management entities (9-10/10)
-- Vendor system (13-17/10)
-- Admin system (18-19/10)
-- Final testing (23/10)
+### Cloudinary 
+Được sử dụng để quản lý và lưu trữ hình ảnh sản phẩm và ảnh đại diện của người dùng.
+## Hướng dẫn đóng góp
+Nếu bạn muốn mọi người tham gia vào dự án, hãy cung cấp các hướng dẫn cụ thể về cách đóng góp. Điều này giúp người dùng dễ dàng đóng góp vào mã nguồn hoặc cải tiến dự án.
 
-# 🗓️ LỊCH TRÌNH CHI TIẾT HOÀN THÀNH ĐẾN 24/10
+### Các bước đóng góp:
 
-# 📅 LỊCH TRÌNH NÉN - 2.5 TUẦN (9/10 - 24/10)
+#### Fork repo này
+#### Tạo nhánh mới
+```javascript
+git checkout -b feature-branch
+```
+#### Thực hiện thay đổi và commit
+```javascript
+git commit -am 'Add new feature
+```
+#### Push nhánh của bạn
+```javascript
+git push origin feature-branch
+```
+#### Mở Pull Request và mô tả các thay đổi.
 
-**Ngày 9-10/10: PROJECT SETUP & ENTITIES**
 
-**TẤT CẢ CÙNG LÀM ENTITIES:**
-
-THIÊN HOÀNG (Auth):
-- [ ] User, Role, OTP, Address entities
-- [ ] Spring Security config
-- [ ] JWT dependencies
+## Một số hình ảnh giao diện của hệ thốngthống
+### 1. Giao diện trang chủ 
+![Logo UTeaDrink](https://res.cloudinary.com/dmgr8squx/image/upload/v1761754077/Screenshot_2025-10-29_224358_iai98c.png)
 
-TUYẾT MINH (Product):
-- [ ] Product, Category, ProductImage entities
-- [ ] Review, Comment entities
-- [ ] Wishlist, ViewedProduct entities
+### 2. Giao diện khách hàng 
+![Logo UTeaDrink](https://res.cloudinary.com/dmgr8squx/image/upload/v1761754075/Screenshot_2025-10-29_225021_nlhcew.png)
 
-CÔNG QUÂN (Order):
-- [ ] Cart, CartItem, Order, OrderItem entities
-- [ ] Payment, Coupon entities
-- [ ] OrderStatus enum
+![Logo UTeaDrink](https://res.cloudinary.com/dmgr8squx/image/upload/v1761754066/Screenshot_2025-10-29_225133_dcrsic.png)
 
-THANH NHÀN (Management):
-- [ ] Shop, Vendor, AdminSettings entities
-- [ ] Promotion, ShippingProvider entities
-- [ ] Revenue, Statistics entities
 
-→ MERGE CHUNG ngày 10/10 tối
+### 3. Giao diện quản lí cửa hàng 
+![Logo UTeaDrink](https://res.cloudinary.com/dmgr8squx/image/upload/v1761754063/Screenshot_2025-10-29_225411_kuxf76.png)
 
-**Ngày 11-12/10: REPOSITORY & SERVICE LAYER**
 
-**MỖI NGƯỜI LÀM PHẦN MÌNH:**
+![Logo UTeaDrink](https://res.cloudinary.com/dmgr8squx/image/upload/v1761754080/Screenshot_2025-10-29_225909_n5aawj.png)
 
-THIÊN HOÀNG:
-- [ ] UserRepository, UserService
-- [ ] AuthService, EmailService
-- [ ] JWT utility class
 
-TUYẾT MINH:
-- [ ] ProductRepository, ProductService
-- [ ] CategoryRepository, CategoryService
-- [ ] ReviewRepository, ReviewService
 
-CÔNG QUÂN:
-- [ ] CartRepository, CartService
-- [ ] OrderRepository, OrderService
-- [ ] PaymentRepository, PaymentService
+![Logo UTeaDrink](https://res.cloudinary.com/dmgr8squx/image/upload/v1761754066/Screenshot_2025-10-29_225608_x2n9wu.png)
 
-THANH NHÀN:
-- [ ] ShopRepository, ShopService
-- [ ] VendorRepository, VendorService
-- [ ] AdminRepository, AdminService
+![Logo UTeaDrink](https://res.cloudinary.com/dmgr8squx/image/upload/v1761754069/Screenshot_2025-10-29_225754_t4nkum.png)
 
-→ MERGE ngày 12/10 tối
 
-**Ngày 13-15/10: CONTROLLER & BASIC UI**
 
-**PHÁT TRIỂN SONG SONG:**
+![Logo UTeaDrink](https://res.cloudinary.com/dmgr8squx/image/upload/v1761754063/Screenshot_2025-10-29_225510_br7omb.png)
 
-THIÊN HOÀNG:
-- [ ] AuthController (login, register, logout)
-- [ ] OTPController (send, verify)
-- [ ] Basic auth pages với Bootstrap
-
-TUYẾT MINH:
-- [ ] ProductController (list, detail, search)
-- [ ] CategoryController
-- [ ] Homepage, product list pages
-
-CÔNG QUÂN:
-- [ ] CartController (add, remove, update)
-- [ ] Basic cart UI
-- [ ] OrderController skeleton
-
-THANH NHÀN:
-- [ ] VendorController (register, dashboard)
-- [ ] AdminController (dashboard, user management)
-- [ ] Basic admin/vendor templates
-
-→ MERGE & TEST ngày 15/10 cuối tuần
-
-**TUẦN 2: FEATURE COMPLETION (16/10 - 21/10)**
-
-**Ngày 16-17/10: USER FEATURES & PAYMENT**
-
-**PHÂN CÔNG:**
-
-THIÊN HOÀNG:
-- [ ] User profile management
-- [ ] Address management (multiple addresses)
-- [ ] Profile edit pages
-
-TUYẾT MINH:
-- [ ] Product review system (50+ chars validation)
-- [ ] Comment system với image upload
-- [ ] Product rating functionality
-
-CÔNG QUÂN:
-- [ ] Payment integration (VNPay)
-- [ ] Order completion flow
-- [ ] Payment success/failure handling
-
-THANH NHÀN:
-- [ ] Vendor product management (CRUD)
-- [ ] Vendor order management
-- [ ] Shop management interface
-
-→ MERGE ngày 17/10 tối
-
-**Ngày 18-19/10: ADVANCED FEATURES**
-
-**TIẾP TỤC CÔNG VIỆC:**
-
-THIÊN HOÀNG:
-- [ ] WebSocket notifications
-- [ ] Real-time order updates
-- [ ] Security refinements
-
-TUYẾT MINH:
-- [ ] Advanced search & filtering
-- [ ] Product pagination (20 items)
-- [ ] Product sorting (new, popular, etc.)
-
-CÔNG QUÂN:
-- [ ] Order history với status tracking
-- [ ] Order status management (6 trạng thái)
-- [ ] Order detail pages
-
-THANH NHÀN:
-- [ ] Admin category management
-- [ ] Shipping provider management
-- [ ] System promotion management
-
-→ MERGE ngày 19/10 tối
-
-**Ngày 20-21/10: INTEGRATION & TESTING**
-
-**CẢ NHÓM CÙNG TEST:**
-
-THIÊN HOÀNG: Test auth flow end-to-end
-TUYẾT MINH: Test product/review flow
-CÔNG QUÂN: Test order/payment flow
-THANH NHÀN: Test vendor/admin flow
-
-→ FIX BUGS CRITICAL ngày 21/10
-
-**TUẦN 2.5: POLISHING (22/10 - 24/10)**
-
-**Ngày 22/10: UI/UX IMPROVEMENT**
-
-**MỖI NGƯỜI HOÀN THIỆN PHẦN MÌNH:**
-
-THIÊN HOÀNG: Responsive auth pages
-TUYẾT MINH: Product UI refinement
-CÔNG QUÂN: Order/payment UI polish
-THANH NHÀN: Admin/vendor dashboard UI
-
-→ Responsive design check
-
-**Ngày 23/10: FINAL TESTING & DOCUMENTATION**
-
-**TEST TOÀN BỘ HỆ THỐNG:**
-
-THIÊN HOÀNG: 
-- [ ] Security testing
-- [ ] Auth documentation
-
-TUYẾT MINH:
-- [ ] Product feature testing
-- [ ] User feature documentation
-
-CÔNG QUÂN:
-- [ ] Order/payment testing
-- [ ] Payment flow documentation
-
-THANH NHÀN:
-- [ ] Vendor/admin testing
-- [ ] Management documentation
-
-→ FINAL BUG FIXES
-
-**Ngày 24/10: DEPLOYMENT READY**
-
-**CẢ NHÓM:**
-- [ ] Final merge
-- [ ] Database seeding
-- [ ] Demo preparation
-- [ ] Project submission
-
-## 🎯 TÓM TẮT PHÂN CÔNG NHIỆM VỤ
-
-**THIÊN HOÀNG: Authentication & Security**
-
-**CÔNG VIỆC CHÍNH:**
-- Authentication system (8-12/10)
-- User profile management (16-17/10)
-- WebSocket notifications (18-19/10)
-- Security testing (23/10)
-
-**TUYẾT MINH: Product & User Features**
-
-**CÔNG VIỆC CHÍNH:**
-- Product system (9-15/10)
-- Review & rating (16-17/10)
-- Search & filtering (18-19/10)
-- UI refinement (22/10)
-
-**CÔNG QUÂN: Order & Payment**
-
-**CÔNG VIỆC CHÍNH:**
-- Cart system (11-15/10)
-- Payment integration (16-17/10)
-- Order management (18-19/10)
-- Payment testing (23/10)
-
-**THANH NHÀN: Vendor & Admin**
-
-**CÔNG VIỆC CHÍNH:**
-- Management entities (9-10/10)
-- Vendor system (13-17/10)
-- Admin system (18-19/10)
-- Final testing (23/10)
-
-
-## 🔄 CHIẾN LƯỢC HỖ TRỢ LẪN NHAU
-**Tuần 3 (22-24/10) - Hỗ trợ chéo:**
-- Nếu CÔNG QUÂN chậm payment → THIÊN HOÀNG hỗ trợ
-- Nếu TUYẾT MINH chậm search → THANH NHÀN hỗ trợ  
-- Nếu THANH NHÀN chậm admin → CÔNG QUÂN hỗ trợ
-- Nếu THIÊN HOÀNG chậm WebSocket → TUYẾT MINH hỗ trợ
-
-**Daily Check-in (15 phút mỗi sáng):**
-- Tiến độ hôm qua
-- Khó khăn gặp phải
-- Kế hoạch hôm nay
-- Cần hỗ trợ gì không
-
-## 📱 COMMUNICATION & COORDINATION
-**Git Workflow:**
-_<Mỗi ngày>_
-git pull origin main
-_<Làm việc trên branch riêng>_
-git add . && git commit -m "feat: [mô tả] - [tên] - [ngày]"
-git push origin branch-ca-nhan
-_<Tối merge vào main>_
-
-**File Structure để tránh conflict:**
-
-src/main/java/com/alotra/
-├── auth/           (Thiên Hoàng)
-├── product/        (Tuyết Minh)  
-├── order/          (Công Quân)
-├── management/     (Thanh Nhàn)
-└── config/         (Thiên Hoàng - chỉ 1 người sửa)
-
-# 🚨 ƯU TIÊN TÍNH NĂNG THEO ĐIỂM
-**MUST-HAVE (Làm trước):**
-
-✅ Authentication + OTP
-✅ Product browsing + search
-✅ Cart + Order basic
-✅ Payment ít nhất 1 method
-✅ User profile + reviews
-✅ Vendor shop management
-✅ Admin user/category management
-
-**NICE-TO-HAVE (Làm sau nếu có time):**
-
-⏳ Multiple payment methods
-⏳ Complex revenue statistics  
-⏳ Shipper role
-⏳ Advanced promotion system
+## Tổng kết
+**UTEADRINK mang đến một giải pháp toàn diện giúp các cửa hàng trà sữa nâng cao trải nghiệm khách hàng và tối ưu hóa quy trình kinh doanh của mình. Dự án này không chỉ đơn thuần là một nền tảng bán hàng mà còn là một công cụ hỗ trợ giúp các cửa hàng quản lý, vận hành và phát triển bền vững trong môi trường cạnh tranh hiện nay**
+## Link demo trang web
+[Truy cập Trang web UteaDrink](https://uteadrink.onrender.com/)

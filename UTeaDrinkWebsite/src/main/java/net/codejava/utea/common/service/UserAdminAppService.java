@@ -7,6 +7,7 @@ import net.codejava.utea.common.entity.User;
 import net.codejava.utea.common.repository.RoleRepository;
 import net.codejava.utea.common.repository.UserRepository;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -21,6 +22,7 @@ public class UserAdminAppService {
 
     private final UserRepository userRepo;
     private final RoleRepository roleRepo;
+    private final PasswordEncoder passwordEncoder;
 
     private Role mustRole(String code){
         return roleRepo.findByCode(code.toUpperCase())
@@ -40,7 +42,7 @@ public class UserAdminAppService {
                 .username(StringUtils.hasText(f.getUsername()) ? f.getUsername().trim() : null)
                 .fullName(f.getFullName())
                 .status(f.getStatus())
-                .passwordHash(f.getPassword()) // bạn đang NoOp → set thẳng
+                .passwordHash(passwordEncoder.encode(f.getPassword())) // ✅ Mã hóa password với BCrypt
                 .build();
 
         u.setRoles(Set.of(mustRole(f.getRoleCode())));
@@ -74,8 +76,9 @@ public class UserAdminAppService {
         u.setFullName(f.getFullName());
         u.setStatus(f.getStatus());
 
+        // ✅ Chỉ cập nhật password nếu có nhập mới (không để trống)
         if (StringUtils.hasText(f.getPassword())) {
-            u.setPasswordHash(f.getPassword());
+            u.setPasswordHash(passwordEncoder.encode(f.getPassword())); // ✅ Mã hóa với BCrypt
         }
 
         u.setRoles(new HashSet<>(List.of(mustRole(f.getRoleCode()))));

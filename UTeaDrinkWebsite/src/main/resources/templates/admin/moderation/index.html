@@ -35,7 +35,7 @@
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Từ khóa</label>
-                    <input class="form-control" name="review_kw" th:value="${review_kw}" placeholder="Sản phẩm, người dùng, nội dung...">
+                    <input class="form-control" name="review_kw" th:value="${review_kw}" placeholder="Sản phẩm, cửa hàng, người dùng, nội dung...">
                 </div>
                 <div class="col-auto"><button class="btn btn-outline-secondary">Lọc</button></div>
             </form>
@@ -43,13 +43,13 @@
                 <table class="table table-hover align-middle">
                     <thead>
                         <tr>
-                            <th>ID</th><th>Sản phẩm</th><th>Người dùng</th><th>Rating</th>
-                            <th>Nội dung</th><th>Ngày tạo</th><th>Trạng thái</th><th style="width:200px">Thao tác</th>
+                            <th>ID</th><th>Sản phẩm</th><th>Cửa hàng</th><th>Người dùng</th><th>Rating</th>
+                            <th>Nội dung</th><th>Ngày tạo</th><th>Trạng thái</th><th style="width:250px">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
                     <tr th:each="r : ${reviewPage.content}">
-                        <td th:text="${r.id}"></td><td th:text="${r.productName}"></td><td th:text="${r.userName}"></td>
+                        <td th:text="${r.id}"></td><td th:text="${r.productName}"></td><td th:text="${r.shopName}"></td><td th:text="${r.userName}"></td>
                         <td><span th:text="${r.rating} + ' ⭐'"></span></td>
                         <td style="max-width: 300px;" th:text="${r.content}"></td>
                         <td th:text="${#temporals.format(r.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
@@ -57,14 +57,37 @@
                             <span class="badge"
                                   th:classappend="${r.status.name() == 'APPROVED' ? 'bg-success' : (r.status.name() == 'REJECTED' ? 'bg-danger' : 'bg-warning')}"
                                   th:text="${r.status.name()}"></span>
+                            <!-- ✅ Hiển thị badge ẩn nếu review bị ẩn -->
+                            <span th:if="${r.isHidden}" class="badge bg-secondary ms-1">ẨN</span>
                         </td>
                         <td>
+                            <!-- Nút Duyệt/Từ chối cho review PENDING -->
                             <div th:if="${r.status.name() == 'PENDING'}">
                                 <form class="d-inline" method="post" th:action="@{/admin/moderation/reviews/{id}/approve(id=${r.id})}">
                                     <button class="btn btn-sm btn-success">Duyệt</button>
                                 </form>
                                 <form class="d-inline" method="post" th:action="@{/admin/moderation/reviews/{id}/reject(id=${r.id})}">
                                     <button class="btn btn-sm btn-danger">Từ chối</button>
+                                </form>
+                            </div>
+                            
+                            <!-- ✅ Nút Ẩn/Hiện cho review không phải PENDING -->
+                            <div th:if="${r.status.name() != 'PENDING'}">
+                                <!-- Nút Hiện (nếu đang ẩn) -->
+                                <form th:if="${r.isHidden}" class="d-inline" method="post" 
+                                      th:action="@{/admin/moderation/reviews/{id}/unhide(id=${r.id})}">
+                                    <button class="btn btn-sm btn-success" title="Hiện đánh giá">
+                                        <i class="bi bi-eye"></i> Hiện
+                                    </button>
+                                </form>
+                                
+                                <!-- Nút Ẩn (nếu đang hiện) -->
+                                <form th:unless="${r.isHidden}" class="d-inline" method="post" 
+                                      th:action="@{/admin/moderation/reviews/{id}/hide(id=${r.id})}"
+                                      onsubmit="return confirm('Bạn có chắc muốn ẩn đánh giá này?');">
+                                    <button class="btn btn-sm btn-warning" title="Ẩn đánh giá">
+                                        <i class="bi bi-eye-slash"></i> Ẩn
+                                    </button>
                                 </form>
                             </div>
                         </td>

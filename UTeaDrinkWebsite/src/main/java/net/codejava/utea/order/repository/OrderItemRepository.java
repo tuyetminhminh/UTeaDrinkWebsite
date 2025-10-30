@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.time.LocalDateTime;
 
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
@@ -49,4 +50,14 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     List<BestSellerRow> topBestSellersByShop(@Param("shopId") Long shopId,
                                              @Param("statuses") Collection<OrderStatus> statuses,
                                              Pageable pageable);
+
+    @Query("""
+        select coalesce(sum(oi.quantity), 0)
+        from OrderItem oi
+        where oi.order.status = net.codejava.utea.order.entity.enums.OrderStatus.DELIVERED
+          and oi.order.createdAt >= :startDate
+          and oi.order.createdAt <= :endDate
+    """)
+    long sumQuantityBetween(@Param("startDate") LocalDateTime startDate,
+                            @Param("endDate") LocalDateTime endDate);
 }

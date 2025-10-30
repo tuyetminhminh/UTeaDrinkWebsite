@@ -63,6 +63,11 @@ public class Review {
 	@Builder.Default
 	private Integer helpfulCount = 0;
 
+	/* Ẩn review khỏi hiển thị công khai */
+	@Column(name = "is_hidden", nullable = false)
+	@Builder.Default
+	private Boolean isHidden = false;
+
 	@Column(name = "created_at")
 	@Builder.Default
 	private LocalDateTime createdAt = LocalDateTime.now();
