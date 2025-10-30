@@ -123,7 +123,7 @@ git push origin feature-branch
 #### Mở Pull Request và mô tả các thay đổi.
 
 
-## Một số hình ảnh giao diện của hệ thốngthống
+## Một số hình ảnh giao diện của hệ thống
 ### 1. Giao diện trang chủ 
 ![Logo UTeaDrink](https://res.cloudinary.com/dmgr8squx/image/upload/v1761754077/Screenshot_2025-10-29_224358_iai98c.png)
 
